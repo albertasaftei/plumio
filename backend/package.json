@@ -1,0 +1,23 @@
+{
+  "name": "pluma-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "hono": "^4.7.9",
+    "@hono/node-server": "^1.14.1",
+    "jose": "^5.9.6",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/bcrypt": "^5.0.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

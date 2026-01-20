@@ -1,0 +1,322 @@
+import { createSignal, For, Show, createMemo } from "solid-js";
+import type { Document } from "~/lib/api";
+
+interface SidebarProps {
+  documents: Document[];
+  currentPath: string | null;
+  onSelectDocument: (path: string) => void;
+  onCreateDocument: (name: string, folderPath?: string) => void;
+  onCreateFolder: (name: string, parentPath?: string) => void;
+  onDeleteItem: (path: string) => void;
+}
+
+interface TreeNode extends Document {
+  children: TreeNode[];
+  depth: number;
+}
+
+export default function Sidebar(props: SidebarProps) {
+  const [showNewDocModal, setShowNewDocModal] = createSignal(false);
+  const [showNewFolderModal, setShowNewFolderModal] = createSignal(false);
+  const [newItemName, setNewItemName] = createSignal("");
+  const [targetFolder, setTargetFolder] = createSignal<string>("/");
+  const [searchQuery, setSearchQuery] = createSignal("");
+  const [expandedFolders, setExpandedFolders] = createSignal<Set<string>>(new Set(["/"]));
+
+  const buildTree = createMemo(() => {
+    const tree: TreeNode[] = [];
+    const pathMap = new Map<string, TreeNode>();
+
+    // Sort documents: folders first, then alphabetically
+    const sorted = [...props.documents].sort((a, b) => {
+      if (a.type === "folder" && b.type === "file") return -1;
+      if (a.type === "file" && b.type === "folder") return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    // Build tree structure
+    for (const doc of sorted) {
+      const node: TreeNode = { ...doc, children: [], depth: 0 };
+      pathMap.set(doc.path, node);
+
+      const parentPath = doc.path.substring(0, doc.path.lastIndexOf("/")) || "/";
+      
+      if (parentPath === "/") {
+        tree.push(node);
+      } else {
+        const parent = pathMap.get(parentPath);
+        if (parent) {
+          node.depth = parent.depth + 1;
+          parent.children.push(node);
+        }
+      }
+    }
+
+    return tree;
+  });
+
+  const toggleFolder = (path: string) => {
+    const expanded = new Set(expandedFolders());
+    if (expanded.has(path)) {
+      expanded.delete(path);
+    } else {
+      expanded.add(path);
+    }
+    setExpandedFolders(expanded);
+  };
+
+  const filteredTree = () => {
+    const query = searchQuery().toLowerCase();
+    if (!query) return buildTree();
+
+    const filterNode = (node: TreeNode): TreeNode | null => {
+      const matches = node.name.toLowerCase().includes(query);
+      const filteredChildren = node.children
+        .map(filterNode)
+        .filter((n): n is TreeNode => n !== null);
+
+      if (matches || filteredChildren.length > 0) {
+        return { ...node, children: filteredChildren };
+      }
+      return null;
+    };
+
+    return buildTree()
+      .map(filterNode)
+      .filter((n): n is TreeNode => n !== null);
+  };
+
+  const handleCreateDocument = () => {
+    const name = newItemName().trim();
+    if (name) {
+      props.onCreateDocument(name, targetFolder());
+      setNewItemName("");
+      setTargetFolder("/");
+      setShowNewDocModal(false);
+    }
+  };
+
+  const handleCreateFolder = () => {
+    const name = newItemName().trim();
+    if (name) {
+      props.onCreateFolder(name, targetFolder());
+      setNewItemName("");
+      setTargetFolder("/");
+      setShowNewFolderModal(false);
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  };
+
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  return (
+    <>
+      <aside class="w-64 border-r border-neutral-800 bg-neutral-950 flex flex-col">
+        {/* Sidebar Header */}
+        <div class="p-4 border-b border-neutral-800">
+          {/* Breadcrumb */}
+          <div class="mb-3 flex items-center gap-1  text-neutral-400 overflow-x-auto">
+            <button
+              onClick={() => props.onNavigateToFolder("/")}
+              class="hover:text-neutral-200 transition-colors"
+            >
+              <div class="i-carbon-home w-4 h-4" />
+            </button>
+            <Show when={props.currentFolder !== "/"}>
+              <For each={props.currentFolder.split("/").filter(Boolean)}>
+                {(part, index) => (
+                  <>
+                    <span>/</span>
+                    <button
+                      onClick={() => {
+                        const parts = props.currentFolder.split("/").filter(Boolean);
+                        const newPath = "/" + parts.slice(0, index() + 1).join("/");
+                        props.onNavigateToFolder(newPath);
+                      }}
+                      class="hover:text-neutral-200 transition-colors"
+                    >
+                      {part}
+                    </button>
+                  </>
+                )}
+              </For>
+            </Show>
+          </div>
+          <div class="flex gap-2 mb-3">
+            <button
+              onClick={() => setShowNewDocModal(true)}
+              class="flex-1 px-3 py-2  bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <div class="i-carbon-document-add w-4 h-4" />
+              New
+            </button>
+            <button
+              onClick={() => setShowNewFolderModal(true)}
+              class="px-3 py-2  bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-lg transition-colors"
+              title="New folder"
+            >
+              <div class="i-carbon-folder-add w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Search */}
+          <div class="relative">
+            <div class="absolute left-3 top-1/2 -translate-y-1/2 i-carbon-search w-4 h-4 text-neutral-500" />
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery()}
+              onInput={(e) => setSearchQuery(e.currentTarget.value)}
+              class="w-full pl-9 pr-3 py-2 bg-neutral-900 border border-neutral-800 rounded-lg  text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700"
+            />
+          </div>
+        </div>
+
+        {/* Documents List */}
+        <div class="flex-1 overflow-y-auto">
+          <For each={sortedDocuments()}>
+            {(doc) => (
+              <div
+                class={`group px-4 py-2.5 cursor-pointer hover:bg-neutral-900 border-l-2 transition-colors ${
+                  props.currentPath === doc.path
+                    ? "border-l-blue-500 bg-neutral-900"
+                    : "border-l-transparent"
+                }`}
+                onClick={() => {
+                  if (doc.type === "file") {
+                    props.onSelectDocument(doc.path);
+                  } else {
+                    props.onNavigateToFolder(doc.path);
+                  }
+                }}
+              >
+                <div class="flex items-center gap-2 mb-1">
+                  <div
+                    class={`w-4 h-4 ${
+                      doc.type === "folder"
+                        ? "i-carbon-folder text-blue-400"
+                        : "i-carbon-document text-neutral-400"
+                    }`}
+                  />
+                  <span class=" text-neutral-200 truncate flex-1">
+                    {doc.name}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      props.onDeleteItem(doc.path);
+                    }}
+                    class="opacity-0 group-hover:opacity-100 p-1 hover:bg-neutral-800 rounded transition-opacity"
+                    title="Delete"
+                  >
+                    <div class="i-carbon-trash-can w-3.5 h-3.5 text-red-400" />
+                  </button>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-neutral-600 ml-6">
+                  <span>{formatDate(doc.modified)}</span>
+                  <Show when={doc.type === "file"}>
+                    <span>·</span>
+                    <span>{formatSize(doc.size)}</span>
+                  </Show>
+                </div>
+              </div>
+            )}
+          </For>
+        </div>
+      </aside>
+
+      {/* New Document Modal */}
+      <Show when={showNewDocModal()}>
+        <div
+          class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={() => setShowNewDocModal(false)}
+        >
+          <div
+            class="bg-neutral-900 rounded-lg p-6 w-96 border border-neutral-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 class="text-lg font-semibold text-neutral-100 mb-4">
+              New Document
+            </h3>
+            <input
+              type="text"
+              placeholder="Document name"
+              value={newItemName()}
+              onInput={(e) => setNewItemName(e.currentTarget.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleCreateDocument()}
+              class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
+              autofocus
+            />
+            <div class="flex gap-2 justify-end">
+              <button
+                onClick={() => setShowNewDocModal(false)}
+                class="px-4 py-2  text-neutral-400 hover:text-neutral-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateDocument}
+                class="px-4 py-2  bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      </Show>
+
+      {/* New Folder Modal */}
+      <Show when={showNewFolderModal()}>
+        <div
+          class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={() => setShowNewFolderModal(false)}
+        >
+          <div
+            class="bg-neutral-900 rounded-lg p-6 w-96 border border-neutral-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 class="text-lg font-semibold text-neutral-100 mb-4">
+              New Folder
+            </h3>
+            <input
+              type="text"
+              placeholder="Folder name"
+              value={newItemName()}
+              onInput={(e) => setNewItemName(e.currentTarget.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleCreateFolder()}
+              class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
+              autofocus
+            />
+            <div class="flex gap-2 justify-end">
+              <button
+                onClick={() => setShowNewFolderModal(false)}
+                class="px-4 py-2  text-neutral-400 hover:text-neutral-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateFolder}
+                class="px-4 py-2  bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      </Show>
+    </>
+  );
+}
