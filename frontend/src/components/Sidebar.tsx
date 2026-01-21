@@ -1,6 +1,11 @@
-import { createSignal, For, Show, createMemo } from "solid-js";
+import { createSignal, For, Show, createMemo, createEffect } from "solid-js";
 import Popover, { PopoverItem } from "./Popover";
 import type { SidebarProps, TreeNode } from "~/types/Sidebar.types";
+import {
+  buildDocumentTree,
+  filterTreeNodes,
+  formatDate,
+} from "~/utils/sidebar.utils";
 
 export default function Sidebar(props: SidebarProps) {
   const [showNewDocModal, setShowNewDocModal] = createSignal(false);
@@ -11,73 +16,37 @@ export default function Sidebar(props: SidebarProps) {
   const [itemToRename, setItemToRename] = createSignal<string | null>(null);
   const [openMenuPath, setOpenMenuPath] = createSignal<string | null>(null);
   const [searchQuery, setSearchQuery] = createSignal("");
-  const [expandedFolders, setExpandedFolders] = createSignal<Set<string>>(
-    new Set(["/"]),
-  );
 
-  const buildTree = createMemo(() => {
-    const tree: TreeNode[] = [];
-    const pathMap = new Map<string, TreeNode>();
+  let newDocInputRef: HTMLInputElement | undefined;
+  let newFolderInputRef: HTMLInputElement | undefined;
+  let renameInputRef: HTMLInputElement | undefined;
 
-    // Sort documents: folders first, then alphabetically
-    const sorted = [...props.documents].sort((a, b) => {
-      if (a.type === "folder" && b.type === "file") return -1;
-      if (a.type === "file" && b.type === "folder") return 1;
-      return a.name.localeCompare(b.name);
-    });
-
-    // Build tree structure
-    for (const doc of sorted) {
-      const node: TreeNode = { ...doc, children: [], depth: 0 };
-      pathMap.set(doc.path, node);
-
-      const parentPath =
-        doc.path.substring(0, doc.path.lastIndexOf("/")) || "/";
-
-      if (parentPath === "/") {
-        tree.push(node);
-      } else {
-        const parent = pathMap.get(parentPath);
-        if (parent) {
-          node.depth = parent.depth + 1;
-          parent.children.push(node);
-        }
-      }
-    }
-
-    return tree;
-  });
+  const buildTree = createMemo(() => buildDocumentTree(props.documents));
 
   const toggleFolder = (path: string) => {
-    const expanded = new Set(expandedFolders());
-    if (expanded.has(path)) {
-      expanded.delete(path);
-    } else {
-      expanded.add(path);
+    props.onExpandFolder(path);
+  };
+
+  const filteredTree = () => filterTreeNodes(buildTree(), searchQuery());
+
+  // Auto-focus inputs when modals open
+  createEffect(() => {
+    if (showNewDocModal() && newDocInputRef) {
+      setTimeout(() => newDocInputRef?.focus(), 0);
     }
-    setExpandedFolders(expanded);
-  };
+  });
 
-  const filteredTree = () => {
-    const query = searchQuery().toLowerCase();
-    if (!query) return buildTree();
+  createEffect(() => {
+    if (showNewFolderModal() && newFolderInputRef) {
+      setTimeout(() => newFolderInputRef?.focus(), 0);
+    }
+  });
 
-    const filterNode = (node: TreeNode): TreeNode | null => {
-      const matches = node.name.toLowerCase().includes(query);
-      const filteredChildren = node.children
-        .map(filterNode)
-        .filter((n): n is TreeNode => n !== null);
-
-      if (matches || filteredChildren.length > 0) {
-        return { ...node, children: filteredChildren };
-      }
-      return null;
-    };
-
-    return buildTree()
-      .map(filterNode)
-      .filter((n): n is TreeNode => n !== null);
-  };
+  createEffect(() => {
+    if (showRenameModal() && renameInputRef) {
+      setTimeout(() => renameInputRef?.focus(), 0);
+    }
+  });
 
   const handleCreateDocument = () => {
     const name = newItemName().trim();
@@ -91,8 +60,13 @@ export default function Sidebar(props: SidebarProps) {
 
   const handleCreateFolder = () => {
     const name = newItemName().trim();
+    const parent = targetFolder();
     if (name) {
-      props.onCreateFolder(name, targetFolder());
+      props.onCreateFolder(name, parent);
+      // Auto-expand the parent folder to show the new subfolder
+      if (parent !== "/") {
+        props.onExpandFolder(parent);
+      }
       setNewItemName("");
       setTargetFolder("/");
       setShowNewFolderModal(false);
@@ -110,19 +84,9 @@ export default function Sidebar(props: SidebarProps) {
     }
   };
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
-  };
-
   // Recursive tree node component
   const TreeNode = (nodeProps: { node: TreeNode }) => {
-    const isExpanded = () => expandedFolders().has(nodeProps.node.path);
+    const isExpanded = () => props.expandedFolders.has(nodeProps.node.path);
     const paddingLeft = () => `${nodeProps.node.depth * 16 + 16}px`;
 
     return (
@@ -139,15 +103,14 @@ export default function Sidebar(props: SidebarProps) {
             onClick={() => {
               if (nodeProps.node.type === "file") {
                 props.onSelectDocument(nodeProps.node.path);
+              } else {
+                toggleFolder(nodeProps.node.path);
               }
             }}
             class="flex items-center gap-2 py-2 pr-2"
           >
             <Show when={nodeProps.node.type === "folder"}>
-              <button
-                onClick={() => toggleFolder(nodeProps.node.path)}
-                class="p-0.5 hover:bg-neutral-800 rounded transition-colors"
-              >
+              <button class="p-0.5 hover:bg-neutral-800 rounded transition-colors">
                 <div
                   class={`w-3 h-3 text-neutral-500 transition-transform ${
                     isExpanded()
@@ -176,7 +139,8 @@ export default function Sidebar(props: SidebarProps) {
             <div class="flex items-center gap-1 ">
               <Show when={nodeProps.node.type === "folder"}>
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setTargetFolder(nodeProps.node.path);
                     setShowNewDocModal(true);
                   }}
@@ -184,6 +148,17 @@ export default function Sidebar(props: SidebarProps) {
                   title="Add file"
                 >
                   <div class="i-carbon-add w-4 h-4 text-green-400" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setTargetFolder(nodeProps.node.path);
+                    setShowNewFolderModal(true);
+                  }}
+                  class="p-1 hover:bg-neutral-800 rounded transition-colors"
+                  title="Add subfolder"
+                >
+                  <div class="i-carbon-folder-add w-4 h-4 text-blue-400" />
                 </button>
               </Show>
               <Popover
@@ -251,7 +226,7 @@ export default function Sidebar(props: SidebarProps) {
 
   return (
     <>
-      <aside class="w-64 border-r border-neutral-800 bg-neutral-950 flex flex-col">
+      <aside class="w-96 border-r border-neutral-800 bg-neutral-950 flex flex-col">
         {/* Sidebar Header */}
         <div class="p-4 border-b border-neutral-800">
           <div class="flex items-center justify-between mb-3">
@@ -340,13 +315,13 @@ export default function Sidebar(props: SidebarProps) {
             </h3>
             <p class=" text-neutral-400 mb-3">Creating in: {targetFolder()}</p>
             <input
+              ref={newDocInputRef}
               type="text"
               placeholder="Document name"
               value={newItemName()}
               onInput={(e) => setNewItemName(e.currentTarget.value)}
               onKeyPress={(e) => e.key === "Enter" && handleCreateDocument()}
               class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
-              autofocus
             />
             <div class="flex gap-2 justify-end">
               <button
@@ -381,13 +356,13 @@ export default function Sidebar(props: SidebarProps) {
             </h3>
             <p class=" text-neutral-400 mb-3">Creating in: {targetFolder()}</p>
             <input
+              ref={newFolderInputRef}
               type="text"
               placeholder="Folder name"
               value={newItemName()}
               onInput={(e) => setNewItemName(e.currentTarget.value)}
               onKeyPress={(e) => e.key === "Enter" && handleCreateFolder()}
               class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
-              autofocus
             />
             <div class="flex gap-2 justify-end">
               <button
@@ -420,13 +395,13 @@ export default function Sidebar(props: SidebarProps) {
             <h3 class="text-lg font-semibold text-neutral-100 mb-4">Rename</h3>
             <p class=" text-neutral-400 mb-3">Current: {itemToRename()}</p>
             <input
+              ref={renameInputRef}
               type="text"
               placeholder="New name"
               value={newItemName()}
               onInput={(e) => setNewItemName(e.currentTarget.value)}
               onKeyPress={(e) => e.key === "Enter" && handleRename()}
               class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
-              autofocus
             />
             <div class="flex gap-2 justify-end">
               <button

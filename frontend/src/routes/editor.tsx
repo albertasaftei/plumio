@@ -14,6 +14,9 @@ export default function EditorPage() {
   const [loading, setLoading] = createSignal(false);
   const [sidebarOpen, setSidebarOpen] = createSignal(true);
   const [useLivePreview, setUseLivePreview] = createSignal(true);
+  const [expandedFolders, setExpandedFolders] = createSignal<Set<string>>(
+    new Set(["/"]),
+  );
   const [saveStatus, setSaveStatus] = createSignal<
     "saved" | "saving" | "unsaved"
   >("saved");
@@ -105,9 +108,25 @@ export default function EditorPage() {
     try {
       await api.createFolder(fullPath);
       await loadAllDocuments();
+      // Auto-expand parent folder to show the new subfolder
+      if (parentPath !== "/") {
+        const expanded = new Set(expandedFolders());
+        expanded.add(parentPath);
+        setExpandedFolders(expanded);
+      }
     } catch (error) {
       console.error("Failed to create folder:", error);
     }
+  };
+
+  const toggleExpandFolder = (path: string) => {
+    const expanded = new Set(expandedFolders());
+    if (expanded.has(path)) {
+      expanded.delete(path);
+    } else {
+      expanded.add(path);
+    }
+    setExpandedFolders(expanded);
   };
 
   const deleteItem = async (path: string) => {
@@ -193,11 +212,13 @@ export default function EditorPage() {
             sidebarOpen={sidebarOpen()}
             setSidebarOpen={setSidebarOpen}
             saveStatus={saveStatus()}
+            expandedFolders={expandedFolders()}
             onSelectDocument={loadDocument}
             onCreateDocument={createNewDocument}
             onCreateFolder={createNewFolder}
             onDeleteItem={deleteItem}
             onRenameItem={renameItem}
+            onExpandFolder={toggleExpandFolder}
           />
         </Show>
 
