@@ -7,8 +7,6 @@ interface ButtonProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   fullWidth?: boolean;
-  icon?: JSX.Element;
-  iconPosition?: "left" | "right";
   active?: boolean;
 }
 
@@ -17,8 +15,6 @@ export default function Button(props: ButtonProps) {
     "variant",
     "size",
     "fullWidth",
-    "icon",
-    "iconPosition",
     "active",
     "class",
     "children",
@@ -26,9 +22,9 @@ export default function Button(props: ButtonProps) {
 
   const variant = () => local.variant || "secondary";
   const size = () => local.size || "md";
-  const iconPosition = () => local.iconPosition || "left";
 
-  const baseClasses = "rounded-lg transition-colors cursor-pointer";
+  const baseClasses =
+    "flex items-center justify-center gap-2 rounded-lg transition-colors cursor-pointer";
 
   const variantClasses = () => {
     const v = variant();
@@ -65,13 +61,7 @@ export default function Button(props: ButtonProps) {
 
   return (
     <button class={classes()} {...others}>
-      {local.icon && iconPosition() === "left" && (
-        <span class={local.children ? "mr-2" : ""}>{local.icon}</span>
-      )}
       {local.children}
-      {local.icon && iconPosition() === "right" && (
-        <span class={local.children ? "ml-2" : ""}>{local.icon}</span>
-      )}
     </button>
   );
 }

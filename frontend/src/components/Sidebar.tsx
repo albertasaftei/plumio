@@ -106,7 +106,7 @@ export default function Sidebar(props: SidebarProps) {
     return (
       <>
         <div
-          class={`group relative hover:bg-neutral-900 border-l-2 transition-colors ${
+          class={`group relative hover:bg-neutral-900 border-l-2 transition-colors border-y border-neutral-800/50 ${
             nodeProps.node.path === props.currentPath
               ? "border-l-blue-500"
               : "border-l-transparent"
@@ -115,7 +115,6 @@ export default function Sidebar(props: SidebarProps) {
             "padding-left": paddingLeft(),
             "background-color": getBackgroundColor(),
           }}
-          class="border-y border-neutral-800/50"
         >
           <div
             onClick={() => {
@@ -298,13 +297,12 @@ export default function Sidebar(props: SidebarProps) {
                 setTargetFolder("/");
                 setShowNewDocModal(true);
               }}
-              variant="secondary"
+              variant="primary"
               size="md"
               fullWidth
-              class="flex items-center justify-center gap-2"
             >
               <div class="i-carbon-document-add w-4 h-4" />
-              New
+              New file
             </Button>
             <Button
               onClick={() => {
