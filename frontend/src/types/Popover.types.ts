@@ -10,6 +10,6 @@ export interface PopoverProps {
 export interface PopoverItemProps {
   icon?: string;
   label: string;
-  onClick: () => void;
+  onClick: (e: MouseEvent) => void;
   variant?: "default" | "danger";
 }

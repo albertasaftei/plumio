@@ -1,7 +1,13 @@
 .milkdown-editor-wrapper {
   background: #171717;
   color: #e5e5e5;
-  padding: 2rem;
+  padding: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .milkdown-editor-wrapper {
+    padding: 2rem;
+  }
 }
 
 .milkdown {

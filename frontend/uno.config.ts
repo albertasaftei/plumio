@@ -16,9 +16,13 @@ export default defineConfig({
   ],
   theme: {
     colors: {
+      primary: "#2a9d8f",
       neutral: {
         950: "#0a0a0a",
       },
+    },
+    font: {
+      sans: "Inter, sans-serif",
     },
   },
 });

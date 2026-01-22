@@ -3,6 +3,7 @@ import { api, type Document } from "~/lib/api";
 import Editor from "~/components/Editor";
 import Sidebar from "~/components/Sidebar";
 import Logo from "~/components/Logo";
+import Button from "~/components/Button";
 
 // Lazy load markdown editor with live preview to avoid SSR issues
 const MarkdownEditor = lazy(() => import("~/components/MarkdownEditor"));
@@ -187,81 +188,97 @@ export default function EditorPage() {
   return (
     <div class="h-screen flex flex-col bg-neutral-900">
       {/* Header */}
-      <header class="h-14 border-b border-neutral-800 flex items-center justify-between px-4 bg-neutral-950">
-        <div class="flex items-center gap-2">
+      <header class="h-14 border-b border-neutral-800 flex items-center justify-between px-2 sm:px-4 bg-neutral-950">
+        <div class="flex items-center gap-1 sm:gap-2">
           <Show when={!sidebarOpen()}>
-            <button
+            <Button
               onClick={() => setSidebarOpen(true)}
-              class="p-2 hover:bg-neutral-800 rounded-lg transition-colors"
+              variant="icon"
+              size="lg"
               aria-label="Open sidebar"
             >
-              <div class="i-carbon-side-panel-open w-5 h-5 text-neutral-400" />
-            </button>
+              <div class="i-carbon-side-panel-open w-5 h-5" />
+            </Button>
           </Show>
-          <Logo color="white" />
-          <h1 class="text-lg font-semibold text-neutral-100">pluma</h1>
+          <Logo color="#2a9d8f" />
+          <h1 class="hidden sm:block text-lg font-semibold text-neutral-100">
+            pluma
+          </h1>
         </div>
 
-        <div class="flex items-center gap-4">
-          <button
+        <div class="flex items-center gap-2 sm:gap-4">
+          <Button
             onClick={handleLogout}
-            class="px-3 py-1.5 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-lg transition-colors"
+            variant="ghost"
+            size="sm"
+            class="px-2 sm:px-3"
           >
             Logout
-          </button>
+          </Button>
         </div>
       </header>
 
-      <div class="flex-1 flex overflow-hidden">
+      <div class="flex-1 flex overflow-hidden relative">
         {/* Sidebar */}
         <Show when={sidebarOpen()}>
-          <Sidebar
-            documents={allDocuments()}
-            currentPath={currentPath()}
-            sidebarOpen={sidebarOpen()}
-            setSidebarOpen={setSidebarOpen}
-            saveStatus={saveStatus()}
-            expandedFolders={expandedFolders()}
-            onSelectDocument={loadDocument}
-            onCreateDocument={createNewDocument}
-            onCreateFolder={createNewFolder}
-            onDeleteItem={deleteItem}
-            onRenameItem={renameItem}
-            onExpandFolder={toggleExpandFolder}
-            onSetColor={setItemColor}
+          {/* Mobile overlay backdrop */}
+          <div
+            class="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
           />
+          <div class="fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto">
+            <Sidebar
+              documents={allDocuments()}
+              currentPath={currentPath()}
+              sidebarOpen={sidebarOpen()}
+              setSidebarOpen={setSidebarOpen}
+              saveStatus={saveStatus()}
+              expandedFolders={expandedFolders()}
+              onSelectDocument={(path) => {
+                loadDocument(path);
+                // Close sidebar on mobile after selecting document
+                if (window.innerWidth < 1024) {
+                  setSidebarOpen(false);
+                }
+              }}
+              onCreateDocument={createNewDocument}
+              onCreateFolder={createNewFolder}
+              onDeleteItem={deleteItem}
+              onRenameItem={renameItem}
+              onExpandFolder={toggleExpandFolder}
+              onSetColor={setItemColor}
+            />
+          </div>
         </Show>
 
         {/* Main Editor Area */}
         <div class="flex-1 flex flex-col overflow-hidden">
           {/* View Mode Toggle */}
           <Show when={currentPath()}>
-            <div class="h-12 border-b border-neutral-800 flex items-center px-4 bg-neutral-950">
+            <div class="h-12 border-b border-neutral-800 flex items-center px-2 sm:px-4 bg-neutral-950">
               <div class="flex items-center gap-1 border border-neutral-800 rounded-lg overflow-hidden">
-                <button
+                <Button
                   onClick={() => setUseLivePreview(false)}
-                  class={`flex items-center px-3 py-1.5 text-sm transition-colors ${
-                    !useLivePreview()
-                      ? "bg-neutral-700 text-neutral-100"
-                      : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"
-                  }`}
+                  variant="ghost"
+                  size="sm"
+                  active={!useLivePreview()}
+                  class="flex items-center"
                   title="Plain text editor"
                 >
-                  <div class="i-carbon-code w-4 h-4 inline-block mr-1" />
-                  Plain
-                </button>
-                <button
+                  <div class="i-carbon-code w-4 h-4" />
+                  <span class="hidden sm:inline ml-1">Plain</span>
+                </Button>
+                <Button
                   onClick={() => setUseLivePreview(true)}
-                  class={`flex items-center px-3 py-1.5 text-sm transition-colors ${
-                    useLivePreview()
-                      ? "bg-neutral-700 text-neutral-100"
-                      : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"
-                  }`}
+                  variant="ghost"
+                  size="sm"
+                  active={useLivePreview()}
+                  class="flex items-center"
                   title="Live preview editor"
                 >
-                  <div class="i-carbon-view w-4 h-4 inline-block mr-1" />
-                  Live
-                </button>
+                  <div class="i-carbon-view w-4 h-4" />
+                  <span class="hidden sm:inline ml-1">Live</span>
+                </Button>
               </div>
             </div>
           </Show>
@@ -286,15 +303,7 @@ export default function EditorPage() {
                 </div>
               }
             >
-              <Show
-                when={useLivePreview()}
-                fallback={
-                  <Editor
-                    content={currentContent()}
-                    onChange={handleContentChange}
-                  />
-                }
-              >
+              {useLivePreview() ? (
                 <Suspense
                   fallback={
                     <div class="flex-1 flex items-center justify-center">
@@ -307,7 +316,12 @@ export default function EditorPage() {
                     onChange={handleContentChange}
                   />
                 </Suspense>
-              </Show>
+              ) : (
+                <Editor
+                  content={currentContent()}
+                  onChange={handleContentChange}
+                />
+              )}
             </Show>
           </Show>
         </div>

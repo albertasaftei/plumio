@@ -1,6 +1,7 @@
 import { createSignal, For, Show, createMemo, createEffect } from "solid-js";
 import Popover, { PopoverItem } from "./Popover";
 import ColorPicker from "./ColorPicker";
+import Button from "./Button";
 import type { SidebarProps, TreeNode } from "~/types/Sidebar.types";
 import {
   buildDocumentTree,
@@ -114,6 +115,7 @@ export default function Sidebar(props: SidebarProps) {
             "padding-left": paddingLeft(),
             "background-color": getBackgroundColor(),
           }}
+          class="border-y border-neutral-800/50"
         >
           <div
             onClick={() => {
@@ -126,15 +128,15 @@ export default function Sidebar(props: SidebarProps) {
             class="flex items-center gap-2 py-2 pr-2"
           >
             <Show when={nodeProps.node.type === "folder"}>
-              <button class="p-0.5 hover:bg-neutral-800 rounded transition-colors">
+              <Button variant="icon" size="sm" class="text-neutral-500">
                 <div
-                  class={`w-3 h-3 text-neutral-500 transition-transform ${
+                  class={`w-3 h-3 transition-transform ${
                     isExpanded()
                       ? "i-carbon-chevron-down"
                       : "i-carbon-chevron-right"
                   }`}
                 />
-              </button>
+              </Button>
             </Show>
             <Show when={nodeProps.node.type === "file"}>
               <div class="w-3 h-3" />
@@ -148,38 +150,40 @@ export default function Sidebar(props: SidebarProps) {
               }`}
             />
 
-            <button class="flex-1 text-left text-neutral-200 truncate hover:text-neutral-100">
+            <button class="flex-1 text-left text-neutral-200 truncate hover:text-neutral-100 cursor-pointer">
               {nodeProps.node.name}
             </button>
 
             <div class="flex items-center gap-1 ">
               <Show when={nodeProps.node.type === "folder"}>
-                <button
+                <Button
                   onClick={(e) => {
                     e.stopPropagation();
                     setTargetFolder(nodeProps.node.path);
                     setShowNewDocModal(true);
                   }}
-                  class="p-1 hover:bg-neutral-800 rounded transition-colors"
+                  variant="icon"
+                  size="sm"
                   title="Add file"
                 >
                   <div class="i-carbon-add w-4 h-4 text-green-400" />
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={(e) => {
                     e.stopPropagation();
                     setTargetFolder(nodeProps.node.path);
                     setShowNewFolderModal(true);
                   }}
-                  class="p-1 hover:bg-neutral-800 rounded transition-colors"
+                  variant="icon"
+                  size="sm"
                   title="Add subfolder"
                 >
                   <div class="i-carbon-folder-add w-4 h-4 text-blue-400" />
-                </button>
+                </Button>
               </Show>
               <Popover
                 trigger={
-                  <button
+                  <Button
                     onClick={(e) => {
                       e.stopPropagation();
                       setOpenMenuPath(
@@ -188,11 +192,12 @@ export default function Sidebar(props: SidebarProps) {
                           : nodeProps.node.path,
                       );
                     }}
-                    class="p-1 hover:bg-neutral-800 rounded transition-colors"
+                    variant="icon"
+                    size="sm"
                     title="More options"
                   >
                     <div class="i-carbon-overflow-menu-vertical w-4 h-4 text-neutral-400" />
-                  </button>
+                  </Button>
                 }
                 isOpen={openMenuPath() === nodeProps.node.path}
                 onClose={() => setOpenMenuPath(null)}
@@ -200,7 +205,8 @@ export default function Sidebar(props: SidebarProps) {
                 <PopoverItem
                   icon="i-carbon-edit"
                   label="Rename"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     const fileName = nodeProps.node.name.split(".")[0];
                     setItemToRename(nodeProps.node.path);
                     setNewItemName(fileName);
@@ -213,7 +219,8 @@ export default function Sidebar(props: SidebarProps) {
                   icon="i-carbon-trash-can"
                   label="Delete"
                   variant="danger"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     props.onDeleteItem(nodeProps.node.path);
                     setOpenMenuPath(null);
                   }}
@@ -252,17 +259,18 @@ export default function Sidebar(props: SidebarProps) {
 
   return (
     <>
-      <aside class="w-96 border-r border-neutral-800 bg-neutral-950 flex flex-col">
+      <aside class="w-80 sm:w-96 h-full border-r border-neutral-800 bg-neutral-950 flex flex-col">
         {/* Sidebar Header */}
-        <div class="p-4 border-b border-neutral-800">
+        <div class="p-3 sm:p-4 border-b border-neutral-800">
           <div class="flex items-center justify-between mb-3">
-            <button
+            <Button
               onClick={() => props.setSidebarOpen(false)}
-              class="p-1.5 hover:bg-neutral-800 rounded-lg transition-colors"
+              variant="icon"
+              size="md"
               title="Close sidebar"
             >
-              <div class="i-carbon-side-panel-close w-5 h-5 text-neutral-400" />
-            </button>
+              <div class="i-carbon-side-panel-close w-5 h-5" />
+            </Button>
             <Show when={props.saveStatus === "saving"}>
               <span class="text-xs text-neutral-400">Saving...</span>
             </Show>
@@ -285,26 +293,30 @@ export default function Sidebar(props: SidebarProps) {
           </Show>
 
           <div class="flex gap-2 mb-3">
-            <button
+            <Button
               onClick={() => {
                 setTargetFolder("/");
                 setShowNewDocModal(true);
               }}
-              class="flex-1 px-3 py-2  bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-lg transition-colors flex items-center justify-center gap-2"
+              variant="secondary"
+              size="md"
+              fullWidth
+              class="flex items-center justify-center gap-2"
             >
               <div class="i-carbon-document-add w-4 h-4" />
               New
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => {
                 setTargetFolder("/");
                 setShowNewFolderModal(true);
               }}
-              class="px-3 py-2  bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-lg transition-colors"
+              variant="secondary"
+              size="md"
               title="New folder"
             >
               <div class="i-carbon-folder-add w-4 h-4" />
-            </button>
+            </Button>
           </div>
 
           {/* Search */}
@@ -329,11 +341,11 @@ export default function Sidebar(props: SidebarProps) {
       {/* New Document Modal */}
       <Show when={showNewDocModal()}>
         <div
-          class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={() => setShowNewDocModal(false)}
         >
           <div
-            class="bg-neutral-900 rounded-lg p-6 w-96 border border-neutral-800"
+            class="bg-neutral-900 rounded-lg p-4 sm:p-6 w-full max-w-md border border-neutral-800"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 class="text-lg font-semibold text-neutral-100 mb-4">
@@ -350,18 +362,20 @@ export default function Sidebar(props: SidebarProps) {
               class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
             />
             <div class="flex gap-2 justify-end">
-              <button
+              <Button
                 onClick={() => setShowNewDocModal(false)}
-                class="px-4 py-2  text-neutral-400 hover:text-neutral-200 transition-colors"
+                variant="ghost"
+                size="lg"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleCreateDocument}
-                class="px-4 py-2  bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                variant="primary"
+                size="lg"
               >
                 Create
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -370,11 +384,11 @@ export default function Sidebar(props: SidebarProps) {
       {/* New Folder Modal */}
       <Show when={showNewFolderModal()}>
         <div
-          class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={() => setShowNewFolderModal(false)}
         >
           <div
-            class="bg-neutral-900 rounded-lg p-6 w-96 border border-neutral-800"
+            class="bg-neutral-900 rounded-lg p-4 sm:p-6 w-full max-w-md border border-neutral-800"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 class="text-lg font-semibold text-neutral-100 mb-4">
@@ -391,18 +405,16 @@ export default function Sidebar(props: SidebarProps) {
               class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
             />
             <div class="flex gap-2 justify-end">
-              <button
+              <Button
                 onClick={() => setShowNewFolderModal(false)}
-                class="px-4 py-2  text-neutral-400 hover:text-neutral-200 transition-colors"
+                variant="ghost"
+                size="lg"
               >
                 Cancel
-              </button>
-              <button
-                onClick={handleCreateFolder}
-                class="px-4 py-2  bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
+              </Button>
+              <Button onClick={handleCreateFolder} variant="primary" size="lg">
                 Create
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -411,11 +423,11 @@ export default function Sidebar(props: SidebarProps) {
       {/* Rename Modal */}
       <Show when={showRenameModal()}>
         <div
-          class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={() => setShowRenameModal(false)}
         >
           <div
-            class="bg-neutral-900 rounded-lg p-6 w-96 border border-neutral-800"
+            class="bg-neutral-900 rounded-lg p-4 sm:p-6 w-full max-w-md border border-neutral-800"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 class="text-lg font-semibold text-neutral-100 mb-4">Rename</h3>
@@ -430,18 +442,16 @@ export default function Sidebar(props: SidebarProps) {
               class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
             />
             <div class="flex gap-2 justify-end">
-              <button
+              <Button
                 onClick={() => setShowRenameModal(false)}
-                class="px-4 py-2  text-neutral-400 hover:text-neutral-200 transition-colors"
+                variant="ghost"
+                size="lg"
               >
                 Cancel
-              </button>
-              <button
-                onClick={handleRename}
-                class="px-4 py-2  bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
+              </Button>
+              <Button onClick={handleRename} variant="primary" size="lg">
                 Rename
-              </button>
+              </Button>
             </div>
           </div>
         </div>

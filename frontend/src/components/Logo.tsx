@@ -2,10 +2,12 @@ const Logo = ({
   size,
   fill,
   color,
+  className,
 }: {
   size?: string;
   fill?: string;
   color?: string;
+  className?: string;
 }) => {
   return (
     <svg
@@ -13,6 +15,7 @@ const Logo = ({
       width={size || "24"}
       height={size || "24"}
       viewBox="0 0 48 48"
+      class={className || ""}
     >
       <g
         fill={fill || "none"}
