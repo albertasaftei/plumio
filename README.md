@@ -2,17 +2,6 @@
 
 A self-hosted markdown editor with live preview, document encryption, and dark/light theme support.
 
-## Features
-
-- ✏️ Real-time markdown preview with Milkdown editor
-- 🔒 Document encryption using AES-256-CBC
-- 📁 File and folder management
-- 💾 Auto-save functionality
-- 🌙 Dark/light theme toggle
-- 🐳 Docker-based deployment
-- 🔐 Secure secret management with Docker Secrets
-- 💪 Production-ready with health checks and resource limits
-
 ## Quick Start
 
 ### Prerequisites
@@ -90,26 +79,6 @@ ENCRYPTION_KEY=your-encryption-key-here
 PORT=3001
 ```
 
-## Usage
-
-### First Time Setup
-
-1. Open http://localhost:3000
-2. Create your account (first user becomes admin)
-3. Start creating documents!
-
-### Managing Documents
-
-- Click "New Document" to create a file
-- Click "New Folder" to organize your documents
-- Use the Plain/Live toggle to switch between editor and preview
-- Documents auto-save after each edit
-- Use the color picker to customize folder/file colors
-
-### Theme Toggle
-
-Click the moon/sun icon in the header to switch between dark and light themes.
-
 ## Backup and Restore
 
 ### Backup Your Data
@@ -158,51 +127,6 @@ docker run --rm \
    pnpm dev
    ```
 
-### Project Structure
-
-```
-pluma/
-├── src/                  # Frontend SolidJS application
-│   ├── components/       # Reusable UI components
-│   ├── routes/          # Page routes
-│   └── app.tsx          # Main app component
-├── backend/             # Hono backend API
-│   └── src/
-│       ├── routes/      # API routes (auth, documents)
-│       └── index.ts     # Server entry point
-├── public/              # Static assets
-├── secrets/             # Docker secrets (DO NOT COMMIT)
-└── docker-compose.yml   # Docker orchestration
-```
-
-## Security
-
-- All documents are encrypted at rest using AES-256-CBC
-- Passwords are hashed using bcrypt
-- JWT tokens for authentication with 7-day expiration
-- Docker Secrets for sensitive credentials
-- Path sanitization to prevent directory traversal
-- Health checks for container monitoring
-
-## Troubleshooting
-
-### Container Not Starting
-
-Check logs:
-
-```bash
-docker-compose logs backend
-docker-compose logs frontend
-```
-
-### Health Check Failing
-
-Check backend health endpoint:
-
-```bash
-curl http://localhost:3001/api/health
-```
-
 ### Lost Encryption Key
 
 If you lose the encryption key, documents cannot be decrypted. Always maintain secure backups of:
@@ -232,4 +156,4 @@ Contributions are welcome! Please open an issue or submit a pull request.
 
 ## License
 
-MIT
+AGPL-3.0 License. See [LICENSE](LICENSE) for details.

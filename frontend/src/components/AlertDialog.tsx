@@ -6,18 +6,6 @@ export default function AlertDialog(props: AlertDialogProps) {
   const confirmText = () => props.confirmText || "Confirm";
   const cancelText = () => props.cancelText || "Cancel";
 
-  const variantStyles = () => {
-    switch (props.variant) {
-      case "danger":
-        return "bg-red-600 hover:bg-red-700";
-      case "warning":
-        return "bg-yellow-600 hover:bg-yellow-700";
-      case "info":
-      default:
-        return "bg-primary hover:bg-primary-dark";
-    }
-  };
-
   const buttonVariant = () => {
     switch (props.variant) {
       case "danger":

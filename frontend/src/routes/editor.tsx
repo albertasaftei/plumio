@@ -6,6 +6,7 @@ import Logo from "~/components/Logo";
 import Button from "~/components/Button";
 import { SettingsMenu } from "~/components/SettingsMenu";
 import AlertDialog from "~/components/AlertDialog";
+import Dashboard from "~/components/Dashboard";
 
 // Lazy load markdown editor with live preview to avoid SSR issues
 const MarkdownEditor = lazy(() => import("~/components/MarkdownEditor"));
@@ -225,10 +226,21 @@ export default function EditorPage() {
               <div class="i-carbon-side-panel-open w-5 h-5" />
             </Button>
           </Show>
-          <Logo color="#2a9d8f" />
-          <h1 class="hidden sm:block text-lg font-semibold text-neutral-100">
-            pluma
-          </h1>
+          <Button
+            onClick={() => {
+              setCurrentPath(null);
+              setCurrentContent("");
+            }}
+            variant="ghost"
+            size="lg"
+            class="flex items-center gap-1 sm:gap-2"
+            title="Go to Dashboard"
+          >
+            <Logo color="#2a9d8f" />
+            <h1 class="hidden sm:block text-lg font-semibold text-neutral-100">
+              pluma
+            </h1>
+          </Button>
         </div>
 
         <div class="flex items-center gap-2 sm:gap-4">
@@ -326,13 +338,16 @@ export default function EditorPage() {
           <Show
             when={currentPath()}
             fallback={
-              <div class="flex-1 flex items-center justify-center text-neutral-500">
-                <div class="text-center">
-                  <div class="i-carbon-document-blank w-16 h-16 mx-auto mb-4 opacity-20" />
-                  <p class="text-lg mb-2">No document selected</p>
-                  <p class="">Create or select a document from the sidebar</p>
-                </div>
-              </div>
+              <Dashboard
+                documents={allDocuments()}
+                onSelectDocument={(path) => {
+                  loadDocument(path);
+                  // Close sidebar on mobile after selecting document
+                  if (window.innerWidth < 1024) {
+                    setSidebarOpen(false);
+                  }
+                }}
+              />
             }
           >
             <Show
