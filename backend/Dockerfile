@@ -1,32 +1,32 @@
 # Backend Dockerfile
 FROM node:22-alpine AS builder
 
+# Install build dependencies for native modules (bcrypt)
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /app
 
-# Copy package files (need pnpm-lock.yaml too)
-COPY package.json pnpm-lock.yaml ./
+# Copy package files
+COPY package.json package-lock.json* ./
 
-# Install pnpm and dependencies
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+# Install dependencies with npm (better for native modules in Docker)
+RUN npm install
 
 # Copy source code
 COPY . .
 
 # Build TypeScript
-RUN pnpm build
+RUN npm run build
 
 # Production stage
 FROM node:22-alpine
 
 WORKDIR /app
 
-# Copy built files and dependencies
+# Copy built files and node_modules from builder
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
-COPY --from=builder /app/pnpm-lock.yaml ./
-
-# Install pnpm and production dependencies
-RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile
 
 # Create directories for data
 RUN mkdir -p /data/documents

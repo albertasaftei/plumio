@@ -108,7 +108,7 @@ export default function Sidebar(props: SidebarProps) {
         <div
           class={`group relative hover:bg-neutral-900 border-l-2 transition-colors border-y border-neutral-800/50 ${
             nodeProps.node.path === props.currentPath
-              ? "border-l-blue-500"
+              ? "border-l-primary"
               : "border-l-transparent"
           }`}
           style={{

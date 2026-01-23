@@ -2,14 +2,12 @@ import { Hono } from "hono";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcrypt";
 import fs from "fs/promises";
-import path from "path";
+import { JWT_SECRET } from "../config.js";
 
 const authRouter = new Hono();
 
 const AUTH_FILE = process.env.AUTH_FILE || "./auth.json";
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "change-this-secret",
-);
+const jwtSecretKey = new TextEncoder().encode(JWT_SECRET);
 
 interface User {
   username: string;
@@ -69,7 +67,7 @@ authRouter.post("/login", async (c) => {
   const token = await new SignJWT({ username })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("7d")
-    .sign(JWT_SECRET);
+    .sign(jwtSecretKey);
 
   return c.json({ token, username });
 });
@@ -77,7 +75,7 @@ authRouter.post("/login", async (c) => {
 // Verify token middleware
 export async function verifyToken(token: string) {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, jwtSecretKey);
     return payload;
   } catch {
     return null;

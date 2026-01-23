@@ -209,11 +209,11 @@ export default function EditorPage() {
         <div class="flex items-center gap-2 sm:gap-4">
           <Button
             onClick={handleLogout}
-            variant="ghost"
-            size="sm"
-            class="px-2 sm:px-3"
+            variant="icon"
+            size="md"
+            title="Logout"
           >
-            Logout
+            <div class="i-carbon-logout w-5 h-5" />
           </Button>
         </div>
       </header>

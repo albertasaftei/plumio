@@ -10,9 +10,10 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - VITE_API_URL=http://backend:3001
+      - VITE_API_URL=http://localhost:3001
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - pluma-network
 
@@ -25,16 +26,30 @@ services:
     ports:
       - "3001:3001"
     environment:
+      - NODE_ENV=production
       - PORT=3001
+      - FRONTEND_PORT=3000
       - DOCUMENTS_PATH=/data/documents
-      - AUTH_FILE=/data/auth.json
-      - JWT_SECRET=${JWT_SECRET:-change-this-secret-in-production}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-change-this-32-char-key-prod!!}
-      - FRONTEND_URL=http://frontend:3000
+      - FRONTEND_URL=http://localhost:3000
+    secrets:
+      - jwt_secret
+      - encryption_key
     volumes:
       - pluma-data:/data
     networks:
       - pluma-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
 
   # Optional: nginx reverse proxy with SSL
   nginx:
@@ -60,3 +75,9 @@ volumes:
 networks:
   pluma-network:
     driver: bridge
+
+secrets:
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt
+  encryption_key:
+    file: ./secrets/encryption_key.txt

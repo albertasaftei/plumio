@@ -5,7 +5,6 @@
 - [ ] Tag/category system
 - [ ] Document version history
 - [ ] Full-text search
-- [ ] Mobile responsive improvements
 - [ ] Keyboard shortcuts
 - [ ] Drag-and-drop file organization
 - [ ] Image upload support
