@@ -1,6 +1,12 @@
 import { JSX, splitProps } from "solid-js";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "icon";
+type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "ghost"
+  | "icon"
+  | "danger"
+  | "warning";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -38,6 +44,13 @@ export default function Button(props: ButtonProps) {
       ghost: local.active
         ? "bg-neutral-700 text-neutral-100"
         : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800",
+      danger: local.active
+        ? "bg-red-600 text-white"
+        : "bg-red-600 hover:bg-red-500 text-white",
+      warning: local.active
+        ? "bg-yellow-600 text-white"
+        : "bg-yellow-700 hover:bg-yellow-600 text-white",
+
       icon: "hover:bg-neutral-800 text-neutral-400",
     };
     return classes[v];

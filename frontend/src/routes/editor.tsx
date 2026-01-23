@@ -4,6 +4,8 @@ import Editor from "~/components/Editor";
 import Sidebar from "~/components/Sidebar";
 import Logo from "~/components/Logo";
 import Button from "~/components/Button";
+import { SettingsMenu } from "~/components/SettingsMenu";
+import AlertDialog from "~/components/AlertDialog";
 
 // Lazy load markdown editor with live preview to avoid SSR issues
 const MarkdownEditor = lazy(() => import("~/components/MarkdownEditor"));
@@ -21,6 +23,10 @@ export default function EditorPage() {
   const [saveStatus, setSaveStatus] = createSignal<
     "saved" | "saving" | "unsaved"
   >("saved");
+  const [deleteDialog, setDeleteDialog] = createSignal<{
+    isOpen: boolean;
+    path: string | null;
+  }>({ isOpen: false, path: null });
 
   let saveTimeout: NodeJS.Timeout;
 
@@ -131,7 +137,12 @@ export default function EditorPage() {
   };
 
   const deleteItem = async (path: string) => {
-    if (!confirm("Are you sure you want to delete this item?")) return;
+    setDeleteDialog({ isOpen: true, path });
+  };
+
+  const confirmDelete = async () => {
+    const path = deleteDialog().path;
+    if (!path) return;
 
     try {
       await api.deleteItem(path);
@@ -142,6 +153,8 @@ export default function EditorPage() {
       }
     } catch (error) {
       console.error("Failed to delete item:", error);
+    } finally {
+      setDeleteDialog({ isOpen: false, path: null });
     }
   };
 
@@ -187,6 +200,18 @@ export default function EditorPage() {
 
   return (
     <div class="h-screen flex flex-col bg-neutral-900">
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={deleteDialog().isOpen}
+        title="Delete Item"
+        message="Are you sure you want to delete this item? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteDialog({ isOpen: false, path: null })}
+      />
+
       {/* Header */}
       <header class="h-14 border-b border-neutral-800 flex items-center justify-between px-2 sm:px-4 bg-neutral-950">
         <div class="flex items-center gap-1 sm:gap-2">
@@ -234,6 +259,7 @@ export default function EditorPage() {
               setSidebarOpen={setSidebarOpen}
               saveStatus={saveStatus()}
               expandedFolders={expandedFolders()}
+              settingsMenu={<SettingsMenu />}
               onSelectDocument={(path) => {
                 loadDocument(path);
                 // Close sidebar on mobile after selecting document
@@ -253,9 +279,10 @@ export default function EditorPage() {
 
         {/* Main Editor Area */}
         <div class="flex-1 flex flex-col overflow-hidden">
-          {/* View Mode Toggle */}
+          {/* Document Actions Toolbar */}
           <Show when={currentPath()}>
-            <div class="h-12 border-b border-neutral-800 flex items-center px-2 sm:px-4 bg-neutral-950">
+            <div class="h-12 border-b border-neutral-800 flex items-center justify-between px-2 sm:px-4 bg-neutral-950">
+              {/* View Mode Toggle */}
               <div class="flex items-center gap-1 border border-neutral-800 rounded-lg overflow-hidden">
                 <Button
                   onClick={() => setUseLivePreview(false)}
@@ -279,6 +306,19 @@ export default function EditorPage() {
                   <div class="i-carbon-view w-4 h-4" />
                   <span class="hidden sm:inline ml-1">Live</span>
                 </Button>
+              </div>
+
+              {/* Save Status */}
+              <div class="flex items-center">
+                <Show when={saveStatus() === "saving"}>
+                  <span class="text-xs text-neutral-400">Saving...</span>
+                </Show>
+                <Show when={saveStatus() === "saved"}>
+                  <span class="text-xs text-green-500">✓ Saved</span>
+                </Show>
+                <Show when={saveStatus() === "unsaved"}>
+                  <span class="text-xs text-yellow-500">● Unsaved</span>
+                </Show>
               </div>
             </div>
           </Show>

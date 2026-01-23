@@ -12,4 +12,5 @@ export interface PopoverItemProps {
   label: string;
   onClick: (e: MouseEvent) => void;
   variant?: "default" | "danger";
+  disabled?: boolean;
 }

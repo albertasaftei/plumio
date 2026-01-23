@@ -270,15 +270,7 @@ export default function Sidebar(props: SidebarProps) {
             >
               <div class="i-carbon-side-panel-close w-5 h-5" />
             </Button>
-            <Show when={props.saveStatus === "saving"}>
-              <span class="text-xs text-neutral-400">Saving...</span>
-            </Show>
-            <Show when={props.saveStatus === "saved"}>
-              <span class="text-xs text-green-500">✓ Saved</span>
-            </Show>
-            <Show when={props.saveStatus === "unsaved"}>
-              <span class="text-xs text-yellow-500">● Unsaved</span>
-            </Show>
+            {props.settingsMenu}
           </div>
 
           {/* Current File Breadcrumb */}

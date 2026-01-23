@@ -17,6 +17,10 @@ secrets/
 jwt_secret.txt
 encryption_key.txt
 
+# Backups (local storage only)
+backups/
+*.tar.gz
+
 # dependencies
 /*/node_modules
 

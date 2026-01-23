@@ -135,6 +135,53 @@ export class ApiClient {
       body: JSON.stringify({ path, color }),
     });
   }
+
+  async exportDocuments() {
+    const response = await fetch(`${API_URL}/api/documents/export`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("pluma_token")}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Export failed");
+    }
+
+    // Download the file
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pluma-export-${new Date().toISOString().slice(0, 10)}.tar.gz`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
+
+  async importDocuments(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${API_URL}/api/documents/import`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("pluma_token")}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("Import failed");
+    }
+
+    return response.json();
+  }
 }
 
 export const api = new ApiClient();
+
+// Export standalone functions for convenience
+export const exportDocuments = () => api.exportDocuments();
+export const importDocuments = (file: File) => api.importDocuments(file);

@@ -194,7 +194,16 @@ documentsRouter.delete("/delete", async (c) => {
     if (stats.isDirectory()) {
       await fs.rm(fullPath, { recursive: true });
     } else {
+      // Delete the document file
       await fs.unlink(fullPath);
+
+      // Also delete the metadata file if it exists
+      const metaPath = `${fullPath}.meta.json`;
+      try {
+        await fs.unlink(metaPath);
+      } catch (metaError) {
+        // Metadata file might not exist, which is fine
+      }
     }
 
     return c.json({ message: "Deleted successfully" });
@@ -265,6 +274,77 @@ documentsRouter.post("/color", async (c) => {
   } catch (error) {
     console.error("Error setting color:", error);
     return c.json({ error: "Failed to set color" }, 500);
+  }
+});
+
+// Export all documents as encrypted zip
+documentsRouter.post("/export", async (c) => {
+  try {
+    const documentsPath = DOCUMENTS_PATH;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const exportFile = path.join("/tmp", `pluma-export-${timestamp}.tar.gz`);
+
+    // Create tar.gz of documents directory
+    const { exec } = await import("child_process");
+    const { promisify } = await import("util");
+    const execAsync = promisify(exec);
+
+    await execAsync(
+      `tar -czf ${exportFile} -C ${path.dirname(documentsPath)} ${path.basename(documentsPath)}`,
+    );
+
+    // Read the file
+    const fileBuffer = await fs.readFile(exportFile);
+
+    // Clean up temp file
+    await fs.unlink(exportFile);
+
+    // Return as download
+    return c.body(fileBuffer, 200, {
+      "Content-Type": "application/gzip",
+      "Content-Disposition": `attachment; filename="pluma-export-${timestamp}.tar.gz"`,
+    });
+  } catch (error) {
+    console.error("Error exporting documents:", error);
+    return c.json({ error: "Failed to export documents" }, 500);
+  }
+});
+
+// Import documents from encrypted zip
+documentsRouter.post("/import", async (c) => {
+  try {
+    const body = await c.req.parseBody();
+    const file = body["file"] as File;
+
+    if (!file) {
+      return c.json({ error: "No file provided" }, 400);
+    }
+
+    const documentsPath = DOCUMENTS_PATH;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const tempFile = path.join("/tmp", `pluma-import-${timestamp}.tar.gz`);
+
+    // Save uploaded file
+    const buffer = await file.arrayBuffer();
+    await fs.writeFile(tempFile, Buffer.from(buffer));
+
+    // Extract to documents directory
+    const { exec } = await import("child_process");
+    const { promisify } = await import("util");
+    const execAsync = promisify(exec);
+
+    // Extract archive - strip the top 'documents' folder name
+    await execAsync(
+      `tar -xzf ${tempFile} -C ${documentsPath} --strip-components=1`,
+    );
+
+    // Clean up temp file
+    await fs.unlink(tempFile);
+
+    return c.json({ message: "Documents imported successfully" });
+  } catch (error) {
+    console.error("Error importing documents:", error);
+    return c.json({ error: "Failed to import documents" }, 500);
   }
 });
 
