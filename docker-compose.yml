@@ -1,36 +1,20 @@
 version: '3.8'
 
 services:
-  frontend:
+  pluma:
     build:
-      context: ./frontend
+      context: .
       dockerfile: Dockerfile
-    container_name: pluma-frontend
+    container_name: pluma
     restart: unless-stopped
     ports:
-      - "3000:3000"
-    environment:
-      - VITE_API_URL=http://localhost:3001
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - pluma-network
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: pluma-backend
-    restart: unless-stopped
-    ports:
-      - "3001:3001"
+      - "3000:3000"   # Frontend
+      - "3001:3001"   # Backend API
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - FRONTEND_PORT=3000
       - DOCUMENTS_PATH=/data/documents
-      - FRONTEND_URL=http://localhost:3000
+      - DB_PATH=/data/pluma.db
     secrets:
       - jwt_secret
       - encryption_key
@@ -47,26 +31,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 1G
         reservations:
-          memory: 256M
-
-  # Optional: nginx reverse proxy with SSL
-  nginx:
-    image: nginx:alpine
-    container_name: pluma-nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - frontend
-      - backend
-    networks:
-      - pluma-network
+          memory: 512M
 
   # Automated backup service (optional - requires --profile backup)
   backup:
@@ -84,7 +51,7 @@ services:
       - BACKUP_SCHEDULE=0 2 * * *  # Daily at 2 AM
     command: sh /backup.sh
     depends_on:
-      - backend
+      - pluma
     networks:
       - pluma-network
 
