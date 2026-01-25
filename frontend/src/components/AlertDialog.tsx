@@ -1,10 +1,12 @@
 import { Show } from "solid-js";
 import Button from "./Button";
 import type { AlertDialogProps } from "~/types/AlertDialog.types";
+import "~/styles/animations.css";
 
 export default function AlertDialog(props: AlertDialogProps) {
   const confirmText = () => props.confirmText || "Confirm";
   const cancelText = () => props.cancelText || "Cancel";
+  const showActions = () => props.showActions ?? true;
 
   const buttonVariant = () => {
     switch (props.variant) {
@@ -22,35 +24,59 @@ export default function AlertDialog(props: AlertDialogProps) {
     <Show when={props.isOpen}>
       {/* Backdrop */}
       <div
-        class="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4"
+        class="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4 animate-dialog-fade-in"
         onClick={props.onCancel}
       >
         {/* Dialog */}
         <div
-          class="bg-neutral-900 border border-neutral-700 rounded-lg shadow-xl max-w-md w-full p-6"
+          class="bg-neutral-900 border border-neutral-700 rounded-lg shadow-xl max-w-4xl w-full p-6 animate-dialog-scale-in relative"
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Close Icon */}
+          <Show when={props.showCloseIcon}>
+            <Button
+              onClick={props.onCancel}
+              variant="icon"
+              size="md"
+              title="Close"
+              class="absolute top-4 right-4"
+            >
+              <div class="i-carbon-close w-5 h-5" />
+            </Button>
+          </Show>
+
           {/* Title */}
           <h2 class="text-xl font-semibold text-neutral-100 mb-3">
             {props.title}
           </h2>
 
-          {/* Message */}
-          <p class="text-neutral-300 mb-6 leading-relaxed">{props.message}</p>
+          {/* Message or Custom Content */}
+          <Show
+            when={props.children}
+            fallback={
+              <p class="text-neutral-300 mb-6 leading-relaxed">
+                {props.message}
+              </p>
+            }
+          >
+            {props.children}
+          </Show>
 
           {/* Actions */}
-          <div class="flex gap-3 justify-end">
-            <Button onClick={props.onCancel} variant="secondary" size="md">
-              {cancelText()}
-            </Button>
-            <Button
-              onClick={props.onConfirm}
-              variant={buttonVariant()}
-              size="md"
-            >
-              {confirmText()}
-            </Button>
-          </div>
+          <Show when={showActions()}>
+            <div class="flex gap-3 justify-end">
+              <Button onClick={props.onCancel} variant="secondary" size="md">
+                {cancelText()}
+              </Button>
+              <Button
+                onClick={props.onConfirm}
+                variant={buttonVariant()}
+                size="md"
+              >
+                {confirmText()}
+              </Button>
+            </div>
+          </Show>
         </div>
       </div>
     </Show>

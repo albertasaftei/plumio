@@ -1,5 +1,6 @@
 import { createSignal, createEffect, For, Show, onMount } from "solid-js";
 import { api } from "~/lib/api";
+import "~/styles/animations.css";
 
 interface Organization {
   id: number;
@@ -89,7 +90,7 @@ export default function OrganizationSelector(props: OrganizationSelectorProps) {
       {/* Dropdown */}
       <Show when={isOpen()}>
         <div class="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-        <div class="absolute top-full mt-2 right-0 w-64 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl z-50 overflow-hidden">
+        <div class="absolute top-full mt-2 right-0 w-64 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl z-50 overflow-hidden animate-slide-down">
           <div class="p-2 border-b border-neutral-700">
             <div class="text-xs font-medium text-neutral-400 px-2 py-1">
               Your Organizations

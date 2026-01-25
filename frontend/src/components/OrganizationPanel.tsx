@@ -154,248 +154,221 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
         onCancel={() => setRemoveDialog({ isOpen: false, member: null })}
       />
 
-      <Show when={props.isOpen}>
-        {/* Backdrop */}
-        <div
-          class="fixed inset-0 bg-black/70 z-[90] flex items-center justify-center p-4"
-          onClick={props.onClose}
-        >
-          {/* Panel */}
-          <div
-            class="bg-neutral-900 border border-neutral-700 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div class="px-6 py-4 border-b border-neutral-700 flex items-center justify-between">
+      <AlertDialog
+        isOpen={props.isOpen}
+        title={currentOrg()?.name || "Organization"}
+        showActions={false}
+        showCloseIcon
+        onCancel={props.onClose}
+      >
+        <p class="text-sm text-neutral-400 mb-6">
+          Manage organization members and access
+        </p>
+
+        <div class="max-h-[60vh] overflow-auto">
+          <Show when={error()}>
+            <div class="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+              {error()}
+            </div>
+          </Show>
+
+          {/* Add Member Section */}
+          <Show when={mounted() && isAdmin()}>
+            <div class="mb-6 flex justify-between items-center">
               <div>
-                <h2 class="text-2xl font-bold text-neutral-100">
-                  {currentOrg()?.name}
-                </h2>
-                <p class="text-sm text-neutral-400 mt-1">
-                  Manage organization members and access
+                <h3 class="text-lg font-semibold text-neutral-100">Members</h3>
+                <p class="text-sm text-neutral-400">
+                  {members().length} total members
                 </p>
               </div>
               <Button
-                onClick={props.onClose}
-                variant="icon"
+                onClick={() => setShowAddForm(!showAddForm())}
+                variant="primary"
                 size="md"
-                title="Close"
               >
-                <div class="i-carbon-close w-5 h-5" />
+                <div class="i-carbon-user-follow w-5 h-5 mr-2" />
+                Add Member
               </Button>
             </div>
 
-            {/* Content */}
-            <div class="flex-1 overflow-auto p-6">
-              <Show when={error()}>
-                <div class="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
-                  {error()}
-                </div>
-              </Show>
-
-              {/* Add Member Section */}
-              <Show when={mounted() && isAdmin()}>
-                <div class="mb-6 flex justify-between items-center">
+            {/* Add Member Form */}
+            <Show when={showAddForm()}>
+              <div class="mb-6 p-4 bg-neutral-800/50 border border-neutral-700 rounded-lg">
+                <h4 class="text-md font-semibold text-neutral-100 mb-4">
+                  Add Member to Organization
+                </h4>
+                <form onSubmit={handleAddMember} class="space-y-4">
                   <div>
-                    <h3 class="text-lg font-semibold text-neutral-100">
-                      Members
-                    </h3>
-                    <p class="text-sm text-neutral-400">
-                      {members().length} total members
+                    <label class="block text-sm font-medium text-neutral-300 mb-2">
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      value={username()}
+                      onInput={(e) => setUsername(e.currentTarget.value)}
+                      required
+                      class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700"
+                      placeholder="Enter existing username"
+                    />
+                    <p class="text-xs text-neutral-500 mt-1">
+                      The user must already have an account
                     </p>
                   </div>
-                  <Button
-                    onClick={() => setShowAddForm(!showAddForm())}
-                    variant="primary"
-                    size="md"
-                  >
-                    <div class="i-carbon-user-follow w-5 h-5 mr-2" />
-                    Add Member
-                  </Button>
-                </div>
 
-                {/* Add Member Form */}
-                <Show when={showAddForm()}>
-                  <div class="mb-6 p-4 bg-neutral-800/50 border border-neutral-700 rounded-lg">
-                    <h4 class="text-md font-semibold text-neutral-100 mb-4">
-                      Add Member to Organization
-                    </h4>
-                    <form onSubmit={handleAddMember} class="space-y-4">
-                      <div>
-                        <label class="block text-sm font-medium text-neutral-300 mb-2">
-                          Username
-                        </label>
-                        <input
-                          type="text"
-                          value={username()}
-                          onInput={(e) => setUsername(e.currentTarget.value)}
-                          required
-                          class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700"
-                          placeholder="Enter existing username"
-                        />
-                        <p class="text-xs text-neutral-500 mt-1">
-                          The user must already have an account
-                        </p>
-                      </div>
-
-                      <div>
-                        <label class="block text-sm font-medium text-neutral-300 mb-2">
-                          Role
-                        </label>
-                        <select
-                          value={role()}
-                          onChange={(e) => setRole(e.currentTarget.value)}
-                          class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 focus:outline-none focus:border-neutral-700"
-                        >
-                          <option value="member">Member</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                      </div>
-
-                      <div class="flex gap-2">
-                        <Button type="submit" variant="primary" size="md">
-                          Add Member
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            setShowAddForm(false);
-                            setUsername("");
-                            setRole("member");
-                            setError("");
-                          }}
-                          variant="secondary"
-                          size="md"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </form>
+                  <div>
+                    <label class="block text-sm font-medium text-neutral-300 mb-2">
+                      Role
+                    </label>
+                    <select
+                      value={role()}
+                      onChange={(e) => setRole(e.currentTarget.value)}
+                      class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 focus:outline-none focus:border-neutral-700"
+                    >
+                      <option value="member">Member</option>
+                      <option value="admin">Admin</option>
+                    </select>
                   </div>
-                </Show>
-              </Show>
 
-              {/* Members List */}
-              <Show
-                when={!loading()}
-                fallback={
-                  <div class="flex items-center justify-center py-12">
-                    <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500" />
+                  <div class="flex gap-2">
+                    <Button type="submit" variant="primary" size="md">
+                      Add Member
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowAddForm(false);
+                        setUsername("");
+                        setRole("member");
+                        setError("");
+                      }}
+                      variant="secondary"
+                      size="md"
+                    >
+                      Cancel
+                    </Button>
                   </div>
-                }
-              >
-                <div class="border border-neutral-700 rounded-lg overflow-hidden">
-                  <table class="w-full">
-                    <thead class="bg-neutral-800/50">
-                      <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                          Member
-                        </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                          Email
-                        </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                          Role
-                        </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                          Joined
-                        </th>
+                </form>
+              </div>
+            </Show>
+          </Show>
+
+          {/* Members List */}
+          <Show
+            when={!loading()}
+            fallback={
+              <div class="flex items-center justify-center py-12">
+                <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500" />
+              </div>
+            }
+          >
+            <div class="border border-neutral-700 rounded-lg overflow-hidden">
+              <table class="w-full">
+                <thead class="bg-neutral-800/50">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                      Member
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                      Role
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                      Joined
+                    </th>
+                    <Show when={mounted() && isAdmin()}>
+                      <th class="px-4 py-3 text-right text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </Show>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-neutral-700">
+                  <For each={members()}>
+                    {(member) => (
+                      <tr class="hover:bg-neutral-800/30">
+                        <td class="px-4 py-3 whitespace-nowrap">
+                          <div class="flex items-center">
+                            <div class="i-carbon-user-avatar w-8 h-8 text-neutral-400 mr-3" />
+                            <div class="text-sm font-medium text-neutral-100">
+                              {member.username}
+                            </div>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-300">
+                          {member.email}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                          <div class="flex items-center gap-2">
+                            <Show
+                              when={mounted() && isAdmin() && !member.isOwner}
+                              fallback={
+                                <span
+                                  class={`px-2 py-1 text-xs font-medium rounded capitalize ${
+                                    member.role === "admin"
+                                      ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                                      : "bg-neutral-700 text-neutral-300"
+                                  }`}
+                                >
+                                  {member.role}
+                                </span>
+                              }
+                            >
+                              <select
+                                value={member.role}
+                                onChange={(e) =>
+                                  handleRoleChange(
+                                    member.id,
+                                    e.currentTarget.value,
+                                  )
+                                }
+                                class="px-2 py-1 text-xs font-medium bg-neutral-800 border border-neutral-700 rounded text-neutral-200 focus:outline-none focus:border-neutral-600"
+                              >
+                                <option value="member">Member</option>
+                                <option value="admin">Admin</option>
+                              </select>
+                            </Show>
+                            <Show when={member.isOwner}>
+                              <span class="px-2 py-1 text-xs font-medium rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                                Owner
+                              </span>
+                            </Show>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-400">
+                          {formatDate(member.joinedAt)}
+                        </td>
                         <Show when={mounted() && isAdmin()}>
-                          <th class="px-4 py-3 text-right text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                            Actions
-                          </th>
+                          <td class="flex items-center justify-end px-4 py-3 whitespace-nowrap text-sm">
+                            <Show
+                              when={!member.isOwner}
+                              fallback={
+                                <span class="text-xs text-neutral-500 italic">
+                                  Cannot remove
+                                </span>
+                              }
+                            >
+                              <Button
+                                onClick={() => handleRemoveMember(member)}
+                                variant="icon"
+                                size="sm"
+                                title="Remove member"
+                                class="text-red-400 hover:text-red-300"
+                              >
+                                <div class="i-carbon-trash-can w-5 h-5" />
+                              </Button>
+                            </Show>
+                          </td>
                         </Show>
                       </tr>
-                    </thead>
-                    <tbody class="divide-y divide-neutral-700">
-                      <For each={members()}>
-                        {(member) => (
-                          <tr class="hover:bg-neutral-800/30">
-                            <td class="px-4 py-3 whitespace-nowrap">
-                              <div class="flex items-center">
-                                <div class="i-carbon-user-avatar w-8 h-8 text-neutral-400 mr-3" />
-                                <div class="text-sm font-medium text-neutral-100">
-                                  {member.username}
-                                </div>
-                              </div>
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-300">
-                              {member.email}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap">
-                              <div class="flex items-center gap-2">
-                                <Show
-                                  when={
-                                    mounted() && isAdmin() && !member.isOwner
-                                  }
-                                  fallback={
-                                    <span
-                                      class={`px-2 py-1 text-xs font-medium rounded capitalize ${
-                                        member.role === "admin"
-                                          ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                                          : "bg-neutral-700 text-neutral-300"
-                                      }`}
-                                    >
-                                      {member.role}
-                                    </span>
-                                  }
-                                >
-                                  <select
-                                    value={member.role}
-                                    onChange={(e) =>
-                                      handleRoleChange(
-                                        member.id,
-                                        e.currentTarget.value,
-                                      )
-                                    }
-                                    class="px-2 py-1 text-xs font-medium bg-neutral-800 border border-neutral-700 rounded text-neutral-200 focus:outline-none focus:border-neutral-600"
-                                  >
-                                    <option value="member">Member</option>
-                                    <option value="admin">Admin</option>
-                                  </select>
-                                </Show>
-                                <Show when={member.isOwner}>
-                                  <span class="px-2 py-1 text-xs font-medium rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                                    Owner
-                                  </span>
-                                </Show>
-                              </div>
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-400">
-                              {formatDate(member.joinedAt)}
-                            </td>
-                            <Show when={mounted() && isAdmin()}>
-                              <td class="flex items-center justify-end px-4 py-3 whitespace-nowrap text-sm">
-                                <Show
-                                  when={!member.isOwner}
-                                  fallback={
-                                    <span class="text-xs text-neutral-500 italic">
-                                      Cannot remove
-                                    </span>
-                                  }
-                                >
-                                  <Button
-                                    onClick={() => handleRemoveMember(member)}
-                                    variant="icon"
-                                    size="sm"
-                                    title="Remove member"
-                                    class="text-red-400 hover:text-red-300"
-                                  >
-                                    <div class="i-carbon-trash-can w-5 h-5" />
-                                  </Button>
-                                </Show>
-                              </td>
-                            </Show>
-                          </tr>
-                        )}
-                      </For>
-                    </tbody>
-                  </table>
-                </div>
-              </Show>
+                    )}
+                  </For>
+                </tbody>
+              </table>
             </div>
-          </div>
+          </Show>
         </div>
-      </Show>
+      </AlertDialog>
 
       {/* Toast Notifications */}
       <Show when={toast()}>

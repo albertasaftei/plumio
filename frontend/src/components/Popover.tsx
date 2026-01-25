@@ -1,5 +1,6 @@
 import { Show, children, createSignal, onMount, onCleanup } from "solid-js";
 import type { PopoverProps, PopoverItemProps } from "~/types/Popover.types";
+import "~/styles/animations.css";
 
 export default function Popover(props: PopoverProps) {
   let popoverRef: HTMLDivElement | undefined;
@@ -36,7 +37,7 @@ export default function Popover(props: PopoverProps) {
       <Show when={props.isOpen}>
         <div
           ref={popoverRef}
-          class="absolute right-0 top-full mt-1 bg-neutral-800 border border-neutral-700 rounded-lg shadow-lg z-50 min-w-32 py-1"
+          class="absolute right-0 top-full mt-1 bg-neutral-800 border border-neutral-700 rounded-lg shadow-lg z-50 min-w-32 py-1 animate-slide-down"
         >
           {props.children}
         </div>

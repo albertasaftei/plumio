@@ -18,6 +18,7 @@ import {
 } from "~/utils/sidebar.utils";
 import { SettingsMenu } from "./SettingsMenu";
 import { api } from "~/lib/api";
+import AlertDialog from "./AlertDialog";
 
 export default function Sidebar(props: SidebarProps) {
   const [showNewDocModal, setShowNewDocModal] = createSignal(false);
@@ -357,123 +358,61 @@ export default function Sidebar(props: SidebarProps) {
       </aside>
 
       {/* New Document Modal */}
-      <Show when={showNewDocModal()}>
-        <div
-          class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowNewDocModal(false)}
-        >
-          <div
-            class="bg-neutral-900 rounded-lg p-4 sm:p-6 w-full max-w-md border border-neutral-800"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 class="text-lg font-semibold text-neutral-100 mb-4">
-              New Document
-            </h3>
-            <p class=" text-neutral-400 mb-3">Creating in: {targetFolder()}</p>
-            <input
-              ref={newDocInputRef}
-              type="text"
-              placeholder="Document name"
-              value={newItemName()}
-              onInput={(e) => setNewItemName(e.currentTarget.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleCreateDocument()}
-              class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
-            />
-            <div class="flex gap-2 justify-end">
-              <Button
-                onClick={() => setShowNewDocModal(false)}
-                variant="ghost"
-                size="lg"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleCreateDocument}
-                variant="primary"
-                size="lg"
-              >
-                Create
-              </Button>
-            </div>
-          </div>
-        </div>
-      </Show>
+      <AlertDialog
+        isOpen={showNewDocModal()}
+        title="New Document"
+        onConfirm={handleCreateDocument}
+        onCancel={() => setShowNewDocModal(false)}
+      >
+        <p class=" text-neutral-400 mb-3">Creating in: {targetFolder()}</p>
+        <input
+          ref={newDocInputRef}
+          type="text"
+          placeholder="Document name"
+          value={newItemName()}
+          onInput={(e) => setNewItemName(e.currentTarget.value)}
+          onKeyPress={(e) => e.key === "Enter" && handleCreateDocument()}
+          class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
+        />
+      </AlertDialog>
 
       {/* New Folder Modal */}
-      <Show when={showNewFolderModal()}>
-        <div
-          class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowNewFolderModal(false)}
-        >
-          <div
-            class="bg-neutral-900 rounded-lg p-4 sm:p-6 w-full max-w-md border border-neutral-800"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 class="text-lg font-semibold text-neutral-100 mb-4">
-              New Folder
-            </h3>
-            <p class=" text-neutral-400 mb-3">Creating in: {targetFolder()}</p>
-            <input
-              ref={newFolderInputRef}
-              type="text"
-              placeholder="Folder name"
-              value={newItemName()}
-              onInput={(e) => setNewItemName(e.currentTarget.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleCreateFolder()}
-              class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
-            />
-            <div class="flex gap-2 justify-end">
-              <Button
-                onClick={() => setShowNewFolderModal(false)}
-                variant="ghost"
-                size="lg"
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleCreateFolder} variant="primary" size="lg">
-                Create
-              </Button>
-            </div>
-          </div>
-        </div>
-      </Show>
+      <AlertDialog
+        isOpen={showNewFolderModal()}
+        title="New Folder"
+        onConfirm={handleCreateFolder}
+        onCancel={() => setShowNewFolderModal(false)}
+      >
+        <p class=" text-neutral-400 mb-3">Creating in: {targetFolder()}</p>
+        <input
+          ref={newFolderInputRef}
+          type="text"
+          placeholder="Folder name"
+          value={newItemName()}
+          onInput={(e) => setNewItemName(e.currentTarget.value)}
+          onKeyPress={(e) => e.key === "Enter" && handleCreateFolder()}
+          class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
+        />
+      </AlertDialog>
 
       {/* Rename Modal */}
-      <Show when={showRenameModal()}>
-        <div
-          class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowRenameModal(false)}
-        >
-          <div
-            class="bg-neutral-900 rounded-lg p-4 sm:p-6 w-full max-w-md border border-neutral-800"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 class="text-lg font-semibold text-neutral-100 mb-4">Rename</h3>
-            <p class=" text-neutral-400 mb-3">Current: {itemToRename()}</p>
-            <input
-              ref={renameInputRef}
-              type="text"
-              placeholder="New name"
-              value={newItemName()}
-              onInput={(e) => setNewItemName(e.currentTarget.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleRename()}
-              class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
-            />
-            <div class="flex gap-2 justify-end">
-              <Button
-                onClick={() => setShowRenameModal(false)}
-                variant="ghost"
-                size="lg"
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleRename} variant="primary" size="lg">
-                Rename
-              </Button>
-            </div>
-          </div>
-        </div>
-      </Show>
+      <AlertDialog
+        isOpen={showRenameModal()}
+        title="Rename"
+        onConfirm={handleRename}
+        onCancel={() => setShowRenameModal(false)}
+      >
+        <p class=" text-neutral-400 mb-3">Current: {itemToRename()}</p>
+        <input
+          ref={renameInputRef}
+          type="text"
+          placeholder="New name"
+          value={newItemName()}
+          onInput={(e) => setNewItemName(e.currentTarget.value)}
+          onKeyPress={(e) => e.key === "Enter" && handleRename()}
+          class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
+        />
+      </AlertDialog>
     </>
   );
 }

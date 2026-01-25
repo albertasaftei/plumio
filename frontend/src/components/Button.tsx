@@ -30,7 +30,7 @@ export default function Button(props: ButtonProps) {
   const size = () => local.size || "md";
 
   const baseClasses =
-    "flex items-center justify-center gap-2 rounded-lg transition-colors cursor-pointer";
+    "flex items-center justify-center gap-2 rounded-lg transition-all duration-150 cursor-pointer active:scale-95 hover:scale-[1.02]";
 
   const variantClasses = () => {
     const v = variant();
