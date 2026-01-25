@@ -152,6 +152,11 @@ export class ApiClient {
     return org?.role === "admin";
   }
 
+  getUsername(): string | null {
+    const decoded = this.decodeToken();
+    return decoded?.username ?? null;
+  }
+
   // Organizations
   async listOrganizations() {
     return this.request<{

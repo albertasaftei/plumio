@@ -1,4 +1,11 @@
-import { createSignal, For, Show, createMemo, createEffect } from "solid-js";
+import {
+  createSignal,
+  For,
+  Show,
+  createMemo,
+  createEffect,
+  onMount,
+} from "solid-js";
 import Popover, { PopoverItem } from "./Popover";
 import ColorPicker from "./ColorPicker";
 import Button from "./Button";
@@ -10,6 +17,7 @@ import {
   formatDate,
 } from "~/utils/sidebar.utils";
 import { SettingsMenu } from "./SettingsMenu";
+import { api } from "~/lib/api";
 
 export default function Sidebar(props: SidebarProps) {
   const [showNewDocModal, setShowNewDocModal] = createSignal(false);
@@ -20,6 +28,13 @@ export default function Sidebar(props: SidebarProps) {
   const [itemToRename, setItemToRename] = createSignal<string | null>(null);
   const [openMenuPath, setOpenMenuPath] = createSignal<string | null>(null);
   const [searchQuery, setSearchQuery] = createSignal("");
+  const [username, setUsername] = createSignal<string | null>(null);
+
+  onMount(() => {
+    // Get username from JWT token
+    const currentUsername = api.getUsername();
+    setUsername(currentUsername);
+  });
 
   let newDocInputRef: HTMLInputElement | undefined;
   let newFolderInputRef: HTMLInputElement | undefined;
@@ -327,6 +342,18 @@ export default function Sidebar(props: SidebarProps) {
         <div class="flex-1 overflow-y-auto">
           <For each={filteredTree()}>{(node) => <TreeNode node={node} />}</For>
         </div>
+
+        {/* User Info Footer */}
+        <Show when={username()}>
+          <div class="p-3 border-t border-neutral-800 bg-neutral-950">
+            <div class="flex items-center gap-2 px-2 py-1.5">
+              <div class="i-carbon-user w-4 h-4 text-neutral-400" />
+              <span class="text-sm text-neutral-300 truncate">
+                {username()}
+              </span>
+            </div>
+          </div>
+        </Show>
       </aside>
 
       {/* New Document Modal */}
