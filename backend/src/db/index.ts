@@ -66,6 +66,8 @@ export const userQueries = {
   findByUsername: db.prepare("SELECT * FROM users WHERE username = ?"),
   findByEmail: db.prepare("SELECT * FROM users WHERE email = ?"),
   findById: db.prepare("SELECT * FROM users WHERE id = ?"),
+  listAll: db.prepare("SELECT * FROM users ORDER BY id ASC"),
+  deleteById: db.prepare("DELETE FROM users WHERE id = ?"),
   updatePassword: db.prepare(
     "UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
   ),

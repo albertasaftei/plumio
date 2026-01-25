@@ -7,6 +7,7 @@ import Button from "~/components/Button";
 import { SettingsMenu } from "~/components/SettingsMenu";
 import AlertDialog from "~/components/AlertDialog";
 import Dashboard from "~/components/Dashboard";
+import AdminPanel from "~/components/AdminPanel";
 
 // Lazy load markdown editor with live preview to avoid SSR issues
 const MarkdownEditor = lazy(() => import("~/components/MarkdownEditor"));
@@ -28,6 +29,8 @@ export default function EditorPage() {
     isOpen: boolean;
     path: string | null;
   }>({ isOpen: false, path: null });
+  const [showAdminPanel, setShowAdminPanel] = createSignal(false);
+  const [isAdmin, setIsAdmin] = createSignal(false);
 
   let saveTimeout: NodeJS.Timeout;
 
@@ -57,6 +60,7 @@ export default function EditorPage() {
 
   createEffect(() => {
     loadAllDocuments();
+    setIsAdmin(api.isAdmin());
   });
 
   const loadDocument = async (path: string) => {
@@ -201,6 +205,12 @@ export default function EditorPage() {
 
   return (
     <div class="h-screen flex flex-col bg-neutral-900">
+      {/* Admin Panel */}
+      <AdminPanel
+        isOpen={showAdminPanel()}
+        onClose={() => setShowAdminPanel(false)}
+      />
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         isOpen={deleteDialog().isOpen}
@@ -244,6 +254,16 @@ export default function EditorPage() {
         </div>
 
         <div class="flex items-center gap-2 sm:gap-4">
+          <Show when={isAdmin()}>
+            <Button
+              onClick={() => setShowAdminPanel(true)}
+              variant="icon"
+              size="md"
+              title="Admin Panel"
+            >
+              <div class="i-carbon-user-admin w-5 h-5" />
+            </Button>
+          </Show>
           <Button
             onClick={handleLogout}
             variant="icon"

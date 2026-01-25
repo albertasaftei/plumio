@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import fs from "fs/promises";
 import path from "path";
-import { verifyToken } from "./auth.js";
 import crypto from "crypto";
 import { ENCRYPTION_KEY } from "../config.js";
 import { documentQueries } from "../db/index.js";
+import { verifyToken } from "../middlewares/auth.js";
 
 type Variables = {
   user: any;

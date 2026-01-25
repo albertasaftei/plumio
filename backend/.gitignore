@@ -3,3 +3,5 @@ dist/
 .env
 *.log
 auth.json
+data/
+documents/

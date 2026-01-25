@@ -38,5 +38,6 @@ gitignore
 .DS_Store
 Thumbs.db
 
-# Default documents save folder
+# User local data directories
 /backend/documents/
+/backend/data/

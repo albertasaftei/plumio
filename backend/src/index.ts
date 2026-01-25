@@ -3,11 +3,11 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import fs from "fs";
-import path from "path";
-import "./config.js"; // Load configuration first
-import "./db/index.js"; // Initialize database
+import "./config.js";
+import "./db/index.js";
 import { documentsRouter } from "./routes/documents.js";
 import { authRouter } from "./routes/auth.js";
+import { adminRouter } from "./routes/admin.js";
 
 const app = new Hono();
 
@@ -50,6 +50,7 @@ app.get("/api/health", (c) =>
 
 // Routes
 app.route("/api/auth", authRouter);
+app.route("/api/auth/admin", adminRouter);
 app.route("/api/documents", documentsRouter);
 
 // Initialize documents directory

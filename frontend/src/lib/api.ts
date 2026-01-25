@@ -34,6 +34,26 @@ export class ApiClient {
     }
   }
 
+  private decodeToken(): {
+    userId: number;
+    username: string;
+    isAdmin: boolean;
+  } | null {
+    if (!this.token) return null;
+    try {
+      // JWT format: header.payload.signature
+      const payload = this.token.split(".")[1];
+      if (!payload) return null;
+
+      // Decode base64url
+      const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+      const decoded = JSON.parse(atob(base64));
+      return decoded;
+    } catch {
+      return null;
+    }
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
@@ -75,15 +95,47 @@ export class ApiClient {
   }
 
   async login(username: string, password: string) {
-    const result = await this.request<{ token: string; username: string }>(
-      "/api/auth/login",
-      {
-        method: "POST",
-        body: JSON.stringify({ username, password }),
-      },
-    );
+    const result = await this.request<{
+      token: string;
+      username: string;
+      isAdmin?: boolean;
+    }>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    });
     this.setToken(result.token);
     return result;
+  }
+
+  isAdmin(): boolean {
+    const decoded = this.decodeToken();
+    return decoded?.isAdmin ?? false;
+  }
+
+  // Admin - User Management
+  async listUsers() {
+    return this.request<{
+      users: Array<{
+        id: number;
+        username: string;
+        email: string;
+        createdAt: string;
+        isAdmin: boolean;
+      }>;
+    }>("/api/auth/admin/users");
+  }
+
+  async createUser(username: string, email: string, password: string) {
+    return this.request("/api/auth/admin/users", {
+      method: "POST",
+      body: JSON.stringify({ username, email, password }),
+    });
+  }
+
+  async deleteUser(userId: number) {
+    return this.request(`/api/auth/admin/users/${userId}`, {
+      method: "DELETE",
+    });
   }
 
   // Documents

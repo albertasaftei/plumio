@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT } from "jose";
 import bcrypt from "bcrypt";
 import { JWT_SECRET } from "../config.js";
 import { userQueries, sessionQueries } from "../db/index.js";
@@ -57,9 +57,11 @@ authRouter.post("/login", async (c) => {
 
     // Create session
     const sessionId = crypto.randomUUID();
+    const isAdmin = user.id === 1; // First user is admin
     const token = await new SignJWT({
       userId: user.id,
       username: user.username,
+      isAdmin,
     })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("7d")
@@ -75,7 +77,7 @@ authRouter.post("/login", async (c) => {
       expiresAt.toISOString(),
     );
 
-    return c.json({ token, username: user.username });
+    return c.json({ token, username: user.username, isAdmin });
   } catch (error) {
     console.error("Login error:", error);
     return c.json({ error: "Login failed" }, 500);
@@ -96,29 +98,6 @@ authRouter.post("/logout", async (c) => {
     return c.json({ error: "Logout failed" }, 500);
   }
 });
-
-// Verify token middleware
-export async function verifyToken(token: string) {
-  try {
-    // Check if session exists and is valid
-    const session = sessionQueries.findByToken.get(token) as any;
-    if (!session) {
-      return null;
-    }
-
-    // Check if session is expired
-    if (new Date(session.expires_at) < new Date()) {
-      sessionQueries.deleteByToken.run(token);
-      return null;
-    }
-
-    // Verify JWT
-    const { payload } = await jwtVerify(token, jwtSecretKey);
-    return payload;
-  } catch {
-    return null;
-  }
-}
 
 // Check if setup is needed
 authRouter.get("/check-setup", async (c) => {
