@@ -123,7 +123,7 @@ export default function Sidebar(props: SidebarProps) {
     return (
       <>
         <div
-          class={`group relative hover:bg-neutral-900 border-l-2 transition-colors border-y border-neutral-800/50 ${
+          class={`group relative hover:bg-neutral-900 border-l-4 transition-colors border-y border-neutral-800/50 ${
             nodeProps.node.path === props.currentPath
               ? "border-l-primary"
               : "border-l-transparent"
@@ -182,7 +182,7 @@ export default function Sidebar(props: SidebarProps) {
                   size="sm"
                   title="Add file"
                 >
-                  <div class="i-carbon-add w-4 h-4 text-green-400" />
+                  <div class="i-carbon-add w-5 h-5 text-green-400" />
                 </Button>
                 <Button
                   onClick={(e) => {
@@ -194,7 +194,7 @@ export default function Sidebar(props: SidebarProps) {
                   size="sm"
                   title="Add subfolder"
                 >
-                  <div class="i-carbon-folder-add w-4 h-4 text-blue-400" />
+                  <div class="i-carbon-folder-add w-5 h-5 text-blue-400" />
                 </Button>
               </Show>
               <Popover
@@ -212,7 +212,7 @@ export default function Sidebar(props: SidebarProps) {
                     size="sm"
                     title="More options"
                   >
-                    <div class="i-carbon-overflow-menu-vertical w-4 h-4 text-neutral-400" />
+                    <div class="i-carbon-overflow-menu-vertical w-5 h-5 text-neutral-400" />
                   </Button>
                 }
                 isOpen={openMenuPath() === nodeProps.node.path}
@@ -289,16 +289,6 @@ export default function Sidebar(props: SidebarProps) {
             </Button>
             <SettingsMenu />
           </div>
-
-          {/* Current File Breadcrumb */}
-          <Show when={props.currentPath}>
-            <div class="mb-3 px-2 py-1.5 bg-neutral-900 rounded-lg border border-neutral-800">
-              <div class="text-xs text-neutral-500 mb-0.5">Current file</div>
-              <div class="text-sm text-neutral-200 truncate">
-                {props.currentPath}
-              </div>
-            </div>
-          </Show>
 
           <div class="flex gap-2 mb-3">
             <Button

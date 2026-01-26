@@ -279,6 +279,19 @@ export default function EditorPage() {
 
         {/* Main Editor Area */}
         <div class="flex-1 flex flex-col overflow-hidden">
+          {/* Current File Breadcrumb */}
+          <Show when={currentPath()}>
+            <div class="px-4 py-2 border-b border-neutral-800 bg-neutral-950">
+              <div class="flex items-center gap-2">
+                <div class="i-carbon-document w-4 h-4 text-neutral-500" />
+                <span class="text-xs text-neutral-500">Current file:</span>
+                <span class="text-sm text-neutral-200 truncate">
+                  {currentPath()}
+                </span>
+              </div>
+            </div>
+          </Show>
+
           {/* Document Actions Toolbar */}
           <Show when={currentPath()}>
             <div class="h-12 border-b border-neutral-800 flex items-center justify-between px-2 sm:px-4 bg-neutral-950">
