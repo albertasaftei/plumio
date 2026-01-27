@@ -17,7 +17,7 @@ adminRouter.use("*", adminMiddleware);
 // List all users
 adminRouter.get("/users", async (c) => {
   try {
-    const users = userQueries.listAll.all() as User[];
+    const users = userQueries.listAll.all();
     const userList = users.map((user) => ({
       id: user.id,
       username: user.username,

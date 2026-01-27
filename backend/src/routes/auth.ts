@@ -9,8 +9,13 @@ import {
   memberQueries,
 } from "../db/index.js";
 import crypto from "crypto";
+import { UserContext } from "../middlewares/auth.types.js";
 
-const authRouter = new Hono();
+type Variables = {
+  user: UserContext;
+};
+
+const authRouter = new Hono<{ Variables: Variables }>();
 
 const jwtSecretKey = new TextEncoder().encode(JWT_SECRET);
 
