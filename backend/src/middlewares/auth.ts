@@ -2,6 +2,7 @@ import { jwtVerify } from "jose";
 import { JWT_SECRET } from "../config.js";
 import { sessionQueries } from "../db/index.js";
 import { UserJWTPayload } from "./auth.types.js";
+import type { Context, Next } from "hono";
 
 const jwtSecretKey = new TextEncoder().encode(JWT_SECRET);
 
@@ -33,7 +34,6 @@ export async function verifyToken(
   }
 }
 
-// ! Fix typescript
 // Auth middleware - requires valid token
 export const authMiddleware = async (c: any, next: any) => {
   const authHeader = c.req.header("Authorization");
@@ -52,9 +52,8 @@ export const authMiddleware = async (c: any, next: any) => {
   await next();
 };
 
-// ! Fix typescript
 // Admin middleware - requires valid token AND admin role
-export const adminMiddleware = async (c: any, next: any) => {
+export const adminMiddleware = async (c: Context, next: Next) => {
   const authHeader = c.req.header("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     return c.json({ error: "Unauthorized" }, 401);
