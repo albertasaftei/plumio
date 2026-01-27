@@ -1,51 +1,123 @@
-# Pluma
+## Installation
 
-A self-hosted markdown editor with live preview, document encryption, multi-user support, and **multi-organization** capabilities.
+### Option 1: Docker (Recommended)
 
-## Quick Start
-
-### Prerequisites
-
-- Docker and Docker Compose installed on your system
-- Linux, macOS, or Windows with WSL2
-
-### Installation
-
-1. Clone this repository:
+1. **Clone the repository:**
 
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/albertasaftei/pluma.git
    cd pluma
    ```
 
-2. Access the application at **http://localhost:3000**
+2. **Set up environment variables:**
 
-3. Create your admin account on first visit - this will automatically create your personal organization
+   Create a `.env` file with the variables shown above.
 
-## Configuration
-
-If you prefer to set up manually:
-
-1. Build and start the container:
+3. **Build and start with Docker Compose:**
 
    ```bash
    docker-compose up -d --build
    ```
 
-2. View logs:
+4. **Access the application:**
+
+   Open http://localhost:3000 in your browser and create your admin account on first visit.
+
+5. **View logs:**
+
    ```bash
    docker logs pluma -f
    ```
 
-### Environment Variables
+### Option 2: Manual Setup
 
-For development without Docker, you can use `.env` file:
+#### Backend
+
+1. **Navigate to backend directory:**
+
+   ```bash
+   cd backend
+   ```
+
+2. **Install dependencies:**
+
+   ```bash
+   npm install
+   ```
+
+3. **Create `.env` file:**
+
+   ```env
+   BACKEND_INTERNAL_PORT=3001
+   DOCUMENTS_PATH=./documents
+   JWT_SECRET=your-generated-jwt-secret-here
+   ENCRYPTION_KEY=your-generated-encryption-key-here
+   ```
+
+4. **Start the backend server:**
+
+   ```bash
+   npm run dev
+   ```
+
+   Backend will run on http://localhost:3001
+
+#### Frontend
+
+1. **Navigate to frontend directory (in a new terminal):**
+
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies:**
+
+   ```bash
+   pnpm install
+   ```
+
+3. **Create `.env` file:**
+
+   ```env
+   VITE_API_URL=http://localhost:3001
+   ```
+
+4. **Start the frontend development server:**
+
+   ```bash
+   pnpm dev
+   ```
+
+   Frontend will run on http://localhost:3000
+
+## Environment Variables
+
+You need to set up the required environment variables. Generate secure keys using OpenSSL:
+
+```bash
+# Generate JWT secret (used for authentication tokens)
+openssl rand -base64 32
+
+# Generate encryption key (used for document encryption)
+openssl rand -base64 32
+```
+
+Create a `.env` file in the root directory:
 
 ```env
-JWT_SECRET=your-jwt-secret-here
-ENCRYPTION_KEY=your-encryption-key-here
+# Required - Generate using: openssl rand -base64 32
+JWT_SECRET=your-generated-jwt-secret-here
+ENCRYPTION_KEY=your-generated-encryption-key-here
+
+# Backend configuration
 BACKEND_INTERNAL_PORT=3001
+DOCUMENTS_PATH=./documents
+
+# Frontend configuration
+VITE_API_URL=http://localhost:3001
 ```
+
+**⚠️ Important:** Keep your `ENCRYPTION_KEY` secure and backed up. If lost, all encrypted documents cannot be decrypted and will be permanently inaccessible.
 
 ## Backup and Restore
 
@@ -78,44 +150,6 @@ docker run --rm \
   -v $(pwd)/backups:/backup \
   alpine sh -c "rm -rf /data/* && tar xzf /backup/pluma-backup-YYYYMMDD-HHMMSS.tar.gz -C /data"
 ```
-
-## Development
-
-### Local Development
-
-1. Backend:
-
-   ```bash
-   cd backend
-   npm install
-   npm run dev
-   ```
-
-2. Frontend (in another terminal):
-
-   ```bash
-   cd frontend
-   pnpm install
-   pnpm dev
-   ```
-
-3. Set up environment variables in `backend/.env`:
-
-   ```env
-   JWT_SECRET=your-jwt-secret-here
-   ENCRYPTION_KEY=your-encryption-key-here
-   BACKEND_INTERNAL_PORT=3001
-   DB_PATH=./data/pluma.db
-   DOCUMENTS_PATH=./data/documents
-   ```
-
-### Lost Encryption Key
-
-If you lose the encryption key, documents cannot be decrypted. Always maintain secure backups.
-
-## Roadmap
-
-See [FUTURE_FEATURES.md](FUTURE_FEATURES.md) for planned features and improvements.
 
 ## Contributing
 

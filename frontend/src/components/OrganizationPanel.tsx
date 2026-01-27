@@ -35,7 +35,6 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
   }>({ isOpen: false, member: null });
   const [isAdmin, setIsAdmin] = createSignal(false);
   const [mounted, setMounted] = createSignal(false);
-  console.log({ mounted: mounted(), isAdmin: isAdmin() });
 
   const currentOrg = () => api.getCurrentOrganization();
 
