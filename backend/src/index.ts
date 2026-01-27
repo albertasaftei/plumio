@@ -65,7 +65,7 @@ if (!fs.existsSync(documentsPath)) {
   fs.mkdirSync(documentsPath, { recursive: true });
 }
 
-const port = parseInt(process.env.PORT || "3001");
+const port = parseInt(process.env.BACKEND_INTERNAL_PORT || "3001");
 
 console.log(`🚀 Pluma Backend starting on port ${port}`);
 

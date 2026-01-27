@@ -5,7 +5,11 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "migrate": "tsx src/db/migrate-cli.ts",
+    "migrate:status": "tsx src/db/migrate-cli.ts status",
+    "migrate:run": "tsx src/db/migrate-cli.ts run",
+    "migrate:create": "tsx src/db/migrate-cli.ts create"
   },
   "dependencies": {
     "hono": "^4.7.9",

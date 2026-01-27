@@ -14,7 +14,7 @@ services:
       - "3001:3001"   # Backend API
     environment:
       - NODE_ENV=production
-      - PORT=3001
+      - BACKEND_INTERNAL_PORT=3001
       - DOCUMENTS_PATH=/data/documents
       - DB_PATH=/data/pluma.db
       - JWT_SECRET=${JWT_SECRET}

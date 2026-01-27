@@ -2,32 +2,40 @@ import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { runMigrations } from "./migrations.js";
+import { allMigrations } from "./migrations/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const DB_PATH = process.env.DB_PATH || "./data/pluma.db";
+const DOCUMENTS_PATH = process.env.DOCUMENTS_PATH || "./documents";
 
-// Ensure the directory exists
-const dbDir = path.dirname(DB_PATH);
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
+// Ensure directories exist
+const dataDir = path.dirname(DB_PATH);
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+if (!fs.existsSync(DOCUMENTS_PATH)) {
+  fs.mkdirSync(DOCUMENTS_PATH, { recursive: true });
 }
 
-// Initialize database
-export const db = new Database(DB_PATH, { verbose: console.log });
+const isNewDatabase = !fs.existsSync(DB_PATH);
 
-// Enable WAL mode for better concurrency
+export const db = new Database(DB_PATH);
 db.pragma("journal_mode = WAL");
 
-// Initialize schema
-const schemaPath = path.join(__dirname, "schema.sql");
-const schema = fs.readFileSync(schemaPath, "utf-8");
+// Initialize database
+if (isNewDatabase) {
+  console.log("📦 Creating new database with schema...");
+  const schema = fs.readFileSync(path.join(__dirname, "schema.sql"), "utf-8");
+  db.exec(schema);
+  console.log("✅ Schema initialized");
+}
 
-// Execute schema
-db.exec(schema);
-
-console.log("Database initialized at:", DB_PATH);
+// Run migrations on both new and existing databases
+console.log("🔄 Checking for pending migrations...");
+runMigrations(db, allMigrations);
 
 // Helper functions
 export interface User {
