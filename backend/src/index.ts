@@ -18,25 +18,29 @@ app.use(
   "*",
   cors({
     origin: (origin) => {
-      // In production, check against allowed origins
-      if (process.env.NODE_ENV === "production") {
-        // Build allowed origins from environment
-        const frontendPort = process.env.FRONTEND_PORT || 3000;
-        const allowedOrigins = [
-          process.env.FRONTEND_URL,
-          `http://localhost:${frontendPort}`,
-          `http://127.0.0.1:${frontendPort}`,
-          `http://frontend:${frontendPort}`, // Docker internal network
-        ].filter(Boolean);
-
-        // Allow if origin matches or if no origin (same-origin requests)
-        if (!origin || allowedOrigins.includes(origin)) {
-          return origin || "*";
-        }
-        return null;
+      // Allow same-origin requests (no origin header)
+      if (!origin) {
+        return "*";
       }
-      // In development, allow any origin
-      return origin || "*";
+
+      // Check ALLOWED_ORIGINS env variable
+      const allowedOrigins = process.env.ALLOWED_ORIGINS
+        ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+        : [];
+
+      if (allowedOrigins.length > 0) {
+        return allowedOrigins.includes(origin) ? origin : null;
+      }
+
+      // If no ALLOWED_ORIGINS set, allow all in development
+      if (process.env.NODE_ENV !== "production") {
+        return origin || "*";
+      }
+
+      // In production without ALLOWED_ORIGINS, allow all (self-hosted friendly)
+      // For security, set ALLOWED_ORIGINS env variable with your frontend URLs:
+      // ALLOWED_ORIGINS=http://192.168.1.100:3000
+      return origin;
     },
     credentials: true,
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -63,7 +67,7 @@ if (!fs.existsSync(documentsPath)) {
 
 const port = parseInt(process.env.PORT || "3001");
 
-console.log(`🚀 Pluma Backend starting on http://localhost:${port}`);
+console.log(`🚀 Pluma Backend starting on port ${port}`);
 
 serve({
   fetch: app.fetch,

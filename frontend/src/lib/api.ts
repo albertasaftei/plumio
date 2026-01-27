@@ -1,5 +1,32 @@
 // src/lib/api.ts
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+// Dynamically construct API URL for separate frontend/backend ports
+const getApiUrl = () => {
+  if (typeof window === "undefined") {
+    // Server-side: use localhost
+    return "http://localhost:3001";
+  }
+
+  // Check for build-time env var first
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+
+  // Client-side: detect backend port
+  const protocol = window.location.protocol;
+  const hostname = window.location.hostname;
+  const port = window.location.port;
+
+  // If frontend is on a custom port, assume backend is on next port
+  if (port && port !== "80" && port !== "443") {
+    const backendPort = parseInt(port) + 1;
+    return `${protocol}//${hostname}:${backendPort}`;
+  }
+
+  // Default: assume backend on port 3001
+  return `${protocol}//${hostname}:3001`;
+};
+
+const API_URL = getApiUrl();
 
 export interface Document {
   name: string;
