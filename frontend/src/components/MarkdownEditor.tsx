@@ -89,7 +89,7 @@ export default function MarkdownEditor(props: EditorProps) {
     <div class="w-full h-full overflow-auto not-prose">
       <div
         ref={editorRef}
-        class="milkdown-editor-wrapper h-full max-w-5xl mx-auto py-8"
+        class="milkdown-editor-wrapper h-full max-w-5xl mx-auto p-4 sm:p-8"
       />
     </div>
   );
