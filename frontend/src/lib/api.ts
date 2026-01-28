@@ -35,6 +35,7 @@ export interface Document {
   modified: string;
   size: number;
   color?: string;
+  archived_at?: string;
 }
 
 export class ApiClient {
@@ -394,6 +395,31 @@ export class ApiClient {
     }
 
     return response.json();
+  }
+
+  async archiveDocument(path: string) {
+    return this.request("/api/documents/archive", {
+      method: "POST",
+      body: JSON.stringify({ path }),
+    });
+  }
+
+  async unarchiveDocument(path: string) {
+    return this.request("/api/documents/unarchive", {
+      method: "POST",
+      body: JSON.stringify({ path }),
+    });
+  }
+
+  async listArchivedDocuments() {
+    return this.request<{ items: Document[] }>("/api/documents/archived");
+  }
+
+  async permanentlyDeleteDocument(path: string) {
+    return this.request("/api/documents/archive/delete", {
+      method: "POST",
+      body: JSON.stringify({ path }),
+    });
   }
 }
 

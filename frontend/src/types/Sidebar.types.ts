@@ -16,6 +16,8 @@ export interface SidebarProps {
   onExpandFolder: (path: string) => void;
   onSetColor?: (path: string, color: string | null) => void;
   onOrgSwitch: () => void;
+  onArchiveItem: (path: string) => void;
+  onOpenArchive: () => void;
 }
 
 export interface TreeNode extends Document {

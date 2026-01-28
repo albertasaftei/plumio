@@ -93,7 +93,19 @@ documentsRouter.get("/list", async (c) => {
           const stats = await fs.stat(itemPath);
           const orgPath = getOrgDocumentsPath(organizationId);
           const relativePath = path.relative(orgPath, itemPath);
+          const docPath = "/" + relativePath.replace(/\\/g, "/");
           const metadataPath = itemPath + ".meta.json";
+
+          // Check if document is archived in database
+          const dbDoc = documentQueries.findByOrgAndPathIncludingArchived.get(
+            organizationId,
+            docPath,
+          );
+
+          // Skip archived documents
+          if (dbDoc && dbDoc.archived === 1) {
+            return null;
+          }
 
           // Try to load metadata
           let metadata: any = {};
@@ -106,7 +118,7 @@ documentsRouter.get("/list", async (c) => {
 
           return {
             name: item.name,
-            path: "/" + relativePath.replace(/\\/g, "/"),
+            path: docPath,
             type: item.isDirectory() ? "folder" : "file",
             modified: stats.mtime,
             size: stats.size,
@@ -115,7 +127,10 @@ documentsRouter.get("/list", async (c) => {
         }),
     );
 
-    return c.json({ items: result });
+    // Filter out null values (archived documents)
+    const filteredResult = result.filter((item) => item !== null);
+
+    return c.json({ items: filteredResult });
   } catch (error) {
     console.error("Error listing documents:", error);
     return c.json({ error: "Failed to list documents" }, 500);
@@ -511,6 +526,138 @@ documentsRouter.get("/search", async (c) => {
   } catch (error) {
     console.error("Error searching documents:", error);
     return c.json({ error: "Search failed" }, 500);
+  }
+});
+
+// Archive document
+documentsRouter.post("/archive", async (c) => {
+  const { path: docPath } = await c.req.json();
+  const user = c.get("user");
+
+  if (!user?.currentOrgId) {
+    return c.json({ error: "No organization selected" }, 400);
+  }
+
+  try {
+    // Check if document exists in database
+    const existing = documentQueries.findByOrgAndPath.get(
+      user.currentOrgId,
+      docPath,
+    );
+
+    if (!existing) {
+      // Document not in database - need to add it first
+      const fullPath = sanitizePath(docPath, user.currentOrgId);
+
+      try {
+        const stats = await fs.stat(fullPath);
+        const fileName = path.basename(docPath, ".md");
+
+        // Insert document into database first
+        documentQueries.upsert.run(
+          user.currentOrgId,
+          user.userId,
+          docPath,
+          fileName,
+          null, // no color
+          stats.size,
+        );
+      } catch (err) {
+        console.error("File not found:", docPath);
+        return c.json({ error: "Document not found" }, 404);
+      }
+    }
+
+    // Now archive it
+    documentQueries.archiveDocument.run(
+      user.userId,
+      user.currentOrgId,
+      docPath,
+    );
+    return c.json({ success: true });
+  } catch (error) {
+    console.error("Error archiving document:", error);
+    return c.json({ error: "Failed to archive document" }, 500);
+  }
+});
+
+// Unarchive document
+documentsRouter.post("/unarchive", async (c) => {
+  const { path: docPath } = await c.req.json();
+  const user = c.get("user");
+
+  if (!user?.currentOrgId) {
+    return c.json({ error: "No organization selected" }, 400);
+  }
+
+  try {
+    documentQueries.unarchiveDocument.run(user.currentOrgId, docPath);
+    return c.json({ success: true });
+  } catch (error) {
+    console.error("Error unarchiving document:", error);
+    return c.json({ error: "Failed to unarchive document" }, 500);
+  }
+});
+
+// List archived documents
+documentsRouter.get("/archived", async (c) => {
+  const user = c.get("user");
+
+  if (!user?.currentOrgId) {
+    return c.json({ error: "No organization selected" }, 400);
+  }
+
+  try {
+    const archived = documentQueries.listArchivedDocuments.all(
+      user.currentOrgId,
+    );
+
+    const items = archived.map((doc) => ({
+      path: doc.path,
+      title: doc.title,
+      type: doc.path.includes(".") ? "file" : "folder",
+      color: doc.color,
+      modified: doc.updated_at,
+      size: doc.size,
+      archived_at: doc.archived_at,
+    }));
+
+    return c.json({ items });
+  } catch (error) {
+    console.error("Error listing archived documents:", error);
+    return c.json({ error: "Failed to list archived documents" }, 500);
+  }
+});
+
+// Permanently delete archived document
+documentsRouter.post("/archive/delete", async (c) => {
+  const { path: docPath } = await c.req.json();
+  const user = c.get("user");
+
+  if (!user?.currentOrgId) {
+    return c.json({ error: "No organization selected" }, 400);
+  }
+
+  try {
+    // Get organization documents path
+    const orgPath = getOrgDocumentsPath(user.currentOrgId);
+
+    // Delete physical file
+    const filePath = path.join(orgPath, docPath);
+    try {
+      await fs.unlink(filePath);
+    } catch (err) {
+      // File might not exist, continue anyway
+      console.log("File not found, continuing with DB delete:", filePath);
+    }
+
+    // Delete from database
+    documentQueries.permanentlyDelete.run(user.currentOrgId, docPath);
+
+    return c.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting archived document:", error);
+    return c.json({ error: "Failed to delete document" }, 500);
   }
 });
 

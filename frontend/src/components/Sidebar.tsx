@@ -233,6 +233,16 @@ export default function Sidebar(props: SidebarProps) {
                 />
 
                 <PopoverItem
+                  icon="i-carbon-archive"
+                  label="Archive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    props.onArchiveItem(nodeProps.node.path);
+                    setOpenMenuPath(null);
+                  }}
+                />
+
+                <PopoverItem
                   icon="i-carbon-trash-can"
                   label="Delete"
                   variant="danger"
@@ -278,7 +288,7 @@ export default function Sidebar(props: SidebarProps) {
     <>
       <aside class="w-80 sm:w-96 h-full border-r border-neutral-800 bg-neutral-950 flex flex-col">
         {/* Sidebar Header */}
-        <div class="p-3 sm:p-4 border-b border-neutral-800">
+        <div class="p-4 sm:p-4 border-b border-neutral-800">
           <div class="flex items-center justify-between mb-3">
             <Button
               onClick={() => props.setSidebarOpen(false)}
@@ -338,11 +348,29 @@ export default function Sidebar(props: SidebarProps) {
           <For each={filteredTree()}>{(node) => <TreeNode node={node} />}</For>
         </div>
 
+        {/* Archive Button */}
+        <div class="p-4">
+          <Button
+            onClick={props.onOpenArchive}
+            variant="ghost"
+            size="md"
+            fullWidth
+            class="justify-start"
+          >
+            <div class="i-carbon-archive w-4 h-4" />
+            <span class="ml-2">View Archive</span>
+          </Button>
+        </div>
+
         {/* User Info Footer */}
         <Show when={username()}>
-          <div class="flex items-center gap-2 p-4 border-t border-neutral-800 bg-neutral-950 space-y-2">
-            <div class="i-carbon-user w-5 h-5 text-neutral-400" />
-            <span class="text-neutral-300 truncate">{username()}</span>
+          <div class="p-4 border-t border-neutral-800 bg-neutral-950 space-y-2">
+            <div class="flex items-center gap-2">
+              <div class="i-carbon-user w-4 h-4 text-neutral-400" />
+              <span class="text-sm text-neutral-300 truncate">
+                {username()}
+              </span>
+            </div>
           </div>
         </Show>
       </aside>

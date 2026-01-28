@@ -43,6 +43,9 @@ export interface Document {
   title: string;
   color: string | null;
   size: number;
+  archived: number; // SQLite uses 0/1 for boolean
+  archived_at: string | null;
+  archived_by: number | null;
   created_at: string;
   updated_at: string;
 }

@@ -143,10 +143,13 @@ export const documentQueries = {
       updated_at = CURRENT_TIMESTAMP
   `),
   findByOrgAndPath: db.prepare<[number, string], Document>(
+    "SELECT * FROM documents WHERE organization_id = ? AND path = ? AND archived = 0",
+  ),
+  findByOrgAndPathIncludingArchived: db.prepare<[number, string], Document>(
     "SELECT * FROM documents WHERE organization_id = ? AND path = ?",
   ),
   listByOrganization: db.prepare<[number], Document>(
-    "SELECT * FROM documents WHERE organization_id = ? ORDER BY updated_at DESC",
+    "SELECT * FROM documents WHERE organization_id = ? AND archived = 0 ORDER BY updated_at DESC",
   ),
   updateColor: db.prepare<[string, number, string]>(
     "UPDATE documents SET color = ?, updated_at = CURRENT_TIMESTAMP WHERE organization_id = ? AND path = ?",
@@ -160,7 +163,7 @@ export const documentQueries = {
   search: db.prepare<[number, string], Document>(`
     SELECT d.* FROM documents d
     JOIN documents_fts fts ON d.id = fts.rowid
-    WHERE d.organization_id = ? AND documents_fts MATCH ?
+    WHERE d.organization_id = ? AND d.archived = 0 AND documents_fts MATCH ?
     ORDER BY rank
   `),
   updateContent: db.prepare<[number, string]>(`
@@ -176,6 +179,24 @@ export const documentQueries = {
       ?
     )
   `),
+  archiveDocument: db.prepare<[number, number, string]>(`
+    UPDATE documents 
+    SET archived = 1, archived_at = CURRENT_TIMESTAMP, archived_by = ?
+    WHERE organization_id = ? AND path = ?
+  `),
+  unarchiveDocument: db.prepare<[number, string]>(`
+    UPDATE documents 
+    SET archived = 0, archived_at = NULL, archived_by = NULL
+    WHERE organization_id = ? AND path = ?
+  `),
+  listArchivedDocuments: db.prepare<[number], Document>(`
+    SELECT * FROM documents 
+    WHERE organization_id = ? AND archived = 1
+    ORDER BY archived_at DESC
+  `),
+  permanentlyDelete: db.prepare<[number, string]>(
+    "DELETE FROM documents WHERE organization_id = ? AND path = ?",
+  ),
 };
 
 // Cleanup expired sessions periodically

@@ -52,11 +52,15 @@ CREATE TABLE IF NOT EXISTS documents (
     title TEXT NOT NULL,
     color TEXT,
     size INTEGER DEFAULT 0,
+    archived INTEGER DEFAULT 0,
+    archived_at DATETIME,
+    archived_by INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(organization_id, path),
     FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (archived_by) REFERENCES users(id)
 );
 
 -- Full-text search virtual table (standalone, not content-backed)
@@ -92,3 +96,4 @@ CREATE INDEX IF NOT EXISTS idx_documents_organization_id ON documents(organizati
 CREATE INDEX IF NOT EXISTS idx_documents_user_id ON documents(user_id);
 CREATE INDEX IF NOT EXISTS idx_documents_path ON documents(path);
 CREATE INDEX IF NOT EXISTS idx_documents_updated_at ON documents(updated_at);
+CREATE INDEX IF NOT EXISTS idx_documents_archived ON documents(organization_id, archived);
