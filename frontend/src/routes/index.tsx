@@ -181,6 +181,18 @@ export default function Home() {
                 {isSetup() ? "Complete Setup" : "Login"}
               </Button>
             </form>
+
+            <Show when={!isSetup()}>
+              <div class="mt-6 text-center">
+                <span class="text-neutral-400">Don't have an account?</span>
+                <button
+                  onClick={() => navigate("/register")}
+                  class="ml-2 text-primary hover:underline cursor-pointer"
+                >
+                  Register
+                </button>
+              </div>
+            </Show>
           </div>
 
           <p class="text-center text-neutral-600  mt-6">

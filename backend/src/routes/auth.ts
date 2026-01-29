@@ -150,6 +150,59 @@ authRouter.post("/logout", async (c) => {
   }
 });
 
+// Register - Create new user account
+authRouter.post("/register", async (c) => {
+  try {
+    // Check if setup is complete (at least one user exists)
+    const firstUser = userQueries.findById.get(1);
+    if (!firstUser) {
+      return c.json(
+        { error: "System setup not completed. Please complete setup first." },
+        400,
+      );
+    }
+
+    const { username, email, password } = await c.req.json();
+
+    if (!username || !email || !password || password.length < 8) {
+      return c.json(
+        { error: "Invalid credentials (password min 8 characters)" },
+        400,
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    try {
+      // Create user
+      const result = userQueries.create.run(username, email, passwordHash);
+      const userId = result.lastInsertRowid as number;
+
+      // Create personal organization for the new user
+      const orgSlug = `${username}-personal`;
+      const orgResult = organizationQueries.create.run(
+        `${username}'s Organization`,
+        orgSlug,
+        userId,
+      );
+      const orgId = orgResult.lastInsertRowid as number;
+
+      // Add user as admin of their organization
+      memberQueries.add.run(orgId, userId, "admin");
+
+      return c.json({ message: "Registration successful. Please login." });
+    } catch (error: any) {
+      if (error.message.includes("UNIQUE")) {
+        return c.json({ error: "Username or email already exists" }, 400);
+      }
+      throw error;
+    }
+  } catch (error) {
+    console.error("Register error:", error);
+    return c.json({ error: "Registration failed" }, 500);
+  }
+});
+
 // Check if setup is needed
 authRouter.get("/check-setup", async (c) => {
   try {

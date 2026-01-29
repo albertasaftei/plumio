@@ -43,6 +43,17 @@ export default function SettingsPage() {
     }
   };
 
+  const CurrentSection = () => {
+    const sections = {
+        account: Account,
+        "import-export": ImportExport,
+        organization: OrganizationPanel,
+        admin: AdminPanel,
+      },
+      SectionComponent = sections[activeSection()!];
+    return <SectionComponent isOpen={true} inline={true} onClose={() => {}} />;
+  };
+
   return (
     <div class="flex h-screen overflow-hidden bg-neutral-950">
       {/* Sidebar Overlay for mobile */}
@@ -90,7 +101,7 @@ export default function SettingsPage() {
           }
         >
           <Show when={activeSection() === "account"}>
-            <div class="p-8 max-w-2xl mx-auto">
+            <div class="p-8 max-w-4xl mx-auto">
               <div class="flex items-center gap-3 mb-6">
                 <Button
                   onClick={handleClose}
@@ -107,7 +118,7 @@ export default function SettingsPage() {
           </Show>
 
           <Show when={activeSection() === "import-export"}>
-            <div class="p-8 max-w-2xl mx-auto">
+            <div class="p-8 max-w-4xl mx-auto">
               <div class="flex items-center gap-3 mb-6">
                 <Button
                   onClick={handleClose}
@@ -124,7 +135,7 @@ export default function SettingsPage() {
           </Show>
 
           <Show when={activeSection() === "organization"}>
-            <div class="p-8 max-w-2xl mx-auto">
+            <div class="p-8 max-w-4xl mx-auto">
               <div class="flex items-center gap-3 mb-6">
                 <Button
                   onClick={handleClose}
@@ -137,15 +148,15 @@ export default function SettingsPage() {
                 <h2 class="text-2xl font-bold text-white">Organization</h2>
               </div>
               <OrganizationPanel
-                isOpen={true}
-                inline={true}
+                isOpen
+                inline
                 onClose={() => setActiveSection(null)}
               />
             </div>
           </Show>
 
           <Show when={activeSection() === "admin"}>
-            <div class="p-8 max-w-2xl mx-auto">
+            <div class="p-8 max-w-4xl mx-auto">
               <div class="flex items-center gap-3 mb-6">
                 <Button
                   onClick={handleClose}

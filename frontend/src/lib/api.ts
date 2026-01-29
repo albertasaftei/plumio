@@ -123,6 +123,13 @@ export class ApiClient {
     });
   }
 
+  async register(username: string, email: string, password: string) {
+    return this.request("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ username, email, password }),
+    });
+  }
+
   async login(username: string, password: string) {
     const result = await this.request<{
       token: string;

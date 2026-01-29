@@ -26,7 +26,7 @@ export default function Editor(props: EditorProps) {
   };
 
   return (
-    <div class="flex-1 flex flex-col bg-neutral-900">
+    <div class="flex-1 flex flex-col w-5xl max-w-5xl mx-auto bg-neutral-900">
       <textarea
         ref={textareaRef}
         value={props.content}
