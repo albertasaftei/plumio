@@ -325,11 +325,14 @@ export class ApiClient {
     );
   }
 
-  async saveDocument(path: string, content: string) {
-    return this.request("/api/documents/save", {
-      method: "POST",
-      body: JSON.stringify({ path, content }),
-    });
+  async saveDocument(path: string, content: string, isNew: boolean = false) {
+    return this.request<{ message: string; path: string }>(
+      "/api/documents/save",
+      {
+        method: "POST",
+        body: JSON.stringify({ path, content, isNew }),
+      },
+    );
   }
 
   async createFolder(path: string) {

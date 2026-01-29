@@ -114,9 +114,14 @@ export default function EditorPage() {
     const fullPath =
       folderPath === "/" ? `/${fileName}` : `${folderPath}/${fileName}`;
     try {
-      await api.saveDocument(fullPath, "# New Document\n\nStart writing...");
+      const result = await api.saveDocument(
+        fullPath,
+        "# New Document\n\nStart writing...",
+        true, // isNew flag
+      );
       await loadAllDocuments();
-      loadDocument(fullPath);
+      // Load the document with the unique path returned from API
+      loadDocument(result.path);
     } catch (error) {
       console.error("Failed to create document:", error);
     }

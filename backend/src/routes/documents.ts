@@ -54,6 +54,53 @@ function sanitizePath(userPath: string, organizationId: number): string {
   return path.join(orgPath, normalized);
 }
 
+// Generate unique file path by appending (1), (2), etc. if file already exists
+async function getUniqueFilePath(
+  basePath: string,
+  organizationId: number,
+  isNewDocument: boolean = false,
+): Promise<string> {
+  // If not a new document, return the path as-is
+  if (!isNewDocument) {
+    return basePath;
+  }
+
+  const orgPath = getOrgDocumentsPath(organizationId);
+  const fullPath = path.join(orgPath, basePath);
+
+  // Check if file exists
+  try {
+    await fs.access(fullPath);
+    // File exists, need to generate unique name
+  } catch {
+    // File doesn't exist, can use the original path
+    return basePath;
+  }
+
+  // Parse the path to extract directory, filename, and extension
+  const dir = path.dirname(basePath);
+  const filename = path.basename(basePath);
+  const ext = path.extname(filename);
+  const nameWithoutExt = filename.slice(0, -ext.length);
+
+  // Try with incrementing counter until we find a unique name
+  let counter = 1;
+  while (true) {
+    const newName = `${nameWithoutExt} (${counter})${ext}`;
+    const newPath = dir === "/" ? `/${newName}` : `${dir}/${newName}`;
+    const newFullPath = path.join(orgPath, newPath);
+
+    try {
+      await fs.access(newFullPath);
+      // File exists, try next counter
+      counter++;
+    } catch {
+      // File doesn't exist, we can use this path
+      return newPath;
+    }
+  }
+}
+
 // List all documents and folders
 documentsRouter.get("/list", async (c) => {
   const folderPath = c.req.query("path") || "/";
@@ -159,7 +206,7 @@ documentsRouter.get("/content", async (c) => {
 
 // Save or create document
 documentsRouter.post("/save", async (c) => {
-  const { path: filePath, content } = await c.req.json();
+  const { path: filePath, content, isNew = false } = await c.req.json();
 
   if (!filePath || content === undefined) {
     return c.json({ error: "Path and content are required" }, 400);
@@ -174,7 +221,9 @@ documentsRouter.post("/save", async (c) => {
       return c.json({ error: "No organization context" }, 400);
     }
 
-    const fullPath = sanitizePath(filePath, organizationId);
+    // Get unique file path if this is a new document
+    const uniquePath = await getUniqueFilePath(filePath, organizationId, isNew);
+    const fullPath = sanitizePath(uniquePath, organizationId);
 
     // Ensure directory exists
     await fs.mkdir(path.dirname(fullPath), { recursive: true });
@@ -191,13 +240,13 @@ documentsRouter.post("/save", async (c) => {
       content
         .split("\n")[0]
         .replace(/^#+\s*/, "")
-        .trim() || path.basename(filePath, ".md");
+        .trim() || path.basename(uniquePath, ".md");
 
     // Update document metadata and FTS index
     documentQueries.upsert.run(
       organizationId,
       userId,
-      filePath,
+      uniquePath,
       title,
       null,
       stats.size,
@@ -205,20 +254,20 @@ documentsRouter.post("/save", async (c) => {
 
     // Update FTS content (delete old entry and insert new one)
     try {
-      documentQueries.updateContent.run(organizationId, filePath);
+      documentQueries.updateContent.run(organizationId, uniquePath);
     } catch (e) {
       // Row might not exist in FTS yet, that's ok
     }
     documentQueries.insertContent.run(
       organizationId,
-      filePath,
-      filePath,
+      uniquePath,
+      uniquePath,
       organizationId,
-      filePath,
+      uniquePath,
       content,
     );
 
-    return c.json({ message: "Document saved successfully", path: filePath });
+    return c.json({ message: "Document saved successfully", path: uniquePath });
   } catch (error) {
     console.error("Error saving document:", error);
     return c.json({ error: "Failed to save document" }, 500);
