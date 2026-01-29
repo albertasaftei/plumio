@@ -9,8 +9,13 @@ import { documentsRouter } from "./routes/documents.js";
 import { authRouter } from "./routes/auth.js";
 import { adminRouter } from "./routes/admin.js";
 import { organizationsRouter } from "./routes/organizations.js";
+import { UserJWTPayload } from "./middlewares/auth.types.js";
 
-const app = new Hono();
+type Variables = {
+  user: UserJWTPayload;
+};
+
+const app = new Hono<{ Variables: Variables }>();
 
 // Middleware
 app.use("*", logger());

@@ -197,6 +197,59 @@ export const documentQueries = {
   permanentlyDelete: db.prepare<[number, string]>(
     "DELETE FROM documents WHERE organization_id = ? AND path = ?",
   ),
+  permanentlyDeleteWithFtsCleanup: (
+    organizationId: number,
+    docPath: string,
+  ) => {
+    // Get the document ID first
+    const doc = documentQueries.findByOrgAndPathIncludingArchived.get(
+      organizationId,
+      docPath,
+    );
+
+    if (!doc) {
+      return { changes: 0 };
+    }
+
+    // Use a transaction and disable triggers temporarily
+    const transaction = db.transaction(() => {
+      // Delete from FTS table first (ignore errors if it doesn't exist)
+      try {
+        db.prepare("DELETE FROM documents_fts WHERE rowid = ?").run(doc.id);
+      } catch (e) {
+        console.log("FTS cleanup warning:", e);
+      }
+
+      // Drop the trigger temporarily
+      try {
+        db.prepare("DROP TRIGGER IF EXISTS documents_ad").run();
+      } catch (e) {
+        console.log("Trigger drop warning:", e);
+      }
+
+      // Delete from documents table
+      const result = db
+        .prepare("DELETE FROM documents WHERE organization_id = ? AND path = ?")
+        .run(organizationId, docPath);
+
+      // Recreate the trigger
+      try {
+        db.prepare(
+          `
+          CREATE TRIGGER documents_ad AFTER DELETE ON documents BEGIN
+            DELETE FROM documents_fts WHERE rowid = old.id;
+          END;
+        `,
+        ).run();
+      } catch (e) {
+        console.log("Trigger recreate warning:", e);
+      }
+
+      return result;
+    });
+
+    return transaction();
+  },
 };
 
 // Cleanup expired sessions periodically

@@ -3,7 +3,7 @@ import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import { ENCRYPTION_KEY } from "../config.js";
-import { documentQueries } from "../db/index.js";
+import db, { documentQueries } from "../db/index.js";
 import { verifyToken } from "../middlewares/auth.js";
 import { UserJWTPayload } from "../middlewares/auth.types.js";
 
@@ -88,6 +88,7 @@ documentsRouter.get("/list", async (c) => {
     const result = await Promise.all(
       items
         .filter((item) => !item.name.endsWith(".meta.json")) // Filter out metadata files
+        .filter((item) => !item.name.includes(".archived-")) // Filter out archived files
         .map(async (item) => {
           const itemPath = path.join(fullPath, item.name);
           const stats = await fs.stat(itemPath);
@@ -568,13 +569,36 @@ documentsRouter.post("/archive", async (c) => {
       }
     }
 
-    // Now archive it
-    documentQueries.archiveDocument.run(
-      user.userId,
-      user.currentOrgId,
-      docPath,
-    );
-    return c.json({ success: true });
+    // Now archive it - rename path with timestamp
+    const timestamp = Date.now();
+    const pathParts = docPath.split("/");
+    const fileName = pathParts.pop() || "";
+    const fileNameWithoutExt = fileName.replace(/\.md$/, "");
+    const archivedFileName = `${fileNameWithoutExt}.archived-${timestamp}.md`;
+    const archivedPath = [...pathParts, archivedFileName].join("/");
+
+    // Rename the physical file
+    const orgPath = getOrgDocumentsPath(user.currentOrgId);
+    const oldFilePath = path.join(orgPath, docPath);
+    const newFilePath = path.join(orgPath, archivedPath);
+
+    try {
+      await fs.rename(oldFilePath, newFilePath);
+    } catch (err) {
+      console.error("Error renaming file:", err);
+      // Continue anyway - file might not exist on disk
+    }
+
+    // Update database - change path and set archived flag
+    db.prepare(
+      `
+      UPDATE documents 
+      SET path = ?, archived = 1, archived_at = CURRENT_TIMESTAMP, archived_by = ?
+      WHERE organization_id = ? AND path = ?
+    `,
+    ).run(archivedPath, user.userId, user.currentOrgId, docPath);
+
+    return c.json({ success: true, archivedPath });
   } catch (error) {
     console.error("Error archiving document:", error);
     return c.json({ error: "Failed to archive document" }, 500);
@@ -591,8 +615,47 @@ documentsRouter.post("/unarchive", async (c) => {
   }
 
   try {
-    documentQueries.unarchiveDocument.run(user.currentOrgId, docPath);
-    return c.json({ success: true });
+    // Extract original path by removing the .archived-{timestamp} suffix
+    const restoredPath = docPath.replace(/\.archived-\d+\.md$/, ".md");
+
+    // Check if a file with the restored name already exists
+    const existing = documentQueries.findByOrgAndPath.get(
+      user.currentOrgId,
+      restoredPath,
+    );
+
+    if (existing) {
+      return c.json(
+        {
+          error:
+            "A file with this name already exists. Please delete or rename it first.",
+        },
+        409,
+      );
+    }
+
+    // Rename the physical file back
+    const orgPath = getOrgDocumentsPath(user.currentOrgId);
+    const archivedFilePath = path.join(orgPath, docPath);
+    const restoredFilePath = path.join(orgPath, restoredPath);
+
+    try {
+      await fs.rename(archivedFilePath, restoredFilePath);
+    } catch (err) {
+      console.error("Error renaming file:", err);
+      // Continue anyway - file might not exist on disk
+    }
+
+    // Update database - restore original path and unarchive
+    db.prepare(
+      `
+      UPDATE documents 
+      SET path = ?, archived = 0, archived_at = NULL, archived_by = NULL
+      WHERE organization_id = ? AND path = ?
+    `,
+    ).run(restoredPath, user.currentOrgId, docPath);
+
+    return c.json({ success: true, restoredPath });
   } catch (error) {
     console.error("Error unarchiving document:", error);
     return c.json({ error: "Failed to unarchive document" }, 500);
@@ -639,20 +702,25 @@ documentsRouter.post("/archive/delete", async (c) => {
   }
 
   try {
-    // Get organization documents path
-    const orgPath = getOrgDocumentsPath(user.currentOrgId);
+    // Delete from database first
+    const result = documentQueries.permanentlyDeleteWithFtsCleanup(
+      user.currentOrgId,
+      docPath,
+    );
 
-    // Delete physical file
+    if (result.changes === 0) {
+      return c.json({ error: "Document not found in database" }, 404);
+    }
+
+    // Try to delete physical file (ignore if it doesn't exist)
+    const orgPath = getOrgDocumentsPath(user.currentOrgId);
     const filePath = path.join(orgPath, docPath);
     try {
       await fs.unlink(filePath);
     } catch (err) {
-      // File might not exist, continue anyway
-      console.log("File not found, continuing with DB delete:", filePath);
+      // File doesn't exist or already deleted, which is fine
+      console.log("File not found on filesystem (already deleted):", filePath);
     }
-
-    // Delete from database
-    documentQueries.permanentlyDelete.run(user.currentOrgId, docPath);
 
     return c.json({ success: true });
   } catch (error) {

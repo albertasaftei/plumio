@@ -58,6 +58,12 @@ export default function ArchivePage() {
     return date.toLocaleDateString();
   };
 
+  const getDisplayName = (filePath: string) => {
+    const fileName = filePath.split("/").pop() || "";
+    // Remove .archived-{timestamp} suffix from display
+    return fileName.replace(/\.archived-\d+\.md$/, ".md");
+  };
+
   return (
     <div class="flex h-screen overflow-hidden bg-neutral-900">
       <div class="flex-1 overflow-auto p-4 sm:p-8">
@@ -103,7 +109,7 @@ export default function ArchivePage() {
                         <div class="i-carbon-document w-5 h-5 text-neutral-400 flex-shrink-0" />
                         <div class="min-w-0 flex-1">
                           <p class="text-white truncate">
-                            {doc.path.split("/").pop()}
+                            {getDisplayName(doc.path)}
                           </p>
                           <p class="text-xs text-neutral-400 truncate">
                             {doc.path}
@@ -155,7 +161,8 @@ export default function ArchivePage() {
       >
         <p class="text-neutral-400">
           Are you sure you want to permanently delete "
-          {deleteConfirm()?.split("/").pop()}"? This action cannot be undone.
+          {deleteConfirm() && getDisplayName(deleteConfirm()!)}"? This action
+          cannot be undone.
         </p>
       </AlertDialog>
     </div>
