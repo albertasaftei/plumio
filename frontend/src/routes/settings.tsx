@@ -19,9 +19,11 @@ export default function SettingsPage() {
   const [isOrgAdmin, setIsOrgAdmin] = createSignal(false);
   const [sidebarOpen, setSidebarOpen] = createSignal(true);
 
-  onMount(() => {
+  onMount(async () => {
     setIsAdmin(api.isAdmin());
-    setIsOrgAdmin(api.isOrgAdmin());
+    // Fetch org admin status from server for security
+    const orgAdminStatus = await api.isOrgAdmin();
+    setIsOrgAdmin(orgAdminStatus);
     // Close sidebar by default on mobile
     setSidebarOpen(!isMobile());
   });

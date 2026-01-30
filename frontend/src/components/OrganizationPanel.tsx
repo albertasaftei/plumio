@@ -39,9 +39,11 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
 
   const currentOrg = () => api.getCurrentOrganization();
 
-  onMount(() => {
+  onMount(async () => {
     setMounted(true);
-    setIsAdmin(api.isOrgAdmin());
+    // Fetch admin status from server for security validation
+    const adminStatus = await api.isOrgAdmin();
+    setIsAdmin(adminStatus);
   });
 
   const loadMembers = async () => {

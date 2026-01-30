@@ -182,14 +182,36 @@ export class ApiClient {
     return decoded?.isAdmin ?? false;
   }
 
-  isOrgAdmin(): boolean {
+  async isOrgAdmin(): Promise<boolean> {
+    const org = this.getCurrentOrganization();
+    if (!org) return false;
+
+    try {
+      // Fetch role from backend to ensure it's not tampered with
+      const data = await this.request<{ role: string }>(
+        `/api/organizations/${org.id}/role`,
+      );
+
+      // Update localStorage with server-validated role
+      const updatedOrg = { ...org, role: data.role };
+      localStorage.setItem("pluma_current_org", JSON.stringify(updatedOrg));
+
+      return data.role === "admin";
+    } catch (error) {
+      console.error("Error verifying admin status:", error);
+      return false;
+    }
+  }
+
+  // Synchronous version for immediate UI checks (uses cached value from localStorage)
+  // WARNING: This should only be used for UI display, not authorization decisions
+  isOrgAdminCached(): boolean {
     const org = this.getCurrentOrganization();
     return org?.role === "admin";
   }
 
   getUsername(): string | null {
     const decoded = this.decodeToken();
-    console.log({ decoded });
     return decoded?.username ?? null;
   }
 

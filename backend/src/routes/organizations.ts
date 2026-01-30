@@ -282,6 +282,25 @@ organizationsRouter.put("/:id/members/:userId", async (c) => {
   }
 });
 
+// Get current user's role in organization
+organizationsRouter.get("/:id/role", async (c) => {
+  try {
+    const user = c.get("user");
+    const orgId = parseInt(c.req.param("id"));
+
+    const membership = memberQueries.findMembership.get(orgId, user.userId);
+
+    if (!membership) {
+      return c.json({ error: "Not a member of this organization" }, 404);
+    }
+
+    return c.json({ role: membership.role });
+  } catch (error) {
+    console.error("Error getting user role:", error);
+    return c.json({ error: "Failed to get user role" }, 500);
+  }
+});
+
 // Remove member from organization (admin only)
 organizationsRouter.delete("/:id/members/:userId", async (c) => {
   try {
