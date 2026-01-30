@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
-import { ENCRYPTION_KEY } from "../config.js";
+import { ENCRYPTION_KEY, ENABLE_ENCRYPTION } from "../config.js";
 import db, { documentQueries } from "../db/index.js";
 import { authMiddleware } from "../middlewares/auth.js";
 import { UserJWTPayload } from "../middlewares/auth.types.js";
@@ -14,7 +14,9 @@ type Variables = {
 const documentsRouter = new Hono<{ Variables: Variables }>();
 
 const DOCUMENTS_PATH = process.env.DOCUMENTS_PATH || "./documents";
-const encryptionKeyBuffer = Buffer.from(ENCRYPTION_KEY, "hex");
+const encryptionKeyBuffer = ENABLE_ENCRYPTION
+  ? Buffer.from(ENCRYPTION_KEY, "hex")
+  : Buffer.alloc(0);
 
 // Auth middleware
 documentsRouter.use("*", authMiddleware);
@@ -26,6 +28,9 @@ function getOrgDocumentsPath(organizationId: number): string {
 
 // Encryption helpers
 function encrypt(text: string): string {
+  if (!ENABLE_ENCRYPTION) {
+    return text;
+  }
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv("aes-256-cbc", encryptionKeyBuffer, iv);
   let encrypted = cipher.update(text, "utf8", "hex");
@@ -34,6 +39,9 @@ function encrypt(text: string): string {
 }
 
 function decrypt(text: string): string {
+  if (!ENABLE_ENCRYPTION) {
+    return text;
+  }
   const parts = text.split(":");
   const iv = Buffer.from(parts[0], "hex");
   const encryptedText = parts[1];
@@ -187,14 +195,19 @@ documentsRouter.get("/content", async (c) => {
   const fullPath = sanitizePath(filePath, organizationId);
 
   try {
-    const encrypted = await fs.readFile(fullPath, "utf-8");
+    const fileContent = await fs.readFile(fullPath, "utf-8");
 
-    // Try to decrypt, if it fails, return as plain text (backwards compatibility)
+    // Try to decrypt if encryption is enabled, if it fails, return as plain text (backwards compatibility)
     let content: string;
-    try {
-      content = decrypt(encrypted);
-    } catch {
-      content = encrypted;
+    if (ENABLE_ENCRYPTION) {
+      try {
+        content = decrypt(fileContent);
+      } catch {
+        // Failed to decrypt, might be a plain text file
+        content = fileContent;
+      }
+    } else {
+      content = fileContent;
     }
 
     return c.json({ content, path: filePath });
@@ -228,9 +241,9 @@ documentsRouter.post("/save", async (c) => {
     // Ensure directory exists
     await fs.mkdir(path.dirname(fullPath), { recursive: true });
 
-    // Encrypt content
-    const encrypted = encrypt(content);
-    await fs.writeFile(fullPath, encrypted, "utf-8");
+    // Encrypt content if encryption is enabled
+    const fileContent = encrypt(content);
+    await fs.writeFile(fullPath, fileContent, "utf-8");
 
     // Get file stats
     const stats = await fs.stat(fullPath);

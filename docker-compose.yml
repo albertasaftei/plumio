@@ -20,6 +20,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - ALLOWED_ORIGINS=http://${FRONTEND_URL}:${FRONTEND_PORT}
+      - ENABLE_ENCRYPTION=true
     volumes:
       - pluma-data:/data
     networks:
