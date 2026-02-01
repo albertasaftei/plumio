@@ -5,8 +5,8 @@
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/albertasaftei/pluma.git
-   cd pluma
+   git clone https://github.com/albertasaftei/plumio.git
+   cd plumio
    ```
 
 2. **Set up environment variables:**
@@ -26,7 +26,7 @@
 5. **View logs:**
 
    ```bash
-   docker logs pluma -f
+   docker logs plumio -f
    ```
 
 ### Option 2: Manual Setup
@@ -137,18 +137,18 @@ Create a one-time backup of all data (documents + database):
 
 ```bash
 docker run --rm \
-  -v pluma_pluma-data:/data \
+  -v plumio_plumio-data:/data \
   -v $(pwd)/backups:/backup \
-  alpine tar czf /backup/pluma-backup-$(date +%Y%m%d-%H%M%S).tar.gz -C /data .
+  alpine tar czf /backup/plumio-backup-$(date +%Y%m%d-%H%M%S).tar.gz -C /data .
 ```
 
 ### Restore manually from Backup or just use the in app import button
 
 ```bash
 docker run --rm \
-  -v pluma_pluma-data:/data \
+  -v plumio_plumio-data:/data \
   -v $(pwd)/backups:/backup \
-  alpine sh -c "rm -rf /data/* && tar xzf /backup/pluma-backup-YYYYMMDD-HHMMSS.tar.gz -C /data"
+  alpine sh -c "rm -rf /data/* && tar xzf /backup/plumio-backup-YYYYMMDD-HHMMSS.tar.gz -C /data"
 ```
 
 ## Contributing

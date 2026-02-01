@@ -72,7 +72,7 @@ if (!fs.existsSync(documentsPath)) {
 
 const port = parseInt(process.env.BACKEND_INTERNAL_PORT || "3001");
 
-console.log(`🚀 Pluma Backend starting on port ${port}`);
+console.log(`🚀 Plumio Backend starting on port ${port}`);
 
 serve({
   fetch: app.fetch,

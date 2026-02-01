@@ -31,7 +31,7 @@ export default function Header(props: HeaderProps) {
         >
           <Logo color="#2a9d8f" />
           <h1 class="hidden sm:block text-lg font-semibold text-neutral-100">
-            pluma
+            plumio
           </h1>
         </Button>
       </div>

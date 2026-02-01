@@ -1,6 +1,6 @@
 # Backup System
 
-Pluma includes an optional automated backup system that runs daily to protect your documents.
+Plumio includes an optional automated backup system that runs daily to protect your documents.
 
 ## Enabling Automated Backups
 
@@ -32,17 +32,17 @@ docker-compose stop backup
 Backups are stored in the `./backups/` directory with filenames like:
 
 ```
-pluma-backup-20260123-141008.tar.gz
+plumio-backup-20260123-141008.tar.gz
 ```
 
-Format: `pluma-backup-YYYYMMDD-HHMMSS.tar.gz`
+Format: `plumio-backup-YYYYMMDD-HHMMSS.tar.gz`
 
 ## Manual Backup
 
 Create a backup manually at any time:
 
 ```bash
-docker exec pluma-backup /backup.sh run-backup
+docker exec plumio-backup /backup.sh run-backup
 ```
 
 ## View Backup Logs
@@ -50,13 +50,13 @@ docker exec pluma-backup /backup.sh run-backup
 Check what backups have been created and when:
 
 ```bash
-docker logs pluma-backup
+docker logs plumio-backup
 ```
 
 Or follow logs in real-time:
 
 ```bash
-docker logs -f pluma-backup
+docker logs -f plumio-backup
 ```
 
 ## Restore from Backup
@@ -73,9 +73,9 @@ To restore documents from a backup:
 
    ```bash
    docker run --rm \
-     -v pluma_pluma-data:/data \
+     -v plumio_plumio-data:/data \
      -v $(pwd)/backups:/backup \
-     alpine sh -c "cd /data && tar xzf /backup/pluma-backup-YYYYMMDD-HHMMSS.tar.gz --strip 1"
+     alpine sh -c "cd /data && tar xzf /backup/plumio-backup-YYYYMMDD-HHMMSS.tar.gz --strip 1"
    ```
 
 3. Restart the backend:

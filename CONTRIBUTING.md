@@ -1,4 +1,4 @@
-# Pluma - Project Summary for Developers
+# Plumio - Project Summary for Developers
 
 ## Getting Started
 
@@ -43,7 +43,7 @@ docker-compose up -d
 ### Data Storage
 
 - Development: `backend/documents/`
-- Docker: Volume `pluma-data`
+- Docker: Volume `plumio-data`
 
 ## Technology Stack
 

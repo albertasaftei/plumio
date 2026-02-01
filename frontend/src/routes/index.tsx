@@ -22,7 +22,7 @@ export default function Home() {
       setIsSetup(result.needsSetup);
 
       // If setup is complete and has token, validate session
-      if (!result.needsSetup && localStorage.getItem("pluma_token")) {
+      if (!result.needsSetup && localStorage.getItem("plumio_token")) {
         const isValid = await api.validateSession();
         if (isValid) {
           navigate("/editor");
@@ -90,7 +90,7 @@ export default function Home() {
         <div class="w-full max-w-md">
           <div class="flex gap-4 items-center justify-center mb-8">
             <Logo color="#2a9d8f" size="48" />
-            <span class="text-4xl font-bold text-neutral-100 mb-2">pluma</span>
+            <span class="text-4xl font-bold text-neutral-100 mb-2">plumio</span>
           </div>
 
           <div class="bg-neutral-900 rounded-lg p-8 border border-neutral-800">

@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  pluma:
-    image: ghcr.io/albertasaftei/pluma:latest
-    container_name: pluma
+  plumio:
+    image: ghcr.io/albertasaftei/plumio:latest
+    container_name: plumio
     restart: unless-stopped
     ports:
       - "3000:3000"   # Frontend
@@ -12,15 +12,15 @@ services:
       - NODE_ENV=production
       - BACKEND_INTERNAL_PORT=3001
       - DOCUMENTS_PATH=/data/documents
-      - DB_PATH=/data/pluma.db
+      - DB_PATH=/data/plumio.db
       - JWT_SECRET=${JWT_SECRET}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - ALLOWED_ORIGINS=http://${FRONTEND_URL}:${FRONTEND_PORT}
       - ENABLE_ENCRYPTION=true
     volumes:
-      - pluma-data:/data
+      - plumio-data:/data
     networks:
-      - pluma-network
+      - plumio-network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]
       interval: 5m
@@ -37,12 +37,12 @@ services:
   # Automated backup service (optional - requires --profile backup)
   # backup:
   #   image: alpine:latest
-  #   container_name: pluma-backup
+  #   container_name: plumio-backup
   #   restart: unless-stopped
   #   profiles:
   #     - backup
   #   volumes:
-  #     - pluma-data:/data:ro  # Read-only access to data
+  #     - plumio-data:/data:ro  # Read-only access to data
   #     - ./backups:/backups    # Backup destination
   #     - ./backup.sh:/backup.sh  # Backup script (read-write for chmod)
   #   environment:
@@ -50,15 +50,15 @@ services:
   #     - BACKUP_SCHEDULE=0 2 * * *  # Daily at 2 AM
   #   command: sh /backup.sh
   #   depends_on:
-  #     - pluma
+  #     - plumio
   #   networks:
-  #     - pluma-network
+  #     - plumio-network
 
 
 volumes:
-  pluma-data:
+  plumio-data:
     driver: local
 
 networks:
-  pluma-network:
+  plumio-network:
     driver: bridge

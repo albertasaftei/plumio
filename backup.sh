@@ -1,5 +1,5 @@
 #!/bin/sh
-# Pluma Automated Backup Script
+# Plumio Automated Backup Script
 # Runs inside Alpine container with cron
 
 set -e
@@ -9,7 +9,7 @@ DATA_DIR="/data"
 RETENTION_DAYS="${BACKUP_RETENTION:-7}"
 SCHEDULE="${BACKUP_SCHEDULE:-0 2 * * *}"
 
-echo "🔄 Pluma Backup Service Starting..."
+echo "🔄 Plumio Backup Service Starting..."
 echo "  Backup directory: $BACKUP_DIR"
 echo "  Data directory: $DATA_DIR"
 echo "  Retention: $RETENTION_DAYS days"
@@ -21,7 +21,7 @@ mkdir -p "$BACKUP_DIR"
 # Function to perform backup
 do_backup() {
     TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-    BACKUP_FILE="$BACKUP_DIR/pluma-backup-$TIMESTAMP.tar.gz"
+    BACKUP_FILE="$BACKUP_DIR/plumio-backup-$TIMESTAMP.tar.gz"
     
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting backup..."
     
@@ -31,13 +31,13 @@ do_backup() {
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✓ Backup created: $BACKUP_FILE ($BACKUP_SIZE)"
         
         # Clean up old backups
-        DELETED_COUNT=$(find "$BACKUP_DIR" -name "pluma-backup-*.tar.gz" -type f -mtime +$RETENTION_DAYS -delete -print | wc -l)
+        DELETED_COUNT=$(find "$BACKUP_DIR" -name "plumio-backup-*.tar.gz" -type f -mtime +$RETENTION_DAYS -delete -print | wc -l)
         if [ "$DELETED_COUNT" -gt 0 ]; then
             echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✓ Cleaned up $DELETED_COUNT old backup(s)"
         fi
         
         # List current backups
-        BACKUP_COUNT=$(find "$BACKUP_DIR" -name "pluma-backup-*.tar.gz" -type f | wc -l)
+        BACKUP_COUNT=$(find "$BACKUP_DIR" -name "plumio-backup-*.tar.gz" -type f | wc -l)
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] Current backups: $BACKUP_COUNT"
         
         return 0

@@ -1,4 +1,4 @@
-# Multi-stage build for Pluma - Combined Frontend & Backend
+# Multi-stage build for Plumio - Combined Frontend & Backend
 FROM node:22-alpine AS frontend-builder
 
 # Install pnpm
@@ -52,7 +52,7 @@ RUN mkdir -p /data/documents
 ENV NODE_ENV=production
 ENV BACKEND_INTERNAL_PORT=3001
 ENV DOCUMENTS_PATH=/data/documents
-ENV DB_PATH=/data/pluma.db
+ENV DB_PATH=/data/plumio.db
 
 # Expose port
 EXPOSE 3000

@@ -530,7 +530,7 @@ documentsRouter.post("/export", async (c) => {
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const exportFile = path.join(
       "/tmp",
-      `pluma-export-org${organizationId}-${timestamp}.tar.gz`,
+      `plumio-export-org${organizationId}-${timestamp}.tar.gz`,
     );
 
     // Create tar.gz of organization documents directory
@@ -551,7 +551,7 @@ documentsRouter.post("/export", async (c) => {
     // Return as download
     return c.body(fileBuffer, 200, {
       "Content-Type": "application/gzip",
-      "Content-Disposition": `attachment; filename="pluma-export-org${organizationId}-${timestamp}.tar.gz"`,
+      "Content-Disposition": `attachment; filename="plumio-export-org${organizationId}-${timestamp}.tar.gz"`,
     });
   } catch (error) {
     console.error("Error exporting documents:", error);
@@ -578,7 +578,7 @@ documentsRouter.post("/import", async (c) => {
 
     const orgDocumentsPath = getOrgDocumentsPath(organizationId);
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const tempFile = path.join("/tmp", `pluma-import-${timestamp}.tar.gz`);
+    const tempFile = path.join("/tmp", `plumio-import-${timestamp}.tar.gz`);
 
     // Save uploaded file
     const buffer = await file.arrayBuffer();

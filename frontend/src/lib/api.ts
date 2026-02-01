@@ -45,22 +45,22 @@ export class ApiClient {
   constructor() {
     // Only access localStorage in browser environment (not during SSR)
     if (typeof window !== "undefined") {
-      this.token = localStorage.getItem("pluma_token");
+      this.token = localStorage.getItem("plumio_token");
     }
   }
 
   setToken(token: string) {
     this.token = token;
     if (typeof window !== "undefined") {
-      localStorage.setItem("pluma_token", token);
+      localStorage.setItem("plumio_token", token);
     }
   }
 
   clearToken() {
     this.token = null;
     if (typeof window !== "undefined") {
-      localStorage.removeItem("pluma_token");
-      localStorage.removeItem("pluma_current_org");
+      localStorage.removeItem("plumio_token");
+      localStorage.removeItem("plumio_current_org");
     }
   }
 
@@ -165,7 +165,7 @@ export class ApiClient {
     // Store current organization in localStorage
     if (typeof window !== "undefined") {
       localStorage.setItem(
-        "pluma_current_org",
+        "plumio_current_org",
         JSON.stringify(result.currentOrganization),
       );
     }
@@ -180,7 +180,7 @@ export class ApiClient {
     role: string;
   } | null {
     if (typeof window !== "undefined") {
-      const orgStr = localStorage.getItem("pluma_current_org");
+      const orgStr = localStorage.getItem("plumio_current_org");
       if (orgStr) {
         try {
           return JSON.parse(orgStr);
@@ -209,7 +209,7 @@ export class ApiClient {
 
       // Update localStorage with server-validated role
       const updatedOrg = { ...org, role: data.role };
-      localStorage.setItem("pluma_current_org", JSON.stringify(updatedOrg));
+      localStorage.setItem("plumio_current_org", JSON.stringify(updatedOrg));
 
       return data.role === "admin";
     } catch (error) {
@@ -276,7 +276,7 @@ export class ApiClient {
     // Update localStorage with new organization
     if (typeof window !== "undefined") {
       localStorage.setItem(
-        "pluma_current_org",
+        "plumio_current_org",
         JSON.stringify(result.organization),
       );
     }
@@ -406,7 +406,7 @@ export class ApiClient {
     const response = await fetch(`${API_URL}/api/documents/export`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("pluma_token")}`,
+        Authorization: `Bearer ${localStorage.getItem("plumio_token")}`,
       },
     });
 
@@ -419,7 +419,7 @@ export class ApiClient {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `pluma-export-${new Date().toISOString().slice(0, 10)}.tar.gz`;
+    a.download = `plumio-export-${new Date().toISOString().slice(0, 10)}.tar.gz`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
@@ -433,7 +433,7 @@ export class ApiClient {
     const response = await fetch(`${API_URL}/api/documents/import`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("pluma_token")}`,
+        Authorization: `Bearer ${localStorage.getItem("plumio_token")}`,
       },
       body: formData,
     });

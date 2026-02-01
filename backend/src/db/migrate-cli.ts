@@ -4,7 +4,7 @@ import { allMigrations } from "./migrations/index.js";
 import fs from "fs";
 
 // Create a separate database connection for CLI (don't import from index.ts)
-const DB_PATH = process.env.DB_PATH || "./data/pluma.db";
+const DB_PATH = process.env.DB_PATH || "./data/plumio.db";
 const db = new Database(DB_PATH);
 db.pragma("journal_mode = WAL");
 

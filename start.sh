@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "Starting Pluma..."
+echo "Starting Plumio..."
 
 # Start backend
 echo "Starting backend on port 3001..."
@@ -18,7 +18,7 @@ cd /app/frontend
 PORT=3000 node .output/server/index.mjs &
 FRONTEND_PID=$!
 
-echo "Pluma started successfully!"
+echo "Plumio started successfully!"
 echo "Backend PID: $BACKEND_PID"
 echo "Frontend PID: $FRONTEND_PID"
 

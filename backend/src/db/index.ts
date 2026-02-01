@@ -15,7 +15,7 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const DB_PATH = process.env.DB_PATH || "./data/pluma.db";
+const DB_PATH = process.env.DB_PATH || "./data/plumio.db";
 const DOCUMENTS_PATH = process.env.DOCUMENTS_PATH || "./documents";
 
 // Ensure directories exist
