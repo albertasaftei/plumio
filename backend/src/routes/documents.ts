@@ -109,6 +109,16 @@ async function getUniqueFilePath(
   }
 }
 
+async function ensureOrgDirectoryExists(organizationId: number): Promise<void> {
+  const orgPath = getOrgDocumentsPath(organizationId);
+  try {
+    await fs.access(orgPath);
+  } catch {
+    // Directory doesn't exist, create it
+    await fs.mkdir(orgPath, { recursive: true });
+  }
+}
+
 // List all documents and folders
 documentsRouter.get("/list", async (c) => {
   const folderPath = c.req.query("path") || "/";
@@ -122,6 +132,10 @@ documentsRouter.get("/list", async (c) => {
   const fullPath = sanitizePath(folderPath, organizationId);
 
   try {
+    await ensureOrgDirectoryExists(organizationId);
+
+    const orgPath = getOrgDocumentsPath(organizationId);
+
     await fs.access(fullPath);
     const items = await fs.readdir(fullPath, { withFileTypes: true });
 
