@@ -1,0 +1,12 @@
+{
+  "name": "pluma",
+  "description": "A self-hosted markdown editor with live preview, document encryption, multi-user support, and multi-organization capabilities.",
+  "type": "module",
+  "version": "1.0.0",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "docker:build": "docker build -t pluma:dev .",
+    "docker:run": "docker run --rm -p 3000:3000 -p 3001:3001 pluma:dev",
+    "docker:publish": "docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/albertasaftei/pluma:latest --push ."
+  }
+}

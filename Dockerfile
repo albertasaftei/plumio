@@ -22,7 +22,7 @@ RUN apk add --no-cache python3 make g++
 
 WORKDIR /app/backend
 COPY backend/package.json backend/package-lock.json* ./
-RUN npm install
+RUN npm ci
 
 COPY backend/src ./src
 COPY backend/tsconfig.json ./
@@ -44,11 +44,6 @@ COPY backend/src/db/schema.sql ./backend/dist/db/
 
 # Copy frontend build
 COPY --from=frontend-builder /app/frontend/.output ./frontend/.output
-COPY --from=frontend-builder /app/frontend/package.json ./frontend/
-COPY --from=frontend-builder /app/frontend/pnpm-lock.yaml ./frontend/
-
-# Install pnpm for frontend runtime
-RUN npm install -g pnpm && cd frontend && pnpm install --prod --frozen-lockfile
 
 # Create data directory
 RUN mkdir -p /data/documents

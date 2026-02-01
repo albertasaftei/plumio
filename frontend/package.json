@@ -1,7 +1,6 @@
 {
-  "name": "pluma",
+  "name": "pluma-frontend",
   "version": "1.0.0",
-  "description": "Self-hosted markdown editor with live preview and encryption",
   "type": "module",
   "scripts": {
     "dev": "vinxi dev",

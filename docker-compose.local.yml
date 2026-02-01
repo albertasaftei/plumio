@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   pluma:
-    image: ghcr.io/albertasaftei/pluma:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: pluma
     restart: unless-stopped
     ports:
@@ -15,8 +17,8 @@ services:
       - DB_PATH=/data/pluma.db
       - JWT_SECRET=${JWT_SECRET}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - ALLOWED_ORIGINS=http://${FRONTEND_URL}:${FRONTEND_PORT}
-      - ENABLE_ENCRYPTION=true
+      - ALLOWED_ORIGINS=http://localhost:3000
+      - ENABLE_ENCRYPTION=false
     volumes:
       - pluma-data:/data
     networks:
