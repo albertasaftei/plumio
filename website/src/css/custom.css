@@ -44,7 +44,10 @@
     0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 
   /* Footer */
-  --ifm-footer-bg-color: #f3f4f6;
+  --ifm-footer-background-color: #17171c;
+  --ifm-footer-color: var(--ifm-footer-link-color);
+  --ifm-footer-link-color: var(--ifm-text-secondary);
+  --ifm-footer-title-color: var(--ifm-text-color);
 }
 
 /* Dark Mode */
@@ -67,7 +70,10 @@
   --ifm-navbar-background-color: #09090b;
 
   /* Footer */
-  --ifm-footer-bg-color: hsl(240, 10%, 10%);
+  --ifm-footer-background-color: #17171c;
+  --ifm-footer-color: var(--ifm-footer-link-color);
+  --ifm-footer-link-color: var(--ifm-color-secondary);
+  --ifm-footer-title-color: var(--ifm-color-white);
 }
 
 /* Global Styles */

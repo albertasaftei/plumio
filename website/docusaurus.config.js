@@ -59,9 +59,7 @@ const config = {
       // Replace with your project's social card
       image: "img/plumio-social-card.jpg",
       colorMode: {
-        defaultMode: "light",
-        disableSwitch: false,
-        respectPrefersColorScheme: false,
+        respectPrefersColorScheme: true,
       },
       navbar: {
         title: "plumio",
@@ -89,7 +87,6 @@ const config = {
         ],
       },
       footer: {
-        style: "dark",
         links: [
           {
             title: "Documentation",
