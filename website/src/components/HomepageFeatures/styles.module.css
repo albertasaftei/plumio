@@ -1,23 +1,24 @@
 .features {
   display: flex;
   align-items: center;
-  padding: 2rem 0;
+  padding: 6rem 0;
   width: 100%;
-}
-
-.featureSvg {
-  height: 200px;
-  width: 200px;
 }
 
 .features h3 {
   font-size: 1.25rem;
-  font-weight: 600;
   margin-bottom: 0.75rem;
-  color: var(--ifm-color-primary);
 }
 
 .features p {
   color: var(--ifm-text-secondary);
   line-height: 1.6;
+}
+
+.featureCard {
+  border: 1px solid var(--ifm-border-color);
+  border-radius: var(--ifm-global-radius);
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+  height: 200px;
 }

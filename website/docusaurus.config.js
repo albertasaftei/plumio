@@ -43,8 +43,7 @@ const config = {
         docs: {
           sidebarPath: "./sidebars.js",
           routeBasePath: "docs",
-          editUrl:
-            "https://github.com/albertasaftei/plumio-docs/tree/main/docs/",
+          editUrl: "https://github.com/albertasaftei/plumio/edit/main/website/",
         },
         blog: false,
         theme: {

@@ -30,6 +30,13 @@ function HomepageHeader() {
             View on GitHub
           </Link>
         </div>
+        <div className={styles.heroImage}>
+          <img
+            src="/img/app-preview.png"
+            alt="plumio app preview"
+            className={styles.previewImage}
+          />
+        </div>
       </div>
     </header>
   );

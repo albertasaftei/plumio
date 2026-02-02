@@ -36,9 +36,8 @@ const FeatureList = [
     title: "Organized",
     description: (
       <>
-        Create multiple organizations, organize notes in folders, and use
-        full-text search to find what you need instantly. Tag and categorize
-        your documents.
+        Create multiple organizations, organize notes in folders. Color your
+        notes to cateogrize them visually.
       </>
     ),
   },
@@ -46,9 +45,9 @@ const FeatureList = [
     title: "Beautiful Editor",
     description: (
       <>
-        Write in markdown with a powerful WYSIWYG editor. Supports GitHub
-        Flavored Markdown, code blocks with syntax highlighting, math equations,
-        tables, and more.
+        Write in markdown with a powerful editor. Supports GitHub Flavored
+        Markdown, code blocks with syntax highlighting, math equations, tables,
+        and more.
       </>
     ),
   },
@@ -56,8 +55,8 @@ const FeatureList = [
     title: "Open Source",
     description: (
       <>
-        MIT licensed and fully open source. Inspect the code, contribute
-        improvements, or customize it for your needs. No vendor lock-in.
+        AGPL-3.0 licensed and fully open source. Inspect the code, contribute
+        improvements, or customize it for your needs.
       </>
     ),
   },
@@ -66,8 +65,12 @@ const FeatureList = [
 function Feature({ title, description }) {
   return (
     <div className={clsx("col col--4")}>
-      <div className="text--center padding-horiz--md">
-        <Heading as="h3">{title}</Heading>
+      <div
+        className={clsx("text--center padding-horiz--md", styles.featureCard)}
+      >
+        <Heading as="h2" className={"text--primary"}>
+          {title}
+        </Heading>
         <p>{description}</p>
       </div>
     </div>
@@ -78,10 +81,33 @@ export default function HomepageFeatures() {
   return (
     <section className={styles.features}>
       <div className="container">
+        <div className="row margin-top--lg margin-bottom--lg">
+          <Feature
+            title={FeatureList[0].title}
+            description={FeatureList[0].description}
+          />
+          <Feature
+            title={FeatureList[1].title}
+            description={FeatureList[1].description}
+          />
+          <Feature
+            title={FeatureList[2].title}
+            description={FeatureList[2].description}
+          />
+        </div>
         <div className="row">
-          {FeatureList.map((props, idx) => (
-            <Feature key={idx} {...props} />
-          ))}
+          <Feature
+            title={FeatureList[3].title}
+            description={FeatureList[3].description}
+          />
+          <Feature
+            title={FeatureList[4].title}
+            description={FeatureList[4].description}
+          />
+          <Feature
+            title={FeatureList[5].title}
+            description={FeatureList[5].description}
+          />
         </div>
       </div>
     </section>

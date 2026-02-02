@@ -9,11 +9,11 @@ title: Introduction
 
 ## Why plumio?
 
-### 🔒 Privacy First
+### Privacy First
 
 Your notes stay on your server. No third-party tracking, no data mining, no external dependencies. Complete control over your data.
 
-### 🚀 Modern & Fast
+### Modern & Fast
 
 Built with cutting-edge technologies:
 
@@ -22,11 +22,11 @@ Built with cutting-edge technologies:
 - **Editor**: Milkdown for a beautiful markdown editing experience
 - **Storage**: SQLite for reliable, file-based data persistence
 
-### 🐳 Easy Deployment
+### Easy Deployment
 
 Deploy in minutes using Docker. Single container, zero configuration complexity.
 
-### ✨ Feature-Rich
+### Feature-Rich
 
 - Real-time markdown editing with live preview
 - Organization and folder support
@@ -40,11 +40,11 @@ Deploy in minutes using Docker. Single container, zero configuration complexity.
 
 ### Markdown First
 
-Write in markdown with a powerful WYSIWYG editor powered by Milkdown. Supports:
+Write in markdown with a powerful editor powered by Milkdown. Supports:
 
 - GitHub Flavored Markdown (GFM)
 - Code blocks with syntax highlighting
-- Math equations (KaTeX)
+- Math equations (KaTeX) (_**still has some issues**_)
 - Tables, task lists, and more
 
 ### Organization
