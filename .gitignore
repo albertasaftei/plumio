@@ -34,3 +34,5 @@ Thumbs.db
 # User local data directories
 /backend/documents/
 /backend/data/
+
+.vscode
