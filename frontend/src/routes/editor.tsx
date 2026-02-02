@@ -37,7 +37,7 @@ export default function EditorPage() {
     path: string | null;
   }>({ isOpen: false, path: null });
 
-  let saveTimeout: number;
+  let saveTimeout: ReturnType<typeof setTimeout>;
 
   // Validate session and set sidebar state based on device size after hydration
   onMount(async () => {
