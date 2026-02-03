@@ -1,4 +1,7 @@
 // src/lib/api.ts
+// Check if demo mode is enabled
+const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
+
 // Dynamically construct API URL for separate frontend/backend ports
 const getApiUrl = () => {
   if (typeof window === "undefined") {
@@ -173,12 +176,12 @@ export class ApiClient {
     return result;
   }
 
-  getCurrentOrganization(): {
+  async getCurrentOrganization(): Promise<{
     id: number;
     name: string;
     slug: string;
     role: string;
-  } | null {
+  } | null> {
     if (typeof window !== "undefined") {
       const orgStr = localStorage.getItem("plumio_current_org");
       if (orgStr) {
@@ -198,7 +201,7 @@ export class ApiClient {
   }
 
   async isOrgAdmin(): Promise<boolean> {
-    const org = this.getCurrentOrganization();
+    const org = await this.getCurrentOrganization();
     if (!org) return false;
 
     try {
@@ -220,8 +223,8 @@ export class ApiClient {
 
   // Synchronous version for immediate UI checks (uses cached value from localStorage)
   // WARNING: This should only be used for UI display, not authorization decisions
-  isOrgAdminCached(): boolean {
-    const org = this.getCurrentOrganization();
+  async isOrgAdminCached(): Promise<boolean> {
+    const org = await this.getCurrentOrganization();
     return org?.role === "admin";
   }
 
@@ -489,7 +492,43 @@ export class ApiClient {
   }
 }
 
-export const api = new ApiClient();
+// Conditional API client - uses demo client in demo mode, otherwise real API client
+function createApiClient() {
+  if (isDemoMode) {
+    console.log("importing demo client");
+    // Dynamically import demo client
+    return import("./demo/demo-client").then((mod) => mod.demoClient);
+  }
+  return Promise.resolve(new ApiClient());
+}
+
+// Export a proxy that lazy-loads the appropriate client
+let clientPromise: Promise<
+  ApiClient | typeof import("./demo/demo-client").demoClient
+> | null = null;
+
+function getClient() {
+  if (!clientPromise) {
+    console.log("demo not enabled ");
+
+    clientPromise = createApiClient();
+  }
+  return clientPromise;
+}
+
+// Export a proxy object that forwards all calls to the appropriate client
+export const api = new Proxy({} as ApiClient, {
+  get(target, prop) {
+    return async (...args: any[]) => {
+      const client = await getClient();
+      const method = (client as any)[prop];
+      if (typeof method === "function") {
+        return method.apply(client, args);
+      }
+      return method;
+    };
+  },
+});
 
 // Export standalone functions for convenience
 export const exportDocuments = () => api.exportDocuments();

@@ -1,8 +1,10 @@
-import { createSignal, createEffect, Show } from "solid-js";
+import { createSignal, onMount, Show } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { api } from "~/lib/api";
 import Logo from "~/components/Logo";
 import Button from "~/components/Button";
+
+const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -15,7 +17,14 @@ export default function Home() {
   const [error, setError] = createSignal("");
   const [loading, setLoading] = createSignal(true);
 
-  createEffect(async () => {
+  onMount(async () => {
+    // In demo mode, skip auth and go straight to editor
+    if (isDemoMode) {
+      setLoading(false);
+      navigate("/editor");
+      return;
+    }
+
     try {
       const result = await api.checkSetup();
       setNeedsSetup(result.needsSetup);

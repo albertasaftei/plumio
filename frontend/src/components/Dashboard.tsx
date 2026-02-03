@@ -14,8 +14,9 @@ export default function Dashboard(props: DashboardProps) {
     role: string;
   } | null>(null);
 
-  onMount(() => {
-    setCurrentOrg(api.getCurrentOrganization());
+  onMount(async () => {
+    const currentOrg = await api.getCurrentOrganization();
+    setCurrentOrg(currentOrg);
   });
 
   // Get all files (not folders) and sort by modified date
