@@ -52,6 +52,17 @@ export default function MarkdownEditor(props: EditorProps) {
       // Apply dark theme class after creation
       if (editorRef) {
         editorRef.classList.add("milkdown-theme-dark");
+
+        editorRef.addEventListener("click", (e) => {
+          const target = e.target as HTMLElement;
+          if (target.tagName === "A" && target.getAttribute("href")) {
+            e.preventDefault();
+            const href = target.getAttribute("href");
+            if (href) {
+              window.open(href, "_blank", "noopener,noreferrer");
+            }
+          }
+        });
       }
     } catch (error) {
       console.error("Failed to initialize Milkdown editor:", error);
