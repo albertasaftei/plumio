@@ -1,160 +1,49 @@
-## Installation
+<p align="center">
+<picture>
+    <source srcset="./.github/logo-dark.png" media="(prefers-color-scheme: light)">
+    <source srcset="./.github/logo-light.png" media="(prefers-color-scheme: dark)">
+    <img src="./.github/logo-dark.png" alt="Header banner">
+</picture>
+</p>
 
-### Option 1: Docker (Recommended)
+<h1 align="center">
+  plumio
+</h1>
+<p align="center">
+  Self-hosted markdown editor with live preview, document encryption, multi-user support, and multi-organization capabilities.
+</p>
 
-1. **Clone the repository:**
+<p align="center">
+  <a href="https://demo.plumio.app">Demo</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://plumio.app/docs/intro">Docs</a>
+</p>
 
-   ```bash
-   git clone https://github.com/albertasaftei/plumio.git
-   cd plumio
-   ```
+## Introduction
 
-2. **Set up environment variables:**
+plumio is a self-hosted markdown editor designed for individuals and teams who want a secure, private, and customizable note-taking solution. With features like live preview, document encryption, multi-user support, and multi-organization capabilities, plumio provides a powerful platform for managing your notes and documents.
 
-   Create a `.env` file with the variables shown above.
+## Key Features
 
-3. **Build and start with Docker Compose:**
+- **Markdown Editing**: Write and format your notes using markdown syntax with a live preview.
+- **Document Encryption**: Keep your notes secure with end-to-end encryption.
+- **Colorful Items**: Organize your documents with customizable colors for easy identification.
+- **Multi-User Support**: Collaborate with team members by creating multiple user accounts.
+- **Multi-Organization Support**: Manage different groups or teams within the same instance.
+- **Self-Hosted**: Take full control of your data by hosting plumio on your own server or local machine.
 
-   ```bash
-   docker-compose up -d --build
-   ```
+## Backup System
 
-4. **Access the application:**
+plumio includes an optional automated backup system that runs daily to protect your documents. You can enable or disable this feature as needed, and it will create compressed backups of your data while managing retention automatically. Otherwise you can create manual backups at any time and view backup logs to keep track of your backup history. For more details, see the [Backup System documentation](https://plumio.app/docs/configuration#manual-backup).
 
-   Open http://localhost:3000 in your browser and create your admin account on first visit.
+## Getting Started
 
-5. **View logs:**
-
-   ```bash
-   docker logs plumio -f
-   ```
-
-### Option 2: Manual Setup
-
-#### Backend
-
-1. **Navigate to backend directory:**
-
-   ```bash
-   cd backend
-   ```
-
-2. **Install dependencies:**
-
-   ```bash
-   npm install
-   ```
-
-3. **Create `.env` file:**
-
-   ```env
-   BACKEND_INTERNAL_PORT=3001
-   DOCUMENTS_PATH=./documents
-   JWT_SECRET=your-generated-jwt-secret-here
-   ENCRYPTION_KEY=your-generated-encryption-key-here
-   ```
-
-4. **Start the backend server:**
-
-   ```bash
-   npm run dev
-   ```
-
-   Backend will run on http://localhost:3001
-
-#### Frontend
-
-1. **Navigate to frontend directory (in a new terminal):**
-
-   ```bash
-   cd frontend
-   ```
-
-2. **Install dependencies:**
-
-   ```bash
-   pnpm install
-   ```
-
-3. **Create `.env` file:**
-
-   ```env
-   VITE_API_URL=http://localhost:3001
-   ```
-
-4. **Start the frontend development server:**
-
-   ```bash
-   pnpm dev
-   ```
-
-   Frontend will run on http://localhost:3000
-
-## Environment Variables
-
-You need to set up the required environment variables. Generate secure keys using OpenSSL:
-
-```bash
-# Generate JWT secret (used for authentication tokens)
-openssl rand -base64 32
-
-# Generate encryption key (used for document encryption)
-openssl rand -base64 32
-```
-
-Create a `.env` file in the root directory:
-
-```env
-# Required - Generate using: openssl rand -base64 32
-JWT_SECRET=your-generated-jwt-secret-here
-ENCRYPTION_KEY=your-generated-encryption-key-here
-
-# Backend configuration
-BACKEND_INTERNAL_PORT=3001
-DOCUMENTS_PATH=./documents
-
-# Frontend configuration
-VITE_API_URL=http://localhost:3001
-```
-
-**⚠️ Important:** Keep your `ENCRYPTION_KEY` secure and backed up. If lost, all encrypted documents cannot be decrypted and will be permanently inaccessible.
-
-## Backup and Restore
-
-### Automated Backups (Optional)
-
-Enable automated daily backups by starting with the `backup` profile:
-
-```bash
-docker-compose --profile backup up -d
-```
-
-See [BACKUP.md](BACKUP.md) for detailed backup/restore procedures.
-
-### Create manual Backup or just use the in app export button
-
-Create a one-time backup of all data (documents + database):
-
-```bash
-docker run --rm \
-  -v plumio_plumio-data:/data \
-  -v $(pwd)/backups:/backup \
-  alpine tar czf /backup/plumio-backup-$(date +%Y%m%d-%H%M%S).tar.gz -C /data .
-```
-
-### Restore manually from Backup or just use the in app import button
-
-```bash
-docker run --rm \
-  -v plumio_plumio-data:/data \
-  -v $(pwd)/backups:/backup \
-  alpine sh -c "rm -rf /data/* && tar xzf /backup/plumio-backup-YYYYMMDD-HHMMSS.tar.gz -C /data"
-```
+To get started with plumio, check out our [installation guide](https://plumio.app/docs/installation) for step-by-step instructions on how to set up your own instance. Once you have it up and running, you can start creating and organizing your notes right away!
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request.
+We welcome contributions from the community! If you'd like to contribute to plumio, please read our [contributing guidelines](CONTRIBUTING.md) for more information on how to get involved.
 
 ## License
 
-AGPL-3.0 License. See [LICENSE](LICENSE) for details.
+plumio is licensed under the [AGPL-3.0](LICENSE).
