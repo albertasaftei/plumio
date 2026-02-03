@@ -10,9 +10,8 @@ This is a **demo version** of Pluma running entirely in your browser using local
 ## Features you can try:
 
 - **Rich markdown editing** with real-time preview
-- **Math equations**: $E = mc^2$ and $$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}$$
 - **Code blocks** with syntax highlighting
-- **Mermaid diagrams**
+- **Math equations** (buggy at the moment - [issue open](https://github.com/albertasaftei/plumio/issues/1)): $E = mc^2$ and $$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}$$
 - **Tables, lists, and more!**
 
 ## What's different in demo mode?
@@ -95,14 +94,14 @@ print(fibonacci(10))  # Output: 55
 ];
 
 export const demoUser = {
-  username: "demo",
-  email: "demo@pluma.app",
+  username: "demo-user",
+  email: "demo-user@pluma.app",
   isAdmin: false,
 };
 
 export const demoOrg = {
   id: 1,
   name: "Demo Organization",
-  slug: "demo",
+  slug: "demo-org",
   role: "admin",
 };

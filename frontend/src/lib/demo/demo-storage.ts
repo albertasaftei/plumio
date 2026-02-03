@@ -5,6 +5,8 @@ const DEMO_SEEDED_KEY = `${DEMO_PREFIX}seeded`;
 const DEMO_DOCS_KEY = `${DEMO_PREFIX}documents`;
 const DEMO_USER_KEY = `${DEMO_PREFIX}user`;
 const DEMO_ORG_KEY = `${DEMO_PREFIX}org`;
+const DEMO_FOLDER_COLORS_KEY = `${DEMO_PREFIX}folder_colors`;
+const DEMO_FOLDERS_KEY = `${DEMO_PREFIX}folders`;
 
 interface StoredDocument {
   path: string;
@@ -44,6 +46,8 @@ export async function ensureDemoSeeded(): Promise<void> {
     // Seed user data
     localStorage.setItem(DEMO_USER_KEY, JSON.stringify(demoUser));
     localStorage.setItem(DEMO_ORG_KEY, JSON.stringify(demoOrg));
+    localStorage.setItem("plumio_current_org", JSON.stringify(demoOrg));
+    localStorage.setItem("plumio_token", "demo-token");
 
     // Seed documents
     const docs: StoredDocument[] = sampleDocuments.map((doc) => ({
@@ -100,4 +104,50 @@ export function getDemoOrg() {
   if (typeof window === "undefined") return null;
   const data = localStorage.getItem(DEMO_ORG_KEY);
   return data ? JSON.parse(data) : null;
+}
+
+export function getFolderColors(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const data = localStorage.getItem(DEMO_FOLDER_COLORS_KEY);
+  return data ? JSON.parse(data) : {};
+}
+
+export function setFolderColor(path: string, color: string | null): void {
+  if (typeof window === "undefined") return;
+  const colors = getFolderColors();
+  if (color) {
+    colors[path] = color;
+  } else {
+    delete colors[path];
+  }
+  localStorage.setItem(DEMO_FOLDER_COLORS_KEY, JSON.stringify(colors));
+}
+
+export function getFolderColor(path: string): string | undefined {
+  const colors = getFolderColors();
+  return colors[path];
+}
+
+export function getCreatedFolders(): string[] {
+  if (typeof window === "undefined") return [];
+  const data = localStorage.getItem(DEMO_FOLDERS_KEY);
+  return data ? JSON.parse(data) : [];
+}
+
+export function addCreatedFolder(path: string): void {
+  if (typeof window === "undefined") return;
+  const folders = getCreatedFolders();
+  if (!folders.includes(path)) {
+    folders.push(path);
+    localStorage.setItem(DEMO_FOLDERS_KEY, JSON.stringify(folders));
+  }
+}
+
+export function removeCreatedFolder(path: string): void {
+  if (typeof window === "undefined") return;
+  const folders = getCreatedFolders();
+  const filtered = folders.filter(
+    (f) => f !== path && !f.startsWith(path + "/"),
+  );
+  localStorage.setItem(DEMO_FOLDERS_KEY, JSON.stringify(filtered));
 }

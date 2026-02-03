@@ -36,11 +36,14 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
   }>({ isOpen: false, member: null });
   const [isAdmin, setIsAdmin] = createSignal(false);
   const [mounted, setMounted] = createSignal(false);
-
-  const currentOrg = () => api.getCurrentOrganization();
+  const [currentOrg, setCurrentOrg] = createSignal(
+    null as null | { id: number; name: string },
+  );
 
   onMount(async () => {
     setMounted(true);
+    const currentOrg = await api.getCurrentOrganization();
+    setCurrentOrg(currentOrg);
     // Fetch admin status from server for security validation
     const adminStatus = await api.isOrgAdmin();
     setIsAdmin(adminStatus);

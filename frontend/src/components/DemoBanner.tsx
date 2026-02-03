@@ -15,17 +15,19 @@ export function DemoBanner() {
 
   return (
     <Show when={isDemoMode}>
-      <div class="bg-amber-100 border-b border-amber-200 px-4 py-2 text-sm text-amber-900 flex items-center justify-between">
+      <div class="fixed top-0 z-10 w-full bg-amber-400/50 border-b px-4 py-2 text-sm text-amber-900 flex items-center justify-between">
+        <div></div>
         <div class="flex items-center gap-2">
-          <span class="font-medium">Demo Mode</span>
-          <span class="text-amber-700">
+          <span class="font-bold text-amber-100">Demo Mode</span>
+          <span> - </span>
+          <span class="text-amber-100">
             All data is stored in your browser's localStorage.
           </span>
         </div>
         <div class="flex items-center gap-3">
           <button
             onClick={handleReset}
-            class="text-amber-700 hover:text-amber-900 underline text-xs"
+            class="text-amber-100 hover:text-amber-200 underline text-xs cursor-pointer"
           >
             Reset Demo
           </button>

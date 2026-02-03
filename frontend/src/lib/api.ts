@@ -493,13 +493,13 @@ export class ApiClient {
 }
 
 // Conditional API client - uses demo client in demo mode, otherwise real API client
-async function createApiClient() {
+function createApiClient() {
   if (isDemoMode) {
+    console.log("importing demo client");
     // Dynamically import demo client
-    const { demoClient } = await import("./demo/demo-client");
-    return demoClient;
+    return import("./demo/demo-client").then((mod) => mod.demoClient);
   }
-  return new ApiClient();
+  return Promise.resolve(new ApiClient());
 }
 
 // Export a proxy that lazy-loads the appropriate client
@@ -509,6 +509,8 @@ let clientPromise: Promise<
 
 function getClient() {
   if (!clientPromise) {
+    console.log("demo not enabled ");
+
     clientPromise = createApiClient();
   }
   return clientPromise;
