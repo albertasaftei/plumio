@@ -4,9 +4,9 @@ import { api } from "~/lib/api";
 export default function Account() {
   const [username, setUsername] = createSignal<string | null>(null);
 
-  onMount(() => {
+  onMount(async () => {
     // Get current username from API
-    const currentUsername = api.getUsername();
+    const currentUsername = await api.getUsername();
     setUsername(currentUsername);
   });
 

@@ -228,7 +228,7 @@ export class ApiClient {
     return org?.role === "admin";
   }
 
-  getUsername(): string | null {
+  async getUsername(): Promise<string | null> {
     const decoded = this.decodeToken();
     return decoded?.username ?? null;
   }
