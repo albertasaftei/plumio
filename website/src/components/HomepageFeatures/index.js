@@ -64,7 +64,7 @@ const FeatureList = [
 function Feature({ title, description }) {
   return (
     <div className={clsx("col col--4")}>
-      <div className={clsx("padding-horiz--md", styles.featureCard)}>
+      <div className={clsx("padding-horiz--md", styles.feature_card)}>
         <Heading as="h2" className={"text--primary"}>
           {title}
         </Heading>
@@ -76,8 +76,8 @@ function Feature({ title, description }) {
 
 export default function HomepageFeatures() {
   return (
-    <section className={clsx(styles.features)}>
-      <div className={clsx("row margin-top--lg", styles.featuresContainer)}>
+    <section className={clsx(styles.container)}>
+      <div className={clsx("row margin-top--lg", styles.features_container)}>
         <Feature
           title={FeatureList[0].title}
           description={FeatureList[0].description}
@@ -91,7 +91,7 @@ export default function HomepageFeatures() {
           description={FeatureList[2].description}
         />
       </div>
-      <div className={clsx("row margin-bottom--lg", styles.featuresContainer)}>
+      <div className={clsx("row margin-bottom--lg", styles.features_container)}>
         <Feature
           title={FeatureList[3].title}
           description={FeatureList[3].description}

@@ -1,33 +1,40 @@
-.features {
+.container {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
   align-items: center;
   width: 100%;
   padding: 0 2rem;
+
+  @media screen and (min-width: 996px) {
+    padding: 2rem 10rem;
+  }
 }
 
-.features h3 {
+.container h3 {
   font-size: 1.25rem;
   margin-bottom: 0.75rem;
 }
 
-.features p {
+.container p {
   color: var(--ifm-text-secondary);
   line-height: 1.6;
 }
 
-.featuresContainer {
+.features_container {
   display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
+
+  @media screen and (min-width: 996px) {
+    gap: 0;
+  }
 }
 
-.featureCard {
+.feature_card {
   border: 1px solid var(--ifm-border-color);
   border-radius: var(--ifm-global-radius);
   padding: 1.5rem;
   transition: all 0.2s ease;
   min-height: 200px;
-  box-shadow: 0px 0px 15px 0px var(--ifm-border-color);
+  box-shadow: 0px 0px 10px 0px #ffffff20;
 }

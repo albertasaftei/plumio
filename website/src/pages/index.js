@@ -11,7 +11,7 @@ function HomepageHeader() {
   return (
     <header className={clsx("hero", styles.heroBanner)}>
       <div className="container">
-        <div className="margin-bottom--xl">
+        <div className="lg:margin-bottom--xl">
           <Heading as="h1" className="">
             Your private note-taking app
           </Heading>
@@ -32,7 +32,7 @@ function HomepageHeader() {
               className="button button--primary button--lg"
               to="/docs/intro"
             >
-              Get Started →
+              Get Started
             </Link>
           </div>
         </div>
