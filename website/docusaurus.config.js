@@ -61,6 +61,11 @@ const config = {
       colorMode: {
         respectPrefersColorScheme: true,
       },
+      algolia: {
+        appId: "T31WJ0IW61",
+        apiKey: "7cd0e11a32d2d192070094a36db2ce2a",
+        indexName: "plumio crawler",
+      },
       navbar: {
         title: "plumio",
         logo: {
