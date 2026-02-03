@@ -84,6 +84,11 @@ html {
 /* Navbar */
 .navbar {
   border-bottom: 1px solid var(--ifm-border-color);
+  padding: 0 2rem;
+
+  @media screen and (min-width: 996px) {
+    padding: 0 5rem;
+  }
 }
 
 /* Mobile Sidebar */
