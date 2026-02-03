@@ -12,9 +12,22 @@
   border-bottom: 1px solid var(--ifm-border-color);
 }
 
+.hero__title {
+  font-size: 36px;
+}
+
 .hero__subtitle {
   text-align: center;
   color: var(--ifm-text-secondary);
+  margin-right: 10rem;
+  margin-left: 10rem;
+  font-size: 18px;
+  font-weight: 500;
+
+  @media screen and (max-width: 996px) {
+    margin-left: 0;
+    margin-right: 0;
+  }
 }
 
 @media screen and (max-width: 996px) {
@@ -25,8 +38,22 @@
 
 .buttons {
   display: flex;
+  flex-direction: column;
+  gap: 1rem;
   align-items: center;
   justify-content: center;
+
+  @media screen and (min-width: 600px) {
+    flex-direction: row;
+  }
+}
+
+.buttons a {
+  width: 100%;
+
+  @media screen and (min-width: 600px) {
+    width: auto;
+  }
 }
 
 .heroImage {
@@ -45,7 +72,7 @@
 }
 
 @media screen and (max-width: 996px) {
-  .previewImage {
+  .heroImage {
     display: none;
   }
 }

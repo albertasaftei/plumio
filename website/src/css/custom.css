@@ -14,19 +14,14 @@
   --ifm-color-primary-lightest: #52cdc0;
 
   /* Typography */
-  --ifm-font-family-base:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue",
-    Arial, sans-serif;
+  --ifm-font-family-base: "Roboto", "Helvetica Neue", Arial, sans-serif;
   --ifm-font-family-monospace:
     "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New",
     monospace;
   --ifm-code-font-size: 90%;
   --ifm-font-size-base: 16px;
-  --ifm-line-height-base: 1.65;
 
   /* Spacing and Layout */
-  --ifm-spacing-horizontal: 1.5rem;
-  --ifm-spacing-vertical: 1.5rem;
   --ifm-global-radius: 8px;
 
   /* Colors */
@@ -89,7 +84,16 @@ html {
 /* Navbar */
 .navbar {
   border-bottom: 1px solid var(--ifm-border-color);
-  backdrop-filter: blur(12px);
+}
+
+/* Mobile Sidebar */
+.navbar-sidebar {
+  background-color: var(--ifm-navbar-background-color);
+  height: 100dvh;
+}
+
+.menu__link:hover {
+  color: var(--ifm-color-primary);
 }
 
 /* Buttons & Links */

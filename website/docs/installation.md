@@ -7,24 +7,6 @@ title: Installation
 
 This guide will walk you through deploying plumio on your server using Docker. The entire application runs in a single container, making deployment simple and straightforward.
 
-## Prerequisites
-
-Before you begin, ensure you have the following installed on your server:
-
-- **Docker** (version 20.10 or higher)
-- **Docker Compose** (version 2.0 or higher)
-- **OpenSSL** (for generating secure keys)
-
-:::tip Quick Docker Installation
-If you don't have Docker installed, you can install it quickly on most Linux distributions:
-
-```bash
-curl -fsSL https://get.docker.com -o get-docker.sh
-sh get-docker.sh
-```
-
-:::
-
 ## Quick Start
 
 ### 1. Create a Project Directory

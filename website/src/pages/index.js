@@ -11,24 +11,30 @@ function HomepageHeader() {
   return (
     <header className={clsx("hero", styles.heroBanner)}>
       <div className="container">
-        <Heading as="h1" className="hero__title">
-          Your self-hosted note-taking app
-        </Heading>
-        <p className={clsx("hero__subtitle", styles.hero__subtitle)}>
-          plumio is an open-source note-taking app designed to help you organize
-          and manage your notes with privacy and ease.
-        </p>
-        <div className={styles.buttons}>
-          <Link className="button button--primary button--lg" to="/docs/intro">
-            Get Started →
-          </Link>
-          <Link
-            className="button button--secondary button--lg"
-            to="https://github.com/albertasaftei/plumio"
-            style={{ marginLeft: "1rem" }}
-          >
-            View on GitHub
-          </Link>
+        <div className="margin-bottom--xl">
+          <Heading as="h1" className="">
+            Your private note-taking app
+          </Heading>
+          <Heading as="h2" className={clsx(styles.hero__subtitle)}>
+            plumio is an open-source note-taking app designed to help you
+            organize and manage your notes with privacy and ease.
+          </Heading>
+          <div className={styles.buttons}>
+            <Link
+              className="button button--secondary button--lg"
+              to="https://demo.plumio.app"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Live demo
+            </Link>
+            <Link
+              className="button button--primary button--lg"
+              to="/docs/intro"
+            >
+              Get Started →
+            </Link>
+          </div>
         </div>
         <div className={styles.heroImage}>
           <img

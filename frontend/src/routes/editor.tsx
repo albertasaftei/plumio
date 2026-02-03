@@ -347,7 +347,10 @@ export default function EditorPage() {
                   <span class="text-xs text-neutral-400">Saving...</span>
                 </Show>
                 <Show when={saveStatus() === "saved"}>
-                  <span class="text-xs text-green-500">✓ Saved</span>
+                  <div class="flex items-center gap-1">
+                    <div class="i-carbon-checkmark text-green-500" />
+                    <span class="text-xs text-green-500">Saved</span>
+                  </div>
                 </Show>
                 <Show when={saveStatus() === "unsaved"}>
                   <span class="text-xs text-yellow-500">● Unsaved</span>

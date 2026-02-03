@@ -37,17 +37,16 @@ const FeatureList = [
     description: (
       <>
         Create multiple organizations, organize notes in folders. Color your
-        notes to cateogrize them visually.
+        notes to categorize them visually.
       </>
     ),
   },
   {
-    title: "Beautiful Editor",
+    title: "Milkdown Editor",
     description: (
       <>
-        Write in markdown with a powerful editor. Supports GitHub Flavored
-        Markdown, code blocks with syntax highlighting, math equations, tables,
-        and more.
+        Supports GitHub Flavored Markdown, code blocks with syntax highlighting,
+        math equations, tables, and more.
       </>
     ),
   },
@@ -65,9 +64,7 @@ const FeatureList = [
 function Feature({ title, description }) {
   return (
     <div className={clsx("col col--4")}>
-      <div
-        className={clsx("text--center padding-horiz--md", styles.featureCard)}
-      >
+      <div className={clsx("padding-horiz--md", styles.featureCard)}>
         <Heading as="h2" className={"text--primary"}>
           {title}
         </Heading>
@@ -79,36 +76,34 @@ function Feature({ title, description }) {
 
 export default function HomepageFeatures() {
   return (
-    <section className={styles.features}>
-      <div className="container">
-        <div className="row margin-top--lg margin-bottom--lg">
-          <Feature
-            title={FeatureList[0].title}
-            description={FeatureList[0].description}
-          />
-          <Feature
-            title={FeatureList[1].title}
-            description={FeatureList[1].description}
-          />
-          <Feature
-            title={FeatureList[2].title}
-            description={FeatureList[2].description}
-          />
-        </div>
-        <div className="row">
-          <Feature
-            title={FeatureList[3].title}
-            description={FeatureList[3].description}
-          />
-          <Feature
-            title={FeatureList[4].title}
-            description={FeatureList[4].description}
-          />
-          <Feature
-            title={FeatureList[5].title}
-            description={FeatureList[5].description}
-          />
-        </div>
+    <section className={clsx(styles.features)}>
+      <div className={clsx("row margin-top--lg", styles.featuresContainer)}>
+        <Feature
+          title={FeatureList[0].title}
+          description={FeatureList[0].description}
+        />
+        <Feature
+          title={FeatureList[1].title}
+          description={FeatureList[1].description}
+        />
+        <Feature
+          title={FeatureList[2].title}
+          description={FeatureList[2].description}
+        />
+      </div>
+      <div className={clsx("row margin-bottom--lg", styles.featuresContainer)}>
+        <Feature
+          title={FeatureList[3].title}
+          description={FeatureList[3].description}
+        />
+        <Feature
+          title={FeatureList[4].title}
+          description={FeatureList[4].description}
+        />
+        <Feature
+          title={FeatureList[5].title}
+          description={FeatureList[5].description}
+        />
       </div>
     </section>
   );
