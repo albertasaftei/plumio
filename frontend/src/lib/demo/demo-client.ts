@@ -542,7 +542,7 @@ export const demoClient = {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `pluma-demo-export-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `plumio-demo-export-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);

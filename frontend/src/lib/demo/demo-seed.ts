@@ -3,9 +3,9 @@
 export const sampleDocuments = [
   {
     path: "/Welcome.md",
-    content: `# Welcome to Pluma! 🎉
+    content: `# Welcome to plumio! 🎉
 
-This is a **demo version** of Pluma running entirely in your browser using localStorage.
+This is a **demo version** of plumio running entirely in your browser using localStorage.
 
 ## Features you can try:
 
@@ -19,7 +19,7 @@ This is a **demo version** of Pluma running entirely in your browser using local
 - All data is stored in your browser's localStorage
 - No backend server required
 - Data persists until you clear browser storage
-- Perfect for trying out Pluma without installing anything
+- Perfect for trying out plumio without installing anything
 
 ## Get started
 
@@ -34,7 +34,7 @@ Want to self-host? Check out [our documentation](https://plumio.app) for install
     path: "/Examples/Math.md",
     content: `# Math Examples
 
-Pluma supports LaTeX math equations via KaTeX.
+plumio supports LaTeX math equations via KaTeX.
 
 ## Inline Math
 
@@ -95,7 +95,7 @@ print(fibonacci(10))  # Output: 55
 
 export const demoUser = {
   username: "demo-user",
-  email: "demo-user@pluma.app",
+  email: "demo-user@plumio.app",
   isAdmin: false,
 };
 
