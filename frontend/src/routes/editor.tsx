@@ -15,6 +15,8 @@ import Dashboard from "~/components/Dashboard";
 import Button from "~/components/Button";
 import { isMobile } from "~/utils/device.utils";
 
+const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
+
 // Lazy load markdown editor with live preview to avoid SSR issues
 const MarkdownEditor = lazy(() => import("~/components/MarkdownEditor"));
 
@@ -38,18 +40,6 @@ export default function EditorPage() {
   }>({ isOpen: false, path: null });
 
   let saveTimeout: ReturnType<typeof setTimeout>;
-
-  // Validate session and set sidebar state based on device size after hydration
-  onMount(async () => {
-    setSidebarOpen(!isMobile());
-
-    // Validate session on mount
-    const isValid = await api.validateSession();
-    if (!isValid) {
-      // Session is invalid or expired, redirect to login
-      navigate("/");
-    }
-  });
 
   // Load all documents recursively
   const loadAllDocuments = async () => {
@@ -75,8 +65,22 @@ export default function EditorPage() {
     }
   };
 
-  createEffect(() => {
-    loadAllDocuments();
+  // Validate session and load documents on mount (FIXED: was createEffect causing infinite loop)
+  onMount(async () => {
+    setSidebarOpen(!isMobile());
+
+    // In demo mode, skip session validation
+    if (!isDemoMode) {
+      const isValid = await api.validateSession();
+      if (!isValid) {
+        // Session is invalid or expired, redirect to login
+        navigate("/");
+        return;
+      }
+    }
+
+    // Load documents once on mount
+    await loadAllDocuments();
   });
 
   const loadDocument = async (path: string) => {

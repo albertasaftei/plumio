@@ -27,7 +27,7 @@ export default function OrganizationSelector(props: OrganizationSelectorProps) {
       setOrganizations(result.organizations);
 
       // Set current org from localStorage
-      const current = api.getCurrentOrganization();
+      const current = await api.getCurrentOrganization();
       if (current) {
         const org = result.organizations.find((o) => o.id === current.id);
         if (org) {
