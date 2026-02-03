@@ -44,6 +44,18 @@ To get started with plumio, check out our [installation guide](https://plumio.ap
 
 We welcome contributions from the community! If you'd like to contribute to plumio, please read our [contributing guidelines](CONTRIBUTING.md) for more information on how to get involved.
 
+## Stack
+
+plumio is built using the following technologies:
+
+- **Frontend**
+  - **[SolidJS](https://www.solidjs.com)**: A declarative JavaScript library for building user interfaces.
+  - **[UnoCSS](https://unocss.dev/)**: An instant on-demand atomic CSS engine.
+- **Backend**
+  - **[HonoJS (NodeJS)](https://hono.dev/)**: A small, fast, and lightweight web framework for building APIs.
+- **Documentation**
+  - **[Docusaurus](https://docusaurus.io/)**: A modern static website generator for building documentation websites.
+
 ## License
 
 plumio is licensed under the [AGPL-3.0](LICENSE).
