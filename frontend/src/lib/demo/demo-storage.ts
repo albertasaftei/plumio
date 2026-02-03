@@ -41,13 +41,18 @@ export async function ensureDemoSeeded(): Promise<void> {
 
   // Start seeding
   seedingPromise = (async () => {
-    const { sampleDocuments, demoUser, demoOrg } = await import("./demo-seed");
+    const { sampleDocuments, demoUser, demoOrg, sampleFolderColors } =
+      await import("./demo-seed");
 
     // Seed user data
     localStorage.setItem(DEMO_USER_KEY, JSON.stringify(demoUser));
     localStorage.setItem(DEMO_ORG_KEY, JSON.stringify(demoOrg));
     localStorage.setItem("plumio_current_org", JSON.stringify(demoOrg));
     localStorage.setItem("plumio_token", "demo-token");
+    localStorage.setItem(
+      DEMO_FOLDER_COLORS_KEY,
+      JSON.stringify(sampleFolderColors),
+    );
 
     // Seed documents
     const docs: StoredDocument[] = sampleDocuments.map((doc) => ({
