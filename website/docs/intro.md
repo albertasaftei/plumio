@@ -30,8 +30,7 @@ Deploy in minutes using Docker. Single container, zero configuration complexity.
 
 - Real-time markdown editing with live preview
 - Organization and folder support
-- Full-text search across all notes
-- Dark mode support
+- Full-text search across all notes (_**work in progress**_)
 - Optional end-to-end encryption
 - Document archive and soft delete
 - Export and import capabilities
@@ -64,7 +63,6 @@ Write in markdown with a powerful editor powered by Milkdown. Supports:
 ### Self-Hosted
 
 - Full control over your data
-- No external dependencies
 - Easy backup and restore
 - Docker-based deployment
 
@@ -90,6 +88,6 @@ Ready to get started? Head over to the [Installation Guide](/docs/installation) 
 
 ## Open Source
 
-plumio is open source and licensed under the MIT License. Contributions are welcome!
+plumio is open source and licensed under the AGPL-3.0 License. Contributions are welcome!
 
 [View on GitHub](https://github.com/albertasaftei/plumio)

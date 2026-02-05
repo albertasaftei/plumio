@@ -49,10 +49,9 @@ function HomepageHeader() {
 }
 
 export default function Home() {
-  const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title={`plumio | Self-hosted note-taking app`}
+      title={`Your private note-taking app`}
       description="plumio - Privacy-first, self-hosted note-taking application. Deploy with Docker in minutes."
     >
       <HomepageHeader />

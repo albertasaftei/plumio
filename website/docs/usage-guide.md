@@ -315,42 +315,7 @@ As an admin:
 3. Update email (optional)
 4. Save changes
 
-### Appearance
-
-**Dark Mode**
-
-- Toggle in Settings → Appearance
-- Or use system preference
-
-**Editor Theme**
-
-- Choose between different editor color schemes
-- Settings → Appearance → Editor Theme
-
-**Font Size**
-
-- Adjust editor font size
-- Settings → Appearance → Font Size
-
 ---
-
-## Best Practices
-
-### Organizing Your Notes
-
-1. **Use Organizations** for major categories (Personal, Work, Projects)
-2. **Create Folders** for subcategories within organizations
-3. **Use Descriptive Names** for easy searching
-4. **Tag Strategically** with keywords
-5. **Archive Regularly** to keep workspace clean
-
-### Writing Effective Notes
-
-1. **Start with a Clear Title** that describes the content
-2. **Use Headings** to structure long notes
-3. **Link Related Notes** to create a knowledge graph
-4. **Include Code Examples** in code blocks for syntax highlighting
-5. **Use Task Lists** for action items
 
 ### Backup Strategy
 
@@ -358,32 +323,6 @@ As an admin:
 2. **Export Regularly** as additional backup
 3. **Test Restore Process** periodically
 4. **Keep Backups Off-site** for disaster recovery
-
----
-
-## Troubleshooting
-
-### Notes Not Saving
-
-1. Check your internet connection
-2. Verify the server is running: `docker-compose ps`
-3. Check browser console for errors
-4. Try refreshing the page
-
-### Search Not Working
-
-1. Database may be locked - restart the container
-2. Clear browser cache
-3. Check that notes contain searchable text
-
-### Slow Performance
-
-1. Check available disk space
-2. Optimize SQLite database (see Configuration guide)
-3. Increase Docker memory limits
-4. Clear old archived/deleted notes
-
----
 
 ## Next Steps
 

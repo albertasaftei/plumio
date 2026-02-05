@@ -167,16 +167,6 @@ plumio.yourdomain.com {
 }
 ```
 
-### Can I customize the appearance?
-
-Currently, appearance customization is limited to:
-
-- Light/Dark mode
-- Editor font size
-- Editor theme
-
-Theme customization will be expanded in future versions.
-
 ### How do I add more users?
 
 Admin users can create additional users:
