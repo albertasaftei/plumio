@@ -2,7 +2,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import fs from "fs";
+import fs, { readFileSync } from "fs";
 import "./config.js";
 import "./db/index.js";
 import { documentsRouter } from "./routes/documents.js";
@@ -10,9 +10,8 @@ import { authRouter } from "./routes/auth.js";
 import { adminRouter } from "./routes/admin.js";
 import { organizationsRouter } from "./routes/organizations.js";
 import { UserJWTPayload } from "./middlewares/auth.types.js";
-const { version } = await import("../../package.json", {
-  assert: { type: "json" },
-});
+import path from "path";
+import { fileURLToPath } from "url";
 
 type Variables = {
   user: UserJWTPayload;
@@ -57,13 +56,18 @@ app.use(
 );
 
 // Health check
-app.get("/api/health", (c) =>
-  c.json({
+app.get("/api/health", (c) => {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const packageJson = JSON.parse(
+    readFileSync(path.join(__dirname, "../../package.json"), "utf-8"),
+  );
+
+  return c.json({
     status: "ok",
     timestamp: new Date().toISOString(),
-    appVersion: version,
-  }),
-);
+    appVersion: packageJson.version,
+  });
+});
 
 // Routes
 app.route("/api/auth", authRouter);
