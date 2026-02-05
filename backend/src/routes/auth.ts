@@ -11,6 +11,7 @@ import {
 import crypto from "crypto";
 import { UserJWTPayload } from "../middlewares/auth.types.js";
 import { authMiddleware } from "../middlewares/auth.js";
+import * as z from "zod";
 
 type Variables = {
   user: UserJWTPayload;
@@ -84,10 +85,19 @@ authRouter.post("/setup", async (c) => {
   }
 });
 
-// Login
+const loginSchema = z.object({
+  username: z.string().min(1),
+  password: z.string().min(8),
+});
+
 authRouter.post("/login", async (c) => {
   try {
-    const { username, password } = await c.req.json();
+    const parsed = loginSchema.safeParse(await c.req.json());
+
+    if (!parsed.success) {
+      return c.json({ error: z.treeifyError(parsed.error) }, 400);
+    }
+    const { username, password } = parsed.data;
 
     const user = userQueries.findByUsername.get(username);
 
@@ -165,6 +175,11 @@ authRouter.post("/logout", async (c) => {
   }
 });
 
+const registerSchema = z.object({
+  username: z.string().min(1),
+  email: z.email(),
+  password: z.string().min(8),
+});
 // Register - Create new user account
 authRouter.post("/register", async (c) => {
   try {
@@ -177,15 +192,15 @@ authRouter.post("/register", async (c) => {
       );
     }
 
-    const { username, email, password } = await c.req.json();
+    const parsed = registerSchema.safeParse(await c.req.json());
 
-    if (!username || !email || !password || password.length < 8) {
-      return c.json(
-        { error: "Invalid credentials (password min 8 characters)" },
-        400,
-      );
+    console.log({ parsed });
+
+    if (!parsed.success) {
+      return c.json({ error: z.treeifyError(parsed.error) }, 400);
     }
 
+    const { username, email, password } = parsed.data;
     const passwordHash = await bcrypt.hash(password, 10);
 
     try {

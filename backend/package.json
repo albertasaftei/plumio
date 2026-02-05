@@ -12,17 +12,18 @@
     "migrate:create": "tsx src/db/migrate-cli.ts create"
   },
   "dependencies": {
-    "hono": "^4.7.9",
     "@hono/node-server": "^1.14.1",
-    "jose": "^5.9.6",
     "bcrypt": "^5.1.1",
+    "better-sqlite3": "^11.8.1",
     "dotenv": "^16.4.7",
-    "better-sqlite3": "^11.8.1"
+    "hono": "^4.7.9",
+    "jose": "^5.9.6",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/node": "^22.10.5",
     "@types/bcrypt": "^5.0.2",
     "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   }
