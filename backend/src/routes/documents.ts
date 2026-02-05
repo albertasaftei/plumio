@@ -6,6 +6,8 @@ import { ENCRYPTION_KEY, ENABLE_ENCRYPTION } from "../config.js";
 import db, { documentQueries } from "../db/index.js";
 import { authMiddleware } from "../middlewares/auth.js";
 import { UserJWTPayload } from "../middlewares/auth.types.js";
+import * as z from "zod";
+import { DocumentMetadata } from "../db/index.types.js";
 
 type Variables = {
   user: UserJWTPayload;
@@ -232,14 +234,25 @@ documentsRouter.get("/content", async (c) => {
   }
 });
 
+const saveDocumentSchema = z.object({
+  path: z.string().min(1),
+  content: z.string(),
+  isNew: z.boolean().optional(),
+});
+
 // Save or create document
 documentsRouter.post("/save", async (c) => {
-  const { path: filePath, content, isNew = false } = await c.req.json();
+  const parsed = saveDocumentSchema.safeParse(await c.req.json());
 
-  if (!filePath || content === undefined) {
-    return c.json({ error: "Path and content are required" }, 400);
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
   }
 
+  const { path: filePath, content, isNew = false } = parsed.data;
+
+  if (!filePath || !content) {
+    return c.json({ error: "Path and content are required" }, 400);
+  }
   try {
     const user = c.get("user");
     const organizationId = user.currentOrgId;
@@ -302,19 +315,25 @@ documentsRouter.post("/save", async (c) => {
   }
 });
 
+const createFolderSchema = z.object({
+  path: z.string().min(1),
+});
+
 // Create folder
 documentsRouter.post("/folder", async (c) => {
-  const { path: folderPath } = await c.req.json();
+  const parsed = createFolderSchema.safeParse(await c.req.json());
   const user = c.get("user");
   const organizationId = user.currentOrgId;
 
-  if (!folderPath) {
-    return c.json({ error: "Path is required" }, 400);
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
   }
 
   if (!organizationId) {
     return c.json({ error: "No organization context" }, 400);
   }
+
+  const { path: folderPath } = parsed.data;
 
   const fullPath = sanitizePath(folderPath, organizationId);
 
@@ -327,20 +346,25 @@ documentsRouter.post("/folder", async (c) => {
   }
 });
 
+const deleteDocumentSchema = z.object({
+  path: z.string().min(1),
+});
+
 // Delete document or folder (soft delete - moves to deleted folder)
 documentsRouter.delete("/delete", async (c) => {
-  const filePath = c.req.query("path");
+  const parsed = deleteDocumentSchema.safeParse({ path: c.req.query("path") });
   const user = c.get("user");
   const organizationId = user.currentOrgId;
 
-  if (!filePath) {
-    return c.json({ error: "Path is required" }, 400);
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
   }
 
   if (!organizationId) {
     return c.json({ error: "No organization context" }, 400);
   }
 
+  const { path: filePath } = parsed.data;
   const fullPath = sanitizePath(filePath, organizationId);
 
   try {
@@ -415,20 +439,25 @@ documentsRouter.delete("/delete", async (c) => {
   }
 });
 
+const renameDocumentSchema = z.object({
+  oldPath: z.string().min(1),
+  newPath: z.string().min(1),
+});
 // Rename/move document or folder
 documentsRouter.post("/rename", async (c) => {
-  const { oldPath, newPath } = await c.req.json();
+  const parsed = renameDocumentSchema.safeParse(await c.req.json());
   const user = c.get("user");
   const organizationId = user.currentOrgId;
 
-  if (!oldPath || !newPath) {
-    return c.json({ error: "Both oldPath and newPath are required" }, 400);
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
   }
 
   if (!organizationId) {
     return c.json({ error: "No organization context" }, 400);
   }
 
+  const { oldPath, newPath } = parsed.data;
   const fullOldPath = sanitizePath(oldPath, organizationId);
   const fullNewPath = sanitizePath(newPath, organizationId);
 
@@ -444,20 +473,25 @@ documentsRouter.post("/rename", async (c) => {
   }
 });
 
+const colorDocumentSchema = z.object({
+  path: z.string().min(1),
+  color: z.string(),
+});
 // Set item color metadata
 documentsRouter.post("/color", async (c) => {
-  const { path: itemPath, color } = await c.req.json();
+  const parsed = colorDocumentSchema.safeParse(await c.req.json());
   const user = c.get("user");
   const organizationId = user.currentOrgId;
 
-  if (!itemPath) {
-    return c.json({ error: "Path is required" }, 400);
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
   }
 
   if (!organizationId) {
     return c.json({ error: "No organization context" }, 400);
   }
 
+  const { path: itemPath, color } = parsed.data;
   const fullPath = sanitizePath(itemPath, organizationId);
   const metadataPath = fullPath + ".meta.json";
 
@@ -466,7 +500,7 @@ documentsRouter.post("/color", async (c) => {
     await fs.access(fullPath);
 
     // Read or create metadata
-    let metadata: any = {};
+    let metadata: DocumentMetadata = {};
     try {
       const metaContent = await fs.readFile(metadataPath, "utf-8");
       metadata = JSON.parse(metaContent);
@@ -559,6 +593,9 @@ documentsRouter.post("/export", async (c) => {
   }
 });
 
+const importDocumentSchema = z.object({
+  file: z.instanceof(File),
+});
 // Import documents from encrypted zip
 documentsRouter.post("/import", async (c) => {
   try {
@@ -570,10 +607,10 @@ documentsRouter.post("/import", async (c) => {
     }
 
     const body = await c.req.parseBody();
-    const file = body["file"] as File;
+    const parsed = importDocumentSchema.safeParse(body);
 
-    if (!file) {
-      return c.json({ error: "No file provided" }, 400);
+    if (!parsed.success) {
+      return c.json({ error: z.treeifyError(parsed.error) }, 400);
     }
 
     const orgDocumentsPath = getOrgDocumentsPath(organizationId);
@@ -581,6 +618,7 @@ documentsRouter.post("/import", async (c) => {
     const tempFile = path.join("/tmp", `plumio-import-${timestamp}.tar.gz`);
 
     // Save uploaded file
+    const file = parsed.data.file;
     const buffer = await file.arrayBuffer();
     await fs.writeFile(tempFile, Buffer.from(buffer));
 
@@ -639,9 +677,18 @@ documentsRouter.get("/search", async (c) => {
   }
 });
 
+const archiveDocumentSchema = z.object({
+  path: z.string().min(1),
+});
 // Archive document
 documentsRouter.post("/archive", async (c) => {
-  const { path: docPath } = await c.req.json();
+  const parsed = archiveDocumentSchema.safeParse(await c.req.json());
+
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
+  }
+
+  const { path: docPath } = parsed.data;
   const user = c.get("user");
 
   if (!user?.currentOrgId) {
@@ -714,9 +761,18 @@ documentsRouter.post("/archive", async (c) => {
   }
 });
 
+const unarchiveDocumentSchema = z.object({
+  path: z.string().min(1),
+});
 // Unarchive document
 documentsRouter.post("/unarchive", async (c) => {
-  const { path: docPath } = await c.req.json();
+  const parsed = unarchiveDocumentSchema.safeParse(await c.req.json());
+
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
+  }
+
+  const { path: docPath } = parsed.data;
   const user = c.get("user");
 
   if (!user?.currentOrgId) {
@@ -801,9 +857,20 @@ documentsRouter.get("/archived", async (c) => {
   }
 });
 
+const deleteArchivedDocumentSchema = z.object({
+  path: z.string().min(1),
+});
+
 // Permanently delete archived document
 documentsRouter.post("/archive/delete", async (c) => {
-  const { path: docPath } = await c.req.json();
+  const parsed = deleteArchivedDocumentSchema.safeParse(await c.req.json());
+
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
+  }
+
+  const { path: docPath } = parsed.data;
+
   const user = c.get("user");
 
   if (!user?.currentOrgId) {
@@ -866,9 +933,19 @@ documentsRouter.get("/deleted", async (c) => {
   }
 });
 
+const restoreDocumentSchema = z.object({
+  path: z.string().min(1),
+});
+
 // Restore recently deleted document
 documentsRouter.post("/deleted/restore", async (c) => {
-  const { path: docPath } = await c.req.json();
+  const parsed = restoreDocumentSchema.safeParse(await c.req.json());
+
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
+  }
+
+  const { path: docPath } = parsed.data;
   const user = c.get("user");
 
   if (!user?.currentOrgId) {
@@ -923,9 +1000,17 @@ documentsRouter.post("/deleted/restore", async (c) => {
   }
 });
 
+const permanentlyDeleteDocumentSchema = z.object({
+  path: z.string().min(1),
+});
+
 // Permanently delete recently deleted document
 documentsRouter.post("/deleted/permanent", async (c) => {
-  const { path: docPath } = await c.req.json();
+  const parsed = permanentlyDeleteDocumentSchema.safeParse(await c.req.json());
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
+  }
+  const { path: docPath } = parsed.data;
   const user = c.get("user");
 
   if (!user?.currentOrgId) {
