@@ -1,5 +1,8 @@
 import { Show } from "solid-js";
 import Button from "../Button";
+const { version } = await import("../../../../package.json", {
+  assert: { type: "json" },
+});
 
 export type SettingsSection =
   | "account"
@@ -42,66 +45,71 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
       </div>
 
       <nav class="flex flex-col flex-1 p-2 gap-1">
-        <Button
-          onClick={() => props.onSectionChange("account")}
-          variant={props.activeSection === "account" ? "secondary" : "ghost"}
-          size="md"
-          fullWidth
-        >
-          <div class="i-carbon-user w-4 h-4" />
-          <span class="ml-2">Account</span>
-        </Button>
-
-        <Button
-          onClick={() => props.onSectionChange("import-export")}
-          variant={
-            props.activeSection === "import-export" ? "secondary" : "ghost"
-          }
-          size="md"
-          fullWidth
-        >
-          <div class="i-carbon-document-import w-4 h-4" />
-          <span class="ml-2">Import / Export</span>
-        </Button>
-
-        <Show when={props.isOrgAdmin}>
+        <div>
           <Button
-            onClick={() => props.onSectionChange("organization")}
+            onClick={() => props.onSectionChange("account")}
+            variant={props.activeSection === "account" ? "secondary" : "ghost"}
+            size="md"
+            fullWidth
+          >
+            <div class="i-carbon-user w-4 h-4" />
+            <span class="ml-2">Account</span>
+          </Button>
+
+          <Button
+            onClick={() => props.onSectionChange("import-export")}
             variant={
-              props.activeSection === "organization" ? "secondary" : "ghost"
+              props.activeSection === "import-export" ? "secondary" : "ghost"
             }
             size="md"
             fullWidth
           >
-            <div class="i-carbon-enterprise w-4 h-4" />
-            <span class="ml-2">Organization</span>
+            <div class="i-carbon-document-import w-4 h-4" />
+            <span class="ml-2">Import / Export</span>
           </Button>
-        </Show>
 
-        <Show when={props.isAdmin}>
+          <Show when={props.isOrgAdmin}>
+            <Button
+              onClick={() => props.onSectionChange("organization")}
+              variant={
+                props.activeSection === "organization" ? "secondary" : "ghost"
+              }
+              size="md"
+              fullWidth
+            >
+              <div class="i-carbon-enterprise w-4 h-4" />
+              <span class="ml-2">Organization</span>
+            </Button>
+          </Show>
+
+          <Show when={props.isAdmin}>
+            <Button
+              onClick={() => props.onSectionChange("admin")}
+              variant={props.activeSection === "admin" ? "secondary" : "ghost"}
+              size="md"
+              fullWidth
+            >
+              <div class="i-carbon-user-admin w-4 h-4" />
+              <span class="ml-2">Admin Panel</span>
+            </Button>
+          </Show>
+
+          <div class="border-t border-neutral-800 my-2" />
+
           <Button
-            onClick={() => props.onSectionChange("admin")}
-            variant={props.activeSection === "admin" ? "secondary" : "ghost"}
+            onClick={props.onLogout}
+            variant="ghost"
             size="md"
             fullWidth
+            class="text-red-400 hover:text-red-300 hover:bg-red-950/30"
           >
-            <div class="i-carbon-user-admin w-4 h-4" />
-            <span class="ml-2">Admin Panel</span>
+            <div class="i-carbon-logout w-4 h-4" />
+            <span class="ml-2">Logout</span>
           </Button>
-        </Show>
-
-        <div class="border-t border-neutral-800 my-2" />
-
-        <Button
-          onClick={props.onLogout}
-          variant="ghost"
-          size="md"
-          fullWidth
-          class="text-red-400 hover:text-red-300 hover:bg-red-950/30"
-        >
-          <div class="i-carbon-logout w-4 h-4" />
-          <span class="ml-2">Logout</span>
-        </Button>
+        </div>
+        <div class="mt-auto p-2 border-t border-neutral-800 ">
+          <span class="text-sm text-neutral-500">v{version}</span>
+        </div>
       </nav>
     </aside>
   );
