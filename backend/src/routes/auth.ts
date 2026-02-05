@@ -194,8 +194,6 @@ authRouter.post("/register", async (c) => {
 
     const parsed = registerSchema.safeParse(await c.req.json());
 
-    console.log({ parsed });
-
     if (!parsed.success) {
       return c.json({ error: z.treeifyError(parsed.error) }, 400);
     }

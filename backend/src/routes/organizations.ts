@@ -9,6 +9,7 @@ import {
 } from "../db/index.js";
 import { authMiddleware } from "../middlewares/auth.js";
 import { UserJWTPayload } from "../middlewares/auth.types.js";
+import * as z from "zod";
 
 type Variables = {
   user: UserJWTPayload;
@@ -45,11 +46,22 @@ organizationsRouter.get("/", async (c) => {
   }
 });
 
+const getOrgParamsSchema = z.object({
+  id: z.string().transform((val) => parseInt(val)),
+});
 // Get organization details
 organizationsRouter.get("/:id", async (c) => {
   try {
     const user = c.get("user");
-    const orgId = parseInt(c.req.param("id"));
+    const parsedParams = getOrgParamsSchema.safeParse({
+      id: c.req.param("id"),
+    });
+
+    if (!parsedParams.success) {
+      return c.json({ error: z.treeifyError(parsedParams.error) }, 400);
+    }
+
+    const { id: orgId } = parsedParams.data;
 
     // Verify user has access
     const membership = memberQueries.findMembership.get(orgId, user.userId);
@@ -147,11 +159,27 @@ organizationsRouter.post("/:id/switch", async (c) => {
   }
 });
 
+const updateOrgSchema = z.object({
+  name: z.string().min(1),
+  slug: z.string().min(1),
+});
+
+const updateOrgParamsSchema = z.object({
+  id: z.string().transform((val) => parseInt(val)),
+});
 // Update organization (admin only)
 organizationsRouter.put("/:id", async (c) => {
   try {
     const user = c.get("user");
-    const orgId = parseInt(c.req.param("id"));
+    const parsedOrgId = updateOrgParamsSchema.safeParse({
+      id: c.req.param("id"),
+    });
+
+    if (!parsedOrgId.success) {
+      return c.json({ error: z.treeifyError(parsedOrgId.error) }, 400);
+    }
+
+    const { id: orgId } = parsedOrgId.data;
 
     // Verify user is admin
     const isAdmin = memberQueries.isAdmin.get(orgId, user.userId);
@@ -159,7 +187,13 @@ organizationsRouter.put("/:id", async (c) => {
       return c.json({ error: "Admin access required" }, 403);
     }
 
-    const { name, slug } = await c.req.json();
+    const parsed = updateOrgSchema.safeParse(await c.req.json());
+
+    if (!parsed.success) {
+      return c.json({ error: z.treeifyError(parsed.error) }, 400);
+    }
+
+    const { name, slug } = parsed.data;
 
     if (!name || !slug) {
       return c.json({ error: "Name and slug are required" }, 400);
@@ -177,11 +211,23 @@ organizationsRouter.put("/:id", async (c) => {
   }
 });
 
+const createOrgParamsSchema = z.object({
+  id: z.string().transform((val) => parseInt(val)),
+});
+
 // List organization members (members can view)
 organizationsRouter.get("/:id/members", async (c) => {
   try {
     const user = c.get("user");
-    const orgId = parseInt(c.req.param("id"));
+    const parsedOrgId = createOrgParamsSchema.safeParse({
+      id: c.req.param("id"),
+    });
+
+    if (!parsedOrgId.success) {
+      return c.json({ error: z.treeifyError(parsedOrgId.error) }, 400);
+    }
+
+    const { id: orgId } = parsedOrgId.data;
 
     // Verify user has access
     const membership = memberQueries.findMembership.get(orgId, user.userId);
@@ -211,11 +257,28 @@ organizationsRouter.get("/:id/members", async (c) => {
   }
 });
 
+const addMemberSchema = z.object({
+  username: z.string().min(1),
+  role: z.enum(["admin", "member"]).optional(),
+});
+
+const addMemberParamsSchema = z.object({
+  id: z.string().transform((val) => parseInt(val)),
+});
+
 // Add member to organization (admin only)
 organizationsRouter.post("/:id/members", async (c) => {
   try {
     const user = c.get("user");
-    const orgId = parseInt(c.req.param("id"));
+    const parsedOrgId = addMemberParamsSchema.safeParse({
+      id: c.req.param("id"),
+    });
+
+    if (!parsedOrgId.success) {
+      return c.json({ error: z.treeifyError(parsedOrgId.error) }, 400);
+    }
+
+    const { id: orgId } = parsedOrgId.data;
 
     // Verify user is admin
     const isAdmin = memberQueries.isAdmin.get(orgId, user.userId);
@@ -223,7 +286,13 @@ organizationsRouter.post("/:id/members", async (c) => {
       return c.json({ error: "Admin access required" }, 403);
     }
 
-    const { username, role = "member" } = await c.req.json();
+    const parsed = addMemberSchema.safeParse(await c.req.json());
+
+    if (!parsed.success) {
+      return c.json({ error: z.treeifyError(parsed.error) }, 400);
+    }
+
+    const { username, role = "member" } = parsed.data;
 
     if (!username) {
       return c.json({ error: "Username is required" }, 400);
@@ -254,12 +323,29 @@ organizationsRouter.post("/:id/members", async (c) => {
   }
 });
 
+const updateMemberParamsSchema = z.object({
+  id: z.string().transform((val) => parseInt(val)),
+  userId: z.string().transform((val) => parseInt(val)),
+});
+
+const updateMemberSchema = z.object({
+  role: z.enum(["admin", "member"]),
+});
+
 // Update member role (admin only)
 organizationsRouter.put("/:id/members/:userId", async (c) => {
   try {
     const user = c.get("user");
-    const orgId = parseInt(c.req.param("id"));
-    const targetUserId = parseInt(c.req.param("userId"));
+    const parsedParams = updateMemberParamsSchema.safeParse({
+      id: c.req.param("id"),
+      userId: c.req.param("userId"),
+    });
+
+    if (!parsedParams.success) {
+      return c.json({ error: z.treeifyError(parsedParams.error) }, 400);
+    }
+
+    const { id: orgId, userId: targetUserId } = parsedParams.data;
 
     // Verify user is admin
     const isAdmin = memberQueries.isAdmin.get(orgId, user.userId);
@@ -267,12 +353,17 @@ organizationsRouter.put("/:id/members/:userId", async (c) => {
       return c.json({ error: "Admin access required" }, 403);
     }
 
-    const { role } = await c.req.json();
+    const parsed = updateMemberSchema.safeParse(await c.req.json());
+
+    if (!parsed.success) {
+      return c.json({ error: z.treeifyError(parsed.error) }, 400);
+    }
+
+    const { role } = parsed.data;
 
     if (role !== "admin" && role !== "member") {
       return c.json({ error: "Invalid role" }, 400);
     }
-
     memberQueries.updateRole.run(role, orgId, targetUserId);
 
     return c.json({ message: "Member role updated successfully" });
@@ -282,11 +373,22 @@ organizationsRouter.put("/:id/members/:userId", async (c) => {
   }
 });
 
+const getUserRoleParamsSchema = z.object({
+  id: z.string().transform((val) => parseInt(val)),
+});
 // Get current user's role in organization
 organizationsRouter.get("/:id/role", async (c) => {
   try {
     const user = c.get("user");
-    const orgId = parseInt(c.req.param("id"));
+    const parsedOrgId = getUserRoleParamsSchema.safeParse({
+      id: c.req.param("id"),
+    });
+
+    if (!parsedOrgId.success) {
+      return c.json({ error: z.treeifyError(parsedOrgId.error) }, 400);
+    }
+
+    const { id: orgId } = parsedOrgId.data;
 
     const membership = memberQueries.findMembership.get(orgId, user.userId);
 
@@ -301,12 +403,25 @@ organizationsRouter.get("/:id/role", async (c) => {
   }
 });
 
+const removeMemberParamsSchema = z.object({
+  id: z.string().transform((val) => parseInt(val)),
+  userId: z.string().transform((val) => parseInt(val)),
+});
+
 // Remove member from organization (admin only)
 organizationsRouter.delete("/:id/members/:userId", async (c) => {
   try {
     const user = c.get("user");
-    const orgId = parseInt(c.req.param("id"));
-    const targetUserId = parseInt(c.req.param("userId"));
+    const parsedParams = removeMemberParamsSchema.safeParse({
+      id: c.req.param("id"),
+      userId: c.req.param("userId"),
+    });
+
+    if (!parsedParams.success) {
+      return c.json({ error: z.treeifyError(parsedParams.error) }, 400);
+    }
+
+    const { id: orgId, userId: targetUserId } = parsedParams.data;
 
     // Verify user is admin
     const isAdmin = memberQueries.isAdmin.get(orgId, user.userId);
