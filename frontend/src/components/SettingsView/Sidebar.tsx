@@ -1,8 +1,5 @@
 import { Show } from "solid-js";
 import Button from "../Button";
-const { version } = await import("../../../../package.json", {
-  assert: { type: "json" },
-});
 
 export type SettingsSection =
   | "account"
@@ -108,7 +105,9 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
           </Button>
         </div>
         <div class="mt-auto p-2 border-t border-neutral-800 ">
-          <span class="text-sm text-neutral-500">v{version}</span>
+          <span class="text-sm text-neutral-500">
+            v{import.meta.env.VITE_APP_VERSION}
+          </span>
         </div>
       </nav>
     </aside>
