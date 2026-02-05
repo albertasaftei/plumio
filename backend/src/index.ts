@@ -10,6 +10,9 @@ import { authRouter } from "./routes/auth.js";
 import { adminRouter } from "./routes/admin.js";
 import { organizationsRouter } from "./routes/organizations.js";
 import { UserJWTPayload } from "./middlewares/auth.types.js";
+const { version } = await import("../../package.json", {
+  assert: { type: "json" },
+});
 
 type Variables = {
   user: UserJWTPayload;
@@ -55,7 +58,11 @@ app.use(
 
 // Health check
 app.get("/api/health", (c) =>
-  c.json({ status: "ok", timestamp: new Date().toISOString() }),
+  c.json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    appVersion: version,
+  }),
 );
 
 // Routes
