@@ -7,6 +7,7 @@ import {
 } from "../db/index.js";
 import { adminMiddleware } from "../middlewares/auth.js";
 import { UserJWTPayload } from "../middlewares/auth.types.js";
+import * as z from "zod";
 
 const adminRouter = new Hono<{ Variables: { user: UserJWTPayload } }>();
 
@@ -31,18 +32,21 @@ adminRouter.get("/users", async (c) => {
   }
 });
 
+const registerSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
 // Create new user
 adminRouter.post("/users", async (c) => {
   try {
-    const { username, email, password } = await c.req.json();
+    const parsed = registerSchema.safeParse(await c.req.json());
 
-    if (!username || !email || !password || password.length < 8) {
-      return c.json(
-        { error: "Invalid credentials (password min 8 characters)" },
-        400,
-      );
+    if (!parsed.success) {
+      return c.json({ error: z.treeifyError(parsed.error) }, 400);
     }
 
+    const { username, email, password } = parsed.data;
     const passwordHash = await bcrypt.hash(password, 10);
 
     try {
@@ -75,10 +79,21 @@ adminRouter.post("/users", async (c) => {
   }
 });
 
+const deleteUserParamsSchema = z.object({
+  id: z.string().transform((val) => parseInt(val)),
+});
 // Delete user
 adminRouter.delete("/users/:id", async (c) => {
   try {
-    const userId = parseInt(c.req.param("id"));
+    const parsedParams = deleteUserParamsSchema.safeParse({
+      id: c.req.param("id"),
+    });
+
+    if (!parsedParams.success) {
+      return c.json({ error: z.treeifyError(parsedParams.error) }, 400);
+    }
+
+    const userId = parsedParams.data.id;
 
     if (userId === 1) {
       return c.json({ error: "Cannot delete admin user" }, 400);
