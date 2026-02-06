@@ -28,7 +28,7 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
         "translate-x-0": props.isOpen,
       }}
     >
-      <div class="flex items-center justify-between mb-4 p-4 border-b border-neutral-800">
+      <div class="flex items-center justify-between p-4 border-b border-neutral-800">
         <h2 class="text-lg font-semibold text-white">Settings</h2>
         <Button
           onClick={props.onToggle}
@@ -41,8 +41,8 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
         </Button>
       </div>
 
-      <nav class="flex flex-col flex-1 p-2 gap-1">
-        <div>
+      <nav class="flex flex-col flex-1 p-2">
+        <div class="flex flex-col gap-2">
           <Button
             onClick={() => props.onSectionChange("account")}
             variant={props.activeSection === "account" ? "secondary" : "ghost"}

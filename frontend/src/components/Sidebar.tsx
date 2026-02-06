@@ -349,7 +349,16 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         {/* Archive & Recently Deleted Buttons */}
         <div class="p-4 space-y-2">
           <Button
-            onClick={() => navigate("/archive")}
+            onClick={() => props.onViewHome()}
+            variant="ghost"
+            size="md"
+            fullWidth
+          >
+            <div class="i-carbon-home w-4 h-4" />
+            <span class="ml-2">Homepage</span>
+          </Button>
+          <Button
+            onClick={() => props.onViewArchive()}
             variant="ghost"
             size="md"
             fullWidth
@@ -358,7 +367,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             <span class="ml-2">View Archive</span>
           </Button>
           <Button
-            onClick={() => navigate("/deleted")}
+            onClick={() => props.onViewDeleted()}
             variant="ghost"
             size="md"
             fullWidth

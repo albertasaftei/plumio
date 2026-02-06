@@ -1,19 +1,14 @@
-import {
-  createSignal,
-  createEffect,
-  Show,
-  lazy,
-  Suspense,
-  onMount,
-} from "solid-js";
+import { createSignal, Show, lazy, Suspense, onMount } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { api, type Document } from "~/lib/api";
 import Editor from "~/components/Editor";
 import Sidebar from "~/components/Sidebar";
 import AlertDialog from "~/components/AlertDialog";
-import Dashboard from "~/components/Dashboard";
 import Button from "~/components/Button";
 import { isMobile } from "~/utils/device.utils";
+import ArchivedView from "~/components/ArchivedView";
+import DeletedRecentlyView from "~/components/DeletedRecentlyView";
+import Homepage from "~/components/Homepage";
 
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 
@@ -38,6 +33,9 @@ export default function EditorPage() {
     isOpen: boolean;
     path: string | null;
   }>({ isOpen: false, path: null });
+  const [currentView, setCurrentView] = createSignal<
+    "home" | "editor" | "archive" | "deleted"
+  >("home");
 
   let saveTimeout: ReturnType<typeof setTimeout>;
 
@@ -270,6 +268,7 @@ export default function EditorPage() {
           expandedFolders={expandedFolders()}
           onSelectDocument={(path) => {
             loadDocument(path);
+            setCurrentView("editor");
             // Close sidebar on mobile after selecting document
             if (window.innerWidth < 1024) {
               setSidebarOpen(false);
@@ -283,6 +282,24 @@ export default function EditorPage() {
           onSetColor={setItemColor}
           onOrgSwitch={() => loadAllDocuments()}
           onArchiveItem={archiveItem}
+          onViewHome={() => {
+            setCurrentView("home");
+            if (window.innerWidth < 1024) {
+              setSidebarOpen(false);
+            }
+          }}
+          onViewArchive={() => {
+            setCurrentView("archive");
+            if (window.innerWidth < 1024) {
+              setSidebarOpen(false);
+            }
+          }}
+          onViewDeleted={() => {
+            setCurrentView("deleted");
+            if (window.innerWidth < 1024) {
+              setSidebarOpen(false);
+            }
+          }}
         />
 
         {/* Main Editor Area */}
@@ -359,50 +376,80 @@ export default function EditorPage() {
             </div>
           </Show>
 
-          <Show
-            when={currentPath()}
-            fallback={
-              <Dashboard
-                documents={allDocuments()}
-                onSelectDocument={(path) => {
-                  loadDocument(path);
-                  // Close sidebar on mobile after selecting document
-                  if (window.innerWidth < 1024) {
-                    setSidebarOpen(false);
-                  }
-                }}
-              />
-            }
-          >
+          {/* Main Content - Switch between views */}
+          {currentView() === "home" && (
+            <Homepage
+              documents={allDocuments()}
+              onSelectDocument={(path) => {
+                loadDocument(path);
+                setCurrentView("editor");
+                if (window.innerWidth < 1024) {
+                  setSidebarOpen(false);
+                }
+              }}
+            />
+          )}
+
+          {currentView() === "archive" && (
+            <ArchivedView
+              onClose={() => setCurrentView("home")}
+              onDocumentsChange={loadAllDocuments}
+            />
+          )}
+
+          {currentView() === "deleted" && (
+            <DeletedRecentlyView
+              onClose={() => setCurrentView("home")}
+              onDocumentsChange={loadAllDocuments}
+            />
+          )}
+
+          {currentView() === "editor" && (
             <Show
-              when={!loading()}
+              when={currentPath() === "editor"}
               fallback={
-                <div class="flex-1 flex items-center justify-center">
-                  <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500" />
-                </div>
+                <Homepage
+                  documents={allDocuments()}
+                  onSelectDocument={(path) => {
+                    loadDocument(path);
+                    setCurrentView("editor");
+                    if (window.innerWidth < 1024) {
+                      setSidebarOpen(false);
+                    }
+                  }}
+                />
               }
             >
-              {useLivePreview() ? (
-                <Suspense
-                  fallback={
-                    <div class="flex-1 flex items-center justify-center">
-                      <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500" />
-                    </div>
-                  }
-                >
-                  <MarkdownEditor
+              <Show
+                when={!loading()}
+                fallback={
+                  <div class="flex-1 flex items-center justify-center">
+                    <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500" />
+                  </div>
+                }
+              >
+                {useLivePreview() ? (
+                  <Suspense
+                    fallback={
+                      <div class="flex-1 flex items-center justify-center">
+                        <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500" />
+                      </div>
+                    }
+                  >
+                    <MarkdownEditor
+                      content={currentContent()}
+                      onChange={handleContentChange}
+                    />
+                  </Suspense>
+                ) : (
+                  <Editor
                     content={currentContent()}
                     onChange={handleContentChange}
                   />
-                </Suspense>
-              ) : (
-                <Editor
-                  content={currentContent()}
-                  onChange={handleContentChange}
-                />
-              )}
+                )}
+              </Show>
             </Show>
-          </Show>
+          )}
         </div>
       </div>
     </div>

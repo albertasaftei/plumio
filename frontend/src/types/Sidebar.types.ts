@@ -17,6 +17,9 @@ export interface SidebarProps {
   onSetColor?: (path: string, color: string | null) => void;
   onOrgSwitch: () => void;
   onArchiveItem: (path: string) => void;
+  onViewHome: () => void;
+  onViewArchive: () => void;
+  onViewDeleted: () => void;
 }
 
 export interface TreeNode extends Document {
