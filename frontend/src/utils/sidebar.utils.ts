@@ -52,12 +52,19 @@ export function buildDocumentTree(documents: Document[]): TreeNode[] {
 }
 
 /**
- * Recursively sorts tree nodes: folders first, then alphabetically
+ * Recursively sorts tree nodes: favorites first, then folders, then alphabetically
  */
 function sortTreeNodes(nodes: TreeNode[]) {
   nodes.sort((a, b) => {
+    // Favorites first
+    if (a.favorite && !b.favorite) return -1;
+    if (!a.favorite && b.favorite) return 1;
+    
+    // Then folders before files
     if (a.type === "folder" && b.type === "file") return -1;
     if (a.type === "file" && b.type === "folder") return 1;
+    
+    // Then alphabetically
     return a.name.localeCompare(b.name);
   });
   nodes.forEach((node) => {

@@ -234,6 +234,15 @@ export default function EditorPage() {
     }
   };
 
+  const toggleFavorite = async (path: string, favorite: boolean) => {
+    try {
+      await api.toggleFavorite(path, favorite);
+      await loadAllDocuments();
+    } catch (error) {
+      console.error("Failed to toggle favorite:", error);
+    }
+  };
+
   return (
     <div class="h-dvh flex flex-col overflow-hidden bg-neutral-900">
       {/* Delete Confirmation Dialog */}
@@ -280,6 +289,7 @@ export default function EditorPage() {
           onRenameItem={renameItem}
           onExpandFolder={toggleExpandFolder}
           onSetColor={setItemColor}
+          onToggleFavorite={toggleFavorite}
           onOrgSwitch={() => loadAllDocuments()}
           onArchiveItem={archiveItem}
           onViewHome={() => {
@@ -317,7 +327,7 @@ export default function EditorPage() {
           </div>
 
           {/* Current File Breadcrumb */}
-          <Show when={currentPath()}>
+          <Show when={currentPath() && currentView() === "editor"}>
             <div class="px-4 py-2 border-b border-neutral-800 bg-neutral-950">
               <div class="flex items-center gap-2">
                 <div class="i-carbon-document w-4 h-4 text-neutral-500" />
@@ -330,7 +340,7 @@ export default function EditorPage() {
           </Show>
 
           {/* Document Actions Toolbar */}
-          <Show when={currentPath()}>
+          <Show when={currentPath() && currentView() === "editor"}>
             <div class="h-12 border-b border-neutral-800 flex items-center justify-between px-2 sm:px-4 bg-neutral-950">
               {/* View Mode Toggle */}
               <div class="flex items-center gap-1 border border-neutral-800 rounded-lg overflow-hidden">
@@ -406,7 +416,7 @@ export default function EditorPage() {
 
           {currentView() === "editor" && (
             <Show
-              when={currentPath() === "editor"}
+              when={currentPath()}
               fallback={
                 <Homepage
                   documents={allDocuments()}

@@ -8,6 +8,8 @@ import {
   getDemoOrg,
   setFolderColor as setFolderColorStorage,
   getFolderColor as getFolderColorStorage,
+  setFolderFavorite as setFolderFavoriteStorage,
+  getFolderFavorite as getFolderFavoriteStorage,
   getCreatedFolders,
   addCreatedFolder,
   removeCreatedFolder,
@@ -90,6 +92,7 @@ export const demoClient = {
       modified: string;
       size: number;
       color?: string;
+      favorite?: boolean;
       archived_at?: string;
     }> = docs
       .filter((d) => {
@@ -108,6 +111,7 @@ export const demoClient = {
         modified: d.modified,
         size: d.size,
         color: d.color,
+        favorite: d.favorite || false,
         archived_at: d.archived_at,
       }));
 
@@ -141,6 +145,7 @@ export const demoClient = {
     folders.forEach((folderPath) => {
       const folderName = folderPath.split("/").pop() || folderPath;
       const folderColor = getFolderColorStorage(folderPath);
+      const folderFavorite = getFolderFavoriteStorage(folderPath);
       items.push({
         name: folderName,
         path: folderPath,
@@ -148,6 +153,7 @@ export const demoClient = {
         modified: new Date().toISOString(),
         size: 0,
         ...(folderColor && { color: folderColor }),
+        favorite: folderFavorite,
       });
     });
 
@@ -267,6 +273,27 @@ export const demoClient = {
     }
 
     return { message: "Color updated", path };
+  },
+
+  async toggleFavorite(path: string, favorite: boolean) {
+    await ensureReady();
+    const docs = getDemoDocuments();
+    const doc = docs.find((d) => d.path === path && !d.deleted);
+
+    if (doc) {
+      // It's a file
+      if (favorite) {
+        doc.favorite = true;
+      } else {
+        delete doc.favorite;
+      }
+      saveDemoDocuments(docs);
+    } else {
+      // It's a folder (virtual) - store favorite separately
+      setFolderFavoriteStorage(path, favorite);
+    }
+
+    return { message: "Favorite updated", path };
   },
 
   async createDocument(path: string, content: string) {

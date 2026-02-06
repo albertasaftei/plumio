@@ -6,6 +6,7 @@ const DEMO_DOCS_KEY = `${DEMO_PREFIX}documents`;
 const DEMO_USER_KEY = `${DEMO_PREFIX}user`;
 const DEMO_ORG_KEY = `${DEMO_PREFIX}org`;
 const DEMO_FOLDER_COLORS_KEY = `${DEMO_PREFIX}folder_colors`;
+const DEMO_FOLDER_FAVORITES_KEY = `${DEMO_PREFIX}folder_favorites`;
 const DEMO_FOLDERS_KEY = `${DEMO_PREFIX}folders`;
 
 interface StoredDocument {
@@ -14,6 +15,7 @@ interface StoredDocument {
   modified: string;
   size: number;
   color?: string;
+  favorite?: boolean;
   archived?: boolean;
   archived_at?: string;
   deleted?: boolean;
@@ -155,4 +157,26 @@ export function removeCreatedFolder(path: string): void {
     (f) => f !== path && !f.startsWith(path + "/"),
   );
   localStorage.setItem(DEMO_FOLDERS_KEY, JSON.stringify(filtered));
+}
+
+export function getFolderFavorites(): Record<string, boolean> {
+  if (typeof window === "undefined") return {};
+  const data = localStorage.getItem(DEMO_FOLDER_FAVORITES_KEY);
+  return data ? JSON.parse(data) : {};
+}
+
+export function setFolderFavorite(path: string, favorite: boolean): void {
+  if (typeof window === "undefined") return;
+  const favorites = getFolderFavorites();
+  if (favorite) {
+    favorites[path] = true;
+  } else {
+    delete favorites[path];
+  }
+  localStorage.setItem(DEMO_FOLDER_FAVORITES_KEY, JSON.stringify(favorites));
+}
+
+export function getFolderFavorite(path: string): boolean {
+  const favorites = getFolderFavorites();
+  return favorites[path] || false;
 }

@@ -29,6 +29,15 @@ export default function Homepage(props: HomepageProps) {
       .slice(0, 10); // Show top 10 most recent
   };
 
+  // Get favorite documents
+  const favoriteDocuments = () => {
+    return props.documents
+      .filter((doc) => doc.type === "file" && doc.favorite)
+      .sort((a, b) => {
+        return new Date(b.modified).getTime() - new Date(a.modified).getTime();
+      });
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -84,7 +93,7 @@ export default function Homepage(props: HomepageProps) {
         </div>
 
         {/* Stats Cards */}
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
           <div class="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4">
             <div class="flex items-center gap-3">
               <div class="i-carbon-document w-8 h-8 text-blue-500" />
@@ -111,6 +120,18 @@ export default function Homepage(props: HomepageProps) {
 
           <div class="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4">
             <div class="flex items-center gap-3">
+              <div class="i-carbon-star-filled w-8 h-8 text-yellow-400" />
+              <div>
+                <div class="text-2xl font-bold text-neutral-100">
+                  {favoriteDocuments().length}
+                </div>
+                <div class="text-sm text-neutral-400">Favorites</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4">
+            <div class="flex items-center gap-3">
               <div class="i-carbon-time w-8 h-8 text-green-500" />
               <div>
                 <div class="text-2xl font-bold text-neutral-100">
@@ -123,6 +144,51 @@ export default function Homepage(props: HomepageProps) {
             </div>
           </div>
         </div>
+
+        {/* Favorite Documents */}
+        <Show when={favoriteDocuments().length > 0}>
+          <div class="bg-neutral-800/50 border border-neutral-700 rounded-lg overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-neutral-700 flex items-center gap-2">
+              <div class="i-carbon-star-filled w-5 h-5 text-yellow-400" />
+              <h2 class="text-lg font-semibold text-neutral-100">
+                Favorite Documents
+              </h2>
+            </div>
+            <div class="divide-y divide-neutral-700">
+              <For each={favoriteDocuments()}>
+                {(doc) => (
+                  <button
+                    onClick={() => props.onSelectDocument(doc.path)}
+                    class={`w-full px-6 py-4 flex items-center cursor-pointer gap-4 hover:bg-neutral-800 transition-colors text-left border-l-4 ${
+                      doc.color
+                        ? colorClasses[doc.color] || "border-l-transparent"
+                        : "border-l-transparent"
+                    }`}
+                  >
+                    <div
+                      class={`${getFileIcon(doc.name)} w-6 h-6 text-neutral-400`}
+                    />
+                    <div class="flex-1 min-w-0">
+                      <div class="text-neutral-100 font-medium truncate flex items-center gap-2">
+                        {doc.name}
+                        <div class="i-carbon-star-filled w-4 h-4 text-yellow-400" />
+                      </div>
+                      <div class="text-sm text-neutral-400 truncate">
+                        {doc.path}
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-4 text-sm text-neutral-500">
+                      <span>{formatSize(doc.size)}</span>
+                      <span class="min-w-20 text-right">
+                        {formatDate(doc.modified)}
+                      </span>
+                    </div>
+                  </button>
+                )}
+              </For>
+            </div>
+          </div>
+        </Show>
 
         {/* Recent Documents */}
         <div class="bg-neutral-800/50 border border-neutral-700 rounded-lg overflow-hidden">

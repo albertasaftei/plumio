@@ -15,6 +15,7 @@ export interface SidebarProps {
   onRenameItem?: (oldPath: string, newName: string) => void;
   onExpandFolder: (path: string) => void;
   onSetColor?: (path: string, color: string | null) => void;
+  onToggleFavorite?: (path: string, favorite: boolean) => void;
   onOrgSwitch: () => void;
   onArchiveItem: (path: string) => void;
   onViewHome: () => void;

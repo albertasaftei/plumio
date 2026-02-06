@@ -155,6 +155,10 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
               {nodeProps.node.name}
             </button>
 
+            <Show when={nodeProps.node.favorite}>
+              <div class="i-carbon-star-filled w-4 h-4 text-yellow-400 flex-shrink-0" />
+            </Show>
+
             <div class="flex items-center gap-1 ">
               <Show when={nodeProps.node.type === "folder"}>
                 <Button
@@ -206,6 +210,28 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                 />
                 <Popover.Portal>
                   <Popover.Content class="mt-1 mb-1 max-w-36 bg-neutral-800 border border-neutral-700 rounded-lg shadow-lg z-50 py-1 animate-slide-down">
+                    <Show when={props.onToggleFavorite}>
+                      <PopoverItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          props.onToggleFavorite?.(
+                            nodeProps.node.path,
+                            !nodeProps.node.favorite,
+                          );
+                          setOpenMenuPath(null);
+                        }}
+                      >
+                        <div
+                          class={`w-4 h-4 ${
+                            nodeProps.node.favorite
+                              ? "i-carbon-star-filled text-yellow-400"
+                              : "i-carbon-star"
+                          }`}
+                        />
+                        {nodeProps.node.favorite ? "Unfavorite" : "Favorite"}
+                      </PopoverItem>
+                    </Show>
+
                     <PopoverItem
                       onClick={(e) => {
                         e.stopPropagation();

@@ -55,4 +55,5 @@ export interface Document {
 
 export interface DocumentMetadata {
   color?: string;
+  favorite?: boolean;
 }

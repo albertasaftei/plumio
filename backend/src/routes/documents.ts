@@ -178,9 +178,10 @@ documentsRouter.get("/list", async (c) => {
             name: item.name,
             path: docPath,
             type: item.isDirectory() ? "folder" : "file",
-            modified: stats.mtime,
+            modified: stats.mtime.toISOString(),
             size: stats.size,
             color: metadata.color || undefined,
+            favorite: metadata.favorite || false,
           };
         }),
     );
@@ -477,6 +478,60 @@ const colorDocumentSchema = z.object({
   path: z.string().min(1),
   color: z.string(),
 });
+
+const favoriteDocumentSchema = z.object({
+  path: z.string().min(1),
+  favorite: z.boolean(),
+});
+
+// Toggle item favorite metadata
+documentsRouter.post("/favorite", async (c) => {
+  const parsed = favoriteDocumentSchema.safeParse(await c.req.json());
+  const user = c.get("user");
+  const organizationId = user.currentOrgId;
+
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
+  }
+
+  if (!organizationId) {
+    return c.json({ error: "No organization context" }, 400);
+  }
+
+  const { path: itemPath, favorite } = parsed.data;
+  const fullPath = sanitizePath(itemPath, organizationId);
+  const metadataPath = fullPath + ".meta.json";
+
+  try {
+    // Verify the file/folder exists
+    await fs.access(fullPath);
+
+    // Read or create metadata
+    let metadata: DocumentMetadata = {};
+    try {
+      const metaContent = await fs.readFile(metadataPath, "utf-8");
+      metadata = JSON.parse(metaContent);
+    } catch {
+      // Metadata file doesn't exist yet, that's fine
+    }
+
+    // Update favorite
+    if (favorite) {
+      metadata.favorite = true;
+    } else {
+      delete metadata.favorite;
+    }
+
+    // Save metadata
+    await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+
+    return c.json({ message: "Favorite updated successfully" });
+  } catch (error) {
+    console.error("Error setting favorite:", error);
+    return c.json({ error: "Failed to set favorite" }, 500);
+  }
+});
+
 // Set item color metadata
 documentsRouter.post("/color", async (c) => {
   const parsed = colorDocumentSchema.safeParse(await c.req.json());

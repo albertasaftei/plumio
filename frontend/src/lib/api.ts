@@ -38,6 +38,7 @@ export interface Document {
   modified: string;
   size: number;
   color?: string;
+  favorite?: boolean;
   archived_at?: string;
   deleted_at?: string;
 }
@@ -488,6 +489,13 @@ export class ApiClient {
     return this.request("/api/documents/deleted/permanent", {
       method: "POST",
       body: JSON.stringify({ path }),
+    });
+  }
+
+  async toggleFavorite(path: string, favorite: boolean) {
+    return this.request("/api/documents/favorite", {
+      method: "POST",
+      body: JSON.stringify({ path, favorite }),
     });
   }
 }
