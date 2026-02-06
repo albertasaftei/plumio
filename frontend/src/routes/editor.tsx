@@ -237,7 +237,7 @@ export default function EditorPage() {
   };
 
   return (
-    <div class="h-screen flex flex-col bg-neutral-900">
+    <div class="h-dvh flex flex-col overflow-hidden bg-neutral-900">
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         isOpen={deleteDialog().isOpen}

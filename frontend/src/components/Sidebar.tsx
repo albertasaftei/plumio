@@ -1,5 +1,5 @@
 import { createSignal, For, Show, createMemo, createEffect } from "solid-js";
-import Popover, { PopoverItem } from "./Popover";
+import { Popover } from "@kobalte/core/popover";
 import ColorPicker from "./ColorPicker";
 import Button from "./Button";
 import type { SidebarProps, TreeNode } from "~/types/Sidebar.types";
@@ -12,8 +12,9 @@ import {
 import { useNavigate } from "@solidjs/router";
 import AlertDialog from "./AlertDialog";
 import OrganizationSelector from "./OrganizationSelector";
+import PopoverItem from "./PopoverItem";
 
-export default function Sidebar(props: SidebarProps) {
+export default function Sidebar(props: Readonly<SidebarProps>) {
   const navigate = useNavigate();
   const [showNewDocModal, setShowNewDocModal] = createSignal(false);
   const [showNewFolderModal, setShowNewFolderModal] = createSignal(false);
@@ -141,9 +142,6 @@ export default function Sidebar(props: SidebarProps) {
                 />
               </Button>
             </Show>
-            <Show when={nodeProps.node.type === "file"}>
-              <div class="w-3 h-3" />
-            </Show>
 
             <div
               class={`w-4 h-4 flex-shrink-0 ${
@@ -185,68 +183,75 @@ export default function Sidebar(props: SidebarProps) {
                 </Button>
               </Show>
               <Popover
-                trigger={
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenMenuPath(
-                        openMenuPath() === nodeProps.node.path
-                          ? null
-                          : nodeProps.node.path,
-                      );
-                    }}
-                    variant="icon"
-                    size="sm"
-                    title="More options"
-                  >
-                    <div class="i-carbon-overflow-menu-vertical w-5 h-5 text-neutral-400" />
-                  </Button>
-                }
-                isOpen={openMenuPath() === nodeProps.node.path}
-                onClose={() => setOpenMenuPath(null)}
+                open={openMenuPath() === nodeProps.node.path}
+                onOpenChange={(isOpen) => {
+                  setOpenMenuPath(isOpen ? nodeProps.node.path : null);
+                }}
               >
-                <PopoverItem
-                  icon="i-carbon-edit"
-                  label="Rename"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const fileName = nodeProps.node.name.split(".")[0];
-                    setItemToRename(nodeProps.node.path);
-                    setNewItemName(fileName);
-                    setShowRenameModal(true);
-                    setOpenMenuPath(null);
-                  }}
+                <Popover.Trigger
+                  as={(props: any) => (
+                    <Button
+                      {...props}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        props.onClick?.(e);
+                      }}
+                      variant="icon"
+                      size="sm"
+                      title="More options"
+                    >
+                      <div class="i-carbon-overflow-menu-vertical w-5 h-5 text-neutral-400" />
+                    </Button>
+                  )}
                 />
+                <Popover.Portal>
+                  <Popover.Content class="mt-1 mb-1 max-w-36 bg-neutral-800 border border-neutral-700 rounded-lg shadow-lg z-50 py-1 animate-slide-down">
+                    <PopoverItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const fileName = nodeProps.node.name.split(".")[0];
+                        setItemToRename(nodeProps.node.path);
+                        setNewItemName(fileName);
+                        setShowRenameModal(true);
+                        setOpenMenuPath(null);
+                      }}
+                    >
+                      <div class="i-carbon-edit w-4 h-4" />
+                      Rename
+                    </PopoverItem>
 
-                <PopoverItem
-                  icon="i-carbon-archive"
-                  label="Archive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    props.onArchiveItem(nodeProps.node.path);
-                    setOpenMenuPath(null);
-                  }}
-                />
+                    <PopoverItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        props.onArchiveItem(nodeProps.node.path);
+                        setOpenMenuPath(null);
+                      }}
+                    >
+                      <div class="i-carbon-archive w-4 h-4" />
+                      Archive
+                    </PopoverItem>
 
-                <PopoverItem
-                  icon="i-carbon-trash-can"
-                  label="Delete"
-                  variant="danger"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    props.onDeleteItem(nodeProps.node.path);
-                    setOpenMenuPath(null);
-                  }}
-                />
-                <Show when={props.onSetColor}>
-                  <ColorPicker
-                    currentColor={nodeProps.node.color}
-                    onColorSelect={(color) => {
-                      props.onSetColor?.(nodeProps.node.path, color);
-                      setOpenMenuPath(null);
-                    }}
-                  />
-                </Show>
+                    <PopoverItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        props.onDeleteItem(nodeProps.node.path);
+                        setOpenMenuPath(null);
+                      }}
+                    >
+                      <div class="i-carbon-trash-can w-4 h-4" />
+                      Delete
+                    </PopoverItem>
+                    <Show when={props.onSetColor}>
+                      <ColorPicker
+                        currentColor={nodeProps.node.color}
+                        onColorSelect={(color) => {
+                          props.onSetColor?.(nodeProps.node.path, color);
+                          setOpenMenuPath(null);
+                        }}
+                      />
+                    </Show>
+                  </Popover.Content>
+                </Popover.Portal>
               </Popover>
             </div>
           </div>
@@ -337,7 +342,7 @@ export default function Sidebar(props: SidebarProps) {
         </div>
 
         {/* Documents Tree */}
-        <div class="flex-1 overflow-y-auto">
+        <div class="flex-1 overflow-y-auto scrollbar-none">
           <For each={filteredTree()}>{(node) => <TreeNode node={node} />}</For>
         </div>
 
