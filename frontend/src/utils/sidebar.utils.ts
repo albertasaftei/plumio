@@ -59,11 +59,11 @@ function sortTreeNodes(nodes: TreeNode[]) {
     // Favorites first
     if (a.favorite && !b.favorite) return -1;
     if (!a.favorite && b.favorite) return 1;
-    
+
     // Then folders before files
     if (a.type === "folder" && b.type === "file") return -1;
     if (a.type === "file" && b.type === "folder") return 1;
-    
+
     // Then alphabetically
     return a.name.localeCompare(b.name);
   });
