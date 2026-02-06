@@ -59,7 +59,7 @@ app.use(
 app.get("/api/health", (c) => {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const packageJson = JSON.parse(
-    readFileSync(path.join(__dirname, "../../package.json"), "utf-8"),
+    readFileSync(path.join(__dirname, "../package.json"), "utf-8"),
   );
 
   return c.json({
