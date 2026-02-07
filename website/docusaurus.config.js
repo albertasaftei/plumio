@@ -34,7 +34,14 @@ const config = {
     defaultLocale: "en",
     locales: ["en"],
   },
-
+  plugins: [
+    [
+      "vercel-analytics",
+      {
+        mode: "auto",
+      },
+    ],
+  ],
   presets: [
     [
       "classic",
