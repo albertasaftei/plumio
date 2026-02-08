@@ -155,8 +155,19 @@ async function cleanupInvalidFiles(dirPath: string): Promise<void> {
         }
         console.log(`Removed hidden item: ${item.name}`);
       } else if (item.isDirectory()) {
-        // Recursively clean subdirectories
+        // Recursively clean subdirectories first
         await cleanupInvalidFiles(itemPath);
+
+        // After cleaning, check if directory is now empty and remove it
+        try {
+          const remainingItems = await fs.readdir(itemPath);
+          if (remainingItems.length === 0) {
+            await fs.rmdir(itemPath);
+            console.log(`Removed empty directory: ${item.name}`);
+          }
+        } catch (err) {
+          // Directory might not exist or other error, continue
+        }
       } else {
         if (!hasAllowedExtension(item.name)) {
           await fs.unlink(itemPath);
@@ -735,13 +746,46 @@ documentsRouter.post("/import", async (c) => {
     const { promisify } = await import("util");
     const execAsync = promisify(exec);
 
-    // Extract archive - strip the top folder name (e.g., 'org-1')
+    // First, extract to a temp directory to inspect structure
+    const tempExtractDir = path.join("/tmp", `plumio-extract-${timestamp}`);
+    await fs.mkdir(tempExtractDir, { recursive: true });
+
+    // Extract archive
     await execAsync(
-      `tar -xzf ${tempFile} -C ${orgDocumentsPath} --strip-components=1 --exclude='.*' --exclude='*/.*'`,
+      `tar -xzf ${tempFile} -C ${tempExtractDir} --exclude='.*' --exclude='*/.*'`,
     );
 
-    // Clean up temp file
+    // Check if there's a single top-level directory (like org-1)
+    const topLevelItems = await fs.readdir(tempExtractDir, {
+      withFileTypes: true,
+    });
+
+    let sourceDir = tempExtractDir;
+    // If there's only one item and it's a directory starting with "org-", use it as source
+    if (
+      topLevelItems.length === 1 &&
+      topLevelItems[0].isDirectory() &&
+      topLevelItems[0].name.startsWith("org-")
+    ) {
+      sourceDir = path.join(tempExtractDir, topLevelItems[0].name);
+    }
+
+    // Copy contents from source to organization documents path
+    const items = await fs.readdir(sourceDir, { withFileTypes: true });
+    for (const item of items) {
+      const srcPath = path.join(sourceDir, item.name);
+      const destPath = path.join(orgDocumentsPath, item.name);
+
+      if (item.isDirectory()) {
+        await fs.cp(srcPath, destPath, { recursive: true });
+      } else {
+        await fs.copyFile(srcPath, destPath);
+      }
+    }
+
+    // Clean up temp files
     await fs.unlink(tempFile);
+    await fs.rm(tempExtractDir, { recursive: true, force: true });
 
     // Additional cleanup: Remove any hidden files and files with invalid extensions
     await cleanupInvalidFiles(orgDocumentsPath);
