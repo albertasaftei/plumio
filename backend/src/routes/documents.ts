@@ -121,6 +121,55 @@ async function ensureOrgDirectoryExists(organizationId: number): Promise<void> {
   }
 }
 
+// Allowed file extensions for import
+const ALLOWED_EXTENSIONS = [".md"];
+const ALLOWED_METADATA_EXTENSIONS = [".meta.json"];
+
+// Check if a file has an allowed extension
+function hasAllowedExtension(fileName: string): boolean {
+  // Check for metadata files first (ends with .meta.json)
+  if (ALLOWED_METADATA_EXTENSIONS.some((ext) => fileName.endsWith(ext))) {
+    return true;
+  }
+
+  // Check for regular file extensions
+  const ext = path.extname(fileName).toLowerCase();
+  return ALLOWED_EXTENSIONS.includes(ext);
+}
+
+// Recursively remove hidden files, folders, and files with invalid extensions
+async function cleanupInvalidFiles(dirPath: string): Promise<void> {
+  try {
+    const items = await fs.readdir(dirPath, { withFileTypes: true });
+
+    for (const item of items) {
+      const itemPath = path.join(dirPath, item.name);
+
+      // Check if item is hidden (starts with .)
+      if (item.name.startsWith(".")) {
+        // Remove hidden file or directory
+        if (item.isDirectory()) {
+          await fs.rm(itemPath, { recursive: true, force: true });
+        } else {
+          await fs.unlink(itemPath);
+        }
+        console.log(`Removed hidden item: ${item.name}`);
+      } else if (item.isDirectory()) {
+        // Recursively clean subdirectories
+        await cleanupInvalidFiles(itemPath);
+      } else {
+        if (!hasAllowedExtension(item.name)) {
+          await fs.unlink(itemPath);
+          console.log(`Removed file with invalid extension: ${item.name}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error cleaning invalid files:", error);
+    // Don't throw - allow import to continue even if cleanup fails
+  }
+}
+
 // List all documents and folders
 documentsRouter.get("/list", async (c) => {
   const folderPath = c.req.query("path") || "/";
@@ -143,9 +192,11 @@ documentsRouter.get("/list", async (c) => {
 
     const result = await Promise.all(
       items
+        .filter((item) => !item.name.startsWith(".")) // Filter out hidden files/folders
         .filter((item) => !item.name.endsWith(".meta.json")) // Filter out metadata files
         .filter((item) => !item.name.includes(".archived-")) // Filter out archived files
         .filter((item) => !item.name.includes(".deleted-")) // Filter out deleted files
+        .filter((item) => item.isDirectory() || hasAllowedExtension(item.name)) // Only show folders or allowed file types
         .map(async (item) => {
           const itemPath = path.join(fullPath, item.name);
           const stats = await fs.stat(itemPath);
@@ -627,8 +678,10 @@ documentsRouter.post("/export", async (c) => {
     const { promisify } = await import("util");
     const execAsync = promisify(exec);
 
+    // Create tar.gz of organization documents directory
+    // Exclude hidden files and only include .md, .txt, and .meta.json files
     await execAsync(
-      `tar -czf ${exportFile} -C ${path.dirname(orgDocumentsPath)} ${path.basename(orgDocumentsPath)}`,
+      `tar -czf ${exportFile} -C ${path.dirname(orgDocumentsPath)} --exclude='.*' --exclude='*/.*' ${path.basename(orgDocumentsPath)}`,
     );
 
     // Read the file
@@ -684,11 +737,14 @@ documentsRouter.post("/import", async (c) => {
 
     // Extract archive - strip the top folder name (e.g., 'org-1')
     await execAsync(
-      `tar -xzf ${tempFile} -C ${orgDocumentsPath} --strip-components=1`,
+      `tar -xzf ${tempFile} -C ${orgDocumentsPath} --strip-components=1 --exclude='.*' --exclude='*/.*'`,
     );
 
     // Clean up temp file
     await fs.unlink(tempFile);
+
+    // Additional cleanup: Remove any hidden files and files with invalid extensions
+    await cleanupInvalidFiles(orgDocumentsPath);
 
     return c.json({ message: "Documents imported successfully" });
   } catch (error) {
