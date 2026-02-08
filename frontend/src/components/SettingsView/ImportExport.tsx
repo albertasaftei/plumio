@@ -1,6 +1,7 @@
 import { createSignal, Show } from "solid-js";
 import Button from "../Button";
 import AlertDialog from "../AlertDialog";
+import Toast from "../Toast";
 import { exportDocuments, importDocuments } from "~/lib/api";
 
 export default function ImportExport() {
@@ -11,14 +12,28 @@ export default function ImportExport() {
     file: File | null;
     target: HTMLInputElement | null;
   }>({ isOpen: false, file: null, target: null });
+  const [toast, setToast] = createSignal<{
+    show: boolean;
+    message: string;
+    type: "success" | "error";
+  }>({ show: false, message: "", type: "success" });
 
   const handleExport = async () => {
     setIsExporting(true);
     try {
       await exportDocuments();
+      setToast({
+        show: true,
+        message: "Documents exported successfully",
+        type: "success",
+      });
     } catch (error) {
       console.error("Export failed:", error);
-      alert("Failed to export documents");
+      setToast({
+        show: true,
+        message: "Failed to export documents",
+        type: "error",
+      });
     } finally {
       setIsExporting(false);
     }
@@ -50,11 +65,22 @@ export default function ImportExport() {
     try {
       await importDocuments(file);
       target.value = "";
-      window.location.reload();
+      setToast({
+        show: true,
+        message: "Documents imported successfully. Reloading...",
+        type: "success",
+      });
+      // Delay reload to show toast
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       console.error("Failed to import documents:", error);
-      alert("Failed to import documents. Please try again.");
-    } finally {
+      setToast({
+        show: true,
+        message: "Failed to import documents. Please try again.",
+        type: "error",
+      });
       setIsImporting(false);
     }
   };
@@ -137,6 +163,17 @@ export default function ImportExport() {
       />
 
       {/* Import Confirmation Dialog */}
+
+      {/* Toast Notifications */}
+      <Show when={toast().show}>
+        <Toast
+          message={toast().message}
+          type={toast().type}
+          onClose={() =>
+            setToast({ show: false, message: "", type: "success" })
+          }
+        />
+      </Show>
       <AlertDialog
         isOpen={importDialog().isOpen}
         title="Import Documents"
