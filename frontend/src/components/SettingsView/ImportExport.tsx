@@ -157,7 +157,7 @@ export default function ImportExport() {
       <input
         id="settings-import-file-input"
         type="file"
-        accept="application/gzip,application/x-gzip,application/x-tar,application/x-compressed-tar,.tar.gz,.tgz,.gz"
+        accept="application/gzip,application/x-gzip,application/x-tar,application/x-compressed-tar,.tar.gz,.tgz,.gz,.zip,application/zip"
         onChange={handleImportFile}
         class="hidden"
       />
