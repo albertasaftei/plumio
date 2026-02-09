@@ -2,7 +2,7 @@
   "name": "plumio",
   "description": "A self-hosted markdown editor with live preview, document encryption, multi-user support, and multi-organization capabilities.",
   "type": "module",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "docker:build": "docker build -t plumio:dev .",
