@@ -16,7 +16,7 @@ jobs:
       - name: Install website dependencies
         run: npm ci --prefix website
       - name: Pull vercel settings
-        run: vercel pull --yes --token=${{ secrets.VERCEL_SECRET }}
+        run: vercel pull --yes --cwd website --token=${{ secrets.VERCEL_SECRET }}
       - name: Build website
         run: vercel build --cwd website --token=${{ secrets.VERCEL_SECRET }}
       - name: Deploy website
