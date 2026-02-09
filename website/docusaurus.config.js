@@ -52,7 +52,21 @@ const config = {
           routeBasePath: "docs",
           editUrl: "https://github.com/albertasaftei/plumio/edit/main/website/",
         },
-        blog: false,
+        blog: {
+          blogTitle: "Changelog",
+          blogDescription: "Latest updates and release notes for plumio",
+          blogSidebarTitle: "Recent updates",
+          blogSidebarCount: "ALL",
+          postsPerPage: 10,
+          routeBasePath: "changelog",
+          showReadingTime: false,
+          feedOptions: {
+            type: "all",
+            title: "plumio Changelog",
+            description: "Latest updates and release notes for plumio",
+            copyright: `Copyright © ${new Date().getFullYear()} plumio.`,
+          },
+        },
         theme: {
           customCss: "./src/css/custom.css",
         },
@@ -89,6 +103,11 @@ const config = {
             sidebarId: "tutorialSidebar",
             position: "left",
             label: "Documentation",
+          },
+          {
+            to: "/changelog",
+            label: "Changelog",
+            position: "left",
           },
           {
             href: "https://github.com/albertasaftei/plumio",
