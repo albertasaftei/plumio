@@ -3,7 +3,7 @@
  * and scoped locally.
  */
 
-.heroBanner {
+.hero-banner {
   padding: 4rem 0;
   text-align: center;
   position: relative;
@@ -31,7 +31,7 @@
 }
 
 @media screen and (max-width: 996px) {
-  .heroBanner {
+  .hero-banner {
     padding: 2rem;
   }
 }
@@ -56,7 +56,7 @@
   }
 }
 
-.heroImage {
+.hero-image__container {
   margin-top: 3rem;
   display: flex;
   justify-content: center;
@@ -65,14 +65,18 @@
   box-shadow: 0px 0px 25px 0px var(--ifm-border-color);
 }
 
-.previewImage {
+.hero-text__container {
+  max-width: 1000px;
+}
+
+.preview-image {
   width: 100%;
   height: auto;
   border-radius: 12px;
 }
 
 @media screen and (max-width: 996px) {
-  .heroImage {
+  .hero-image__container {
     display: none;
   }
 }

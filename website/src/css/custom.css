@@ -91,6 +91,10 @@ html {
   }
 }
 
+.navbar__link {
+  font-weight: 400;
+}
+
 /* Mobile Sidebar */
 .navbar-sidebar {
   background-color: var(--ifm-navbar-background-color);

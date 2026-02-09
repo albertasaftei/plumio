@@ -1,6 +1,5 @@
 import clsx from "clsx";
 import Link from "@docusaurus/Link";
-import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
 import HomepageFeatures from "@site/src/components/HomepageFeatures";
 
@@ -9,13 +8,25 @@ import styles from "./index.module.css";
 
 function HomepageHeader() {
   return (
-    <header className={clsx("hero", styles.heroBanner)}>
-      <div className="container">
-        <div className="lg:margin-bottom--xl">
+    <header className={clsx("hero", styles["hero-banner"])}>
+      <div
+        className="container"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <div
+          className={clsx(
+            "lg:margin-bottom--xl",
+            styles["hero-text__container"],
+          )}
+        >
           <Heading as="h1" className="">
             Your private note-taking app
           </Heading>
-          <Heading as="h2" className={clsx(styles.hero__subtitle)}>
+          <Heading as="h2" className={clsx(styles["hero__subtitle"])}>
             plumio is an open-source note-taking app designed to help you
             organize and manage your notes with privacy and ease.
           </Heading>
@@ -36,11 +47,11 @@ function HomepageHeader() {
             </Link>
           </div>
         </div>
-        <div className={styles.heroImage}>
+        <div className={styles["hero-image__container"]}>
           <img
             src="/img/app-preview.png"
             alt="plumio app preview"
-            className={styles.previewImage}
+            className={styles["preview-image"]}
           />
         </div>
       </div>
