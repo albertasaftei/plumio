@@ -1,0 +1,21 @@
+name: Deploy Website
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+      - name: Install website dependencies
+        run: npm ci --prefix website
+      - name: Build website
+        run: vercel build --cwd website --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy website
+        run: vercel deploy --prebuilt --cwd website --prod --token=${{ secrets.VERCEL_TOKEN }}
