@@ -689,11 +689,27 @@ documentsRouter.post("/export", async (c) => {
     const { promisify } = await import("util");
     const execAsync = promisify(exec);
 
-    // Create tar.gz of organization documents directory
-    // Exclude hidden files and only include .md, .txt, and .meta.json files
-    await execAsync(
-      `tar -czf ${exportFile} -C ${path.dirname(orgDocumentsPath)} --exclude='.*' --exclude='*/.*' ${path.basename(orgDocumentsPath)}`,
-    );
+    // Ensure the directory exists
+    await ensureOrgDirectoryExists(organizationId);
+
+    // Create tar.gz from inside the org directory (no wrapper folder)
+    const tarCommand = `tar -czf "${exportFile}" -C "${orgDocumentsPath}" .`;
+
+    try {
+      await execAsync(tarCommand);
+
+      // Verify the archive was created and has content
+      const stats = await fs.stat(exportFile);
+
+      if (stats.size === 0) {
+        throw new Error("Export archive is empty");
+      }
+
+      console.log(`Export created: ${exportFile} (${stats.size} bytes)`);
+    } catch (tarError: any) {
+      console.error("Export failed:", tarError);
+      throw new Error(`Export failed: ${tarError.message}`);
+    }
 
     // Read the file
     const fileBuffer = await fs.readFile(exportFile);
@@ -746,46 +762,14 @@ documentsRouter.post("/import", async (c) => {
     const { promisify } = await import("util");
     const execAsync = promisify(exec);
 
-    // First, extract to a temp directory to inspect structure
-    const tempExtractDir = path.join("/tmp", `plumio-extract-${timestamp}`);
-    await fs.mkdir(tempExtractDir, { recursive: true });
-
-    // Extract archive
+    // Extract archive directly to organization documents path
+    // This works for both plumio exports and third-party app exports (like Obsidian)
     await execAsync(
-      `tar -xzf ${tempFile} -C ${tempExtractDir} --exclude='.*' --exclude='*/.*'`,
+      `tar -xzf ${tempFile} -C ${orgDocumentsPath} --exclude='.*' --exclude='*/.*'`,
     );
 
-    // Check if there's a single top-level directory (like org-1)
-    const topLevelItems = await fs.readdir(tempExtractDir, {
-      withFileTypes: true,
-    });
-
-    let sourceDir = tempExtractDir;
-    // If there's only one item and it's a directory starting with "org-", use it as source
-    if (
-      topLevelItems.length === 1 &&
-      topLevelItems[0].isDirectory() &&
-      topLevelItems[0].name.startsWith("org-")
-    ) {
-      sourceDir = path.join(tempExtractDir, topLevelItems[0].name);
-    }
-
-    // Copy contents from source to organization documents path
-    const items = await fs.readdir(sourceDir, { withFileTypes: true });
-    for (const item of items) {
-      const srcPath = path.join(sourceDir, item.name);
-      const destPath = path.join(orgDocumentsPath, item.name);
-
-      if (item.isDirectory()) {
-        await fs.cp(srcPath, destPath, { recursive: true });
-      } else {
-        await fs.copyFile(srcPath, destPath);
-      }
-    }
-
-    // Clean up temp files
+    // Clean up temp file
     await fs.unlink(tempFile);
-    await fs.rm(tempExtractDir, { recursive: true, force: true });
 
     // Additional cleanup: Remove any hidden files and files with invalid extensions
     await cleanupInvalidFiles(orgDocumentsPath);
