@@ -18,6 +18,6 @@ jobs:
         run: npm install -g vercel
       - name: Install demo dependencies
         working-directory: frontend
-        run: npm ci
+        run: pnpm install
       - name: Deploy to Vercel
         run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
