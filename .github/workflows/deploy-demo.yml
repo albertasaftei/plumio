@@ -1,7 +1,7 @@
 name: Deploy Demo Website
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_DEMO_PROJECT_ID }}
 on:
   workflow_dispatch:
 
