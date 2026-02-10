@@ -18,7 +18,7 @@ jobs:
         run: npm install -g vercel
       - name: Install website dependencies
         working-directory: website
-        run: npm ci --prefix website
+        run: npm ci
       - name: Pull vercel settings
         working-directory: website
         run: vercel pull --yes --cwd website --token=${{ secrets.VERCEL_TOKEN }}
