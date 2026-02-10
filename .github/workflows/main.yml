@@ -3,17 +3,24 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+
 jobs:
-  deploy-production:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: Install Vercel CLI
-        run: npm install --g vercel@latest
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --cwd website --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Deploy Project
-        run: vercel deploy --cwd website --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: npm install -g vercel
+      - name: Install website dependencies
+        run: npm ci --prefix website
+      - name: Pull vercel settings
+        run: vercel pull --yes --cwd website --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Build website
+        run: vercel build --cwd website --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy website
+        run: vercel deploy --prod --cwd website --prod --token=${{ secrets.VERCEL_TOKEN }}
