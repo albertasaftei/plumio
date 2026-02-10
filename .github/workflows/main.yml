@@ -21,10 +21,10 @@ jobs:
         run: npm ci
       - name: Pull vercel settings
         working-directory: website
-        run: vercel pull --yes --cwd website --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --token=${{ secrets.VERCEL_TOKEN }}
       - name: Build website
         working-directory: website
-        run: vercel build --cwd website --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
       - name: Deploy website
         working-directory: website
-        run: vercel deploy --prod --cwd website --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
