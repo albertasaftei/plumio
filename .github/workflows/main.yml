@@ -17,10 +17,14 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
       - name: Install website dependencies
+        working-directory: website
         run: npm ci --prefix website
       - name: Pull vercel settings
+        working-directory: website
         run: vercel pull --yes --cwd website --token=${{ secrets.VERCEL_TOKEN }}
       - name: Build website
+        working-directory: website
         run: vercel build --cwd website --prod --token=${{ secrets.VERCEL_TOKEN }}
       - name: Deploy website
-        run: vercel deploy --prod --cwd website --prod --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: website
+        run: vercel deploy --prod --cwd website --token=${{ secrets.VERCEL_TOKEN }}
