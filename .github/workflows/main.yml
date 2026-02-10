@@ -16,6 +16,8 @@ jobs:
           node-version: 20
       - name: Install Vercel CLI
         run: npm install -g vercel
+      - name: Install Docusaurus
+        run: npm install -g docusaurus
       - name: Disable Corepack
         run: corepack disable
       - name: Install website dependencies
