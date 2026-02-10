@@ -1,7 +1,6 @@
 dist
 .wrangler
 .output
-.vercel
 .netlify
 .vinxi
 app.config.timestamp_*.js

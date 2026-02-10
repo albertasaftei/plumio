@@ -1,0 +1,16 @@
+{
+  "projectId": "prj_Cj7oN24fU9SdsXkoGH7cqMpkcWxk",
+  "orgId": "team_eFklyYPZ6uCuPS9DbKRdEzhd",
+  "projectName": "plumio",
+  "settings": {
+    "createdAt": 1770050729840,
+    "framework": "docusaurus-2",
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": "website",
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}
