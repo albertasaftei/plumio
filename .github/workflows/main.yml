@@ -7,15 +7,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
       - name: Install Vercel CLI
         run: npm install -g vercel
+
+      # Ensure shell is set for Node
+      - name: Set shell environment
+        run: echo "SHELL=/bin/bash" >> $GITHUB_ENV
+
       - name: Install website dependencies
         run: npm ci --prefix website
-      - name: Build website
-        run: vercel build --cwd website --prod --token=${{ secrets.VERCEL_SECRET }}
+
       - name: Deploy website
-        run: vercel deploy --prod --cwd website --prod --token ${{ secrets.VERCEL_SECRET }}
+        run: vercel deploy \
+          --cwd website \
+          --prod \
+          --token ${{ secrets.VERCEL_TOKEN }} \
+          --project ${{ secrets.VERCEL_PROJECT_ID }} \
+          --scope ${{ secrets.VERCEL_ORG_ID }}
