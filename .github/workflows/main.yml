@@ -16,10 +16,10 @@ jobs:
           node-version: 20
       - name: Install Vercel CLI
         run: npm install -g vercel
+      - name: Install system dependencies
+        run: apt-get update && apt-get install -y build-essential
       - name: Disable Corepack
         run: corepack disable
-      - name: Check for website directory
-        run: test -d website
       - name: Install website dependencies
         working-directory: website
         run: npm ci
