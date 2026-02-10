@@ -18,6 +18,8 @@ jobs:
         run: npm install -g vercel
       - name: Disable Corepack
         run: corepack disable
+      - name: Check for website directory
+        run: test -d website
       - name: Install website dependencies
         working-directory: website
         run: npm ci
