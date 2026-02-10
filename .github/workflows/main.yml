@@ -27,6 +27,6 @@ jobs:
         run: vercel deploy \
           --cwd website \
           --prod \
-          --token ${{ secrets.VERCEL_TOKEN }} \
+          --token ${{ secrets.VERCEL_SECRET }} \
           --project ${{ secrets.VERCEL_PROJECT_ID }} \
           --scope ${{ secrets.VERCEL_ORG_ID }}
