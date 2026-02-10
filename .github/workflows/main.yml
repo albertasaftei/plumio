@@ -17,7 +17,7 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
       - name: Install system dependencies
-        run: apt-get update && apt-get install -y build-essential
+        run: sudo apt-get update && apt-get install -y build-essential
       - name: Disable Corepack
         run: corepack disable
       - name: Install website dependencies
