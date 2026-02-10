@@ -16,8 +16,6 @@ jobs:
           node-version: 20
       - name: Install Vercel CLI
         run: npm install -g vercel
-      - name: Install system dependencies
-        run: sudo apt-get update && apt-get install -y build-essential
       - name: Disable Corepack
         run: corepack disable
       - name: Install website dependencies
@@ -28,7 +26,7 @@ jobs:
         run: vercel pull --yes --token=${{ secrets.VERCEL_TOKEN }}
       - name: Build website
         working-directory: website
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: npm run build
       - name: Deploy website
         working-directory: website
         run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
