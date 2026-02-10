@@ -29,4 +29,4 @@ jobs:
         run: npm run build
       - name: Deploy to Vercel
         working-directory: website
-        run: vercel deploy ./build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy ./build --prod --token=${{ secrets.VERCEL_TOKEN }} --confirm
