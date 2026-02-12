@@ -396,3 +396,80 @@
   position: relative;
   display: block;
 }
+
+/* Marker/Highlight styles */
+.milkdown .editor mark,
+.milkdown .ProseMirror mark {
+  padding: 0.1em 0.2em !important;
+  border-radius: 0.2em !important;
+  color: #171717 !important;
+  font-weight: 500 !important;
+}
+
+/* Dark theme compatible marker colors */
+.milkdown-theme-dark .editor mark,
+.milkdown-theme-dark .ProseMirror mark {
+  box-shadow: 0 0 0 1px rgba(255, 255, 0, 0.2) !important;
+}
+
+/* Color Picker Tooltip */
+.milkdown-color-picker {
+  position: absolute;
+  z-index: 1000;
+  background: #262626;
+  border: 1px solid #404040;
+  border-radius: 6px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: all;
+}
+
+.milkdown-color-picker input[type="color"] {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.milkdown-color-picker input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.milkdown-color-picker input[type="color"]::-webkit-color-swatch {
+  border: 2px solid #404040;
+  border-radius: 4px;
+}
+
+.milkdown-color-picker-close {
+  background: transparent;
+  border: none;
+  color: #e5e5e5;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  padding: 0;
+  flex-shrink: 0;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.milkdown-color-picker-close:hover {
+  background-color: #404040;
+}
+
+.milkdown-color-picker-close:active {
+  background-color: #525252;
+  transform: scale(0.95);
+}

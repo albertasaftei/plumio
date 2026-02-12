@@ -52,7 +52,7 @@ docker-compose up -d
 - **Framework**: SolidJS
 - **Routing**: SolidStart
 - **Styling**: UnoCSS
-- **Markdown**: marked (parser) + highlight.js (syntax highlighting)
+- **Markdown**: Milkdown Editor
 - **Icons**: @iconify-json/carbon
 - **Build**: Vinxi
 

@@ -1,5 +1,16 @@
+import { $remark } from "@milkdown/utils";
 import { onMount, onCleanup, createEffect } from "solid-js";
 import type { EditorProps } from "~/types/Editor.types";
+import {
+  colorPickerTooltip,
+  colorPickerTooltipConfig,
+} from "~/utils/milkdown/highlight/colorPicker";
+import { exitMarkKeymap } from "~/utils/milkdown/highlight/exitMarkKeymap";
+import { markInputRule } from "~/utils/milkdown/highlight/inputRule";
+import { markSchema } from "~/utils/milkdown/highlight/markSchema";
+import { remarkMarkColor } from "~/utils/milkdown/highlight/remarkMarkColor";
+
+const milkdownMarkColorPlugin = $remark("markColor", () => remarkMarkColor);
 
 export default function MarkdownEditor(props: EditorProps) {
   let editorRef: HTMLDivElement | undefined;
@@ -38,6 +49,8 @@ export default function MarkdownEditor(props: EditorProps) {
             }
           });
         })
+        .config(colorPickerTooltipConfig)
+        .use(colorPickerTooltip)
         .use(commonmark)
         .use(gfm)
         .use(listener)
@@ -47,6 +60,10 @@ export default function MarkdownEditor(props: EditorProps) {
         .use(indent)
         .use(upload)
         .use(math)
+        .use(milkdownMarkColorPlugin)
+        .use(markSchema)
+        .use(markInputRule)
+        .use(exitMarkKeymap)
         .create();
 
       // Apply dark theme class after creation
