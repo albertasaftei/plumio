@@ -20,8 +20,8 @@ export function DemoBanner() {
     <Show when={isDemoMode}>
       {/* Floating Button */}
       <div onClick={() => setIsOpen(true)} class="fixed bottom-4 right-4 z-50">
-        <button class="bg-primary p-2 rounded-md cursor-pointer">
-          <div class="i-carbon-information w-7 h-7 lg:w-5 lg:h-5 text-neutral-100" />
+        <button class="bg-amber-400 p-2 rounded-md cursor-pointer">
+          <div class="i-carbon-information w-7 h-7 lg:w-5 lg:h-5 text-neutral-900" />
         </button>
       </div>
 
@@ -41,7 +41,7 @@ export function DemoBanner() {
           </p>
 
           <div class="flex gap-2">
-            <Button variant="primary" class="justify-center flex-1">
+            <Button class="justify-center flex-1 bg-amber-400">
               <span onClick={handleReset}>Reset demo data</span>
             </Button>
             <Button variant="secondary" class="justify-center">
