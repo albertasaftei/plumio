@@ -26,7 +26,7 @@ export default function Button(props: ButtonProps) {
     "children",
   ]);
 
-  const variant = () => local.variant || "secondary";
+  const variant = () => local.variant || "none";
   const size = () => local.size || "md";
 
   const baseClasses =
@@ -52,6 +52,7 @@ export default function Button(props: ButtonProps) {
         : "bg-yellow-700 hover:bg-yellow-600 text-white",
 
       icon: "hover:bg-neutral-800 text-neutral-400",
+      none: "",
     };
     return classes[v];
   };
