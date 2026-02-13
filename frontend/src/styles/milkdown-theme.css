@@ -6,6 +6,7 @@
 .milkdown {
   background: transparent !important;
   height: 100% !important;
+  overflow: auto !important;
 }
 
 .milkdown .editor {
@@ -224,22 +225,8 @@
 }
 
 /* Scrollbar */
-.milkdown-editor-wrapper::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.milkdown-editor-wrapper::-webkit-scrollbar-track {
-  background: #171717;
-}
-
-.milkdown-editor-wrapper::-webkit-scrollbar-thumb {
-  background: #404040;
-  border-radius: 4px;
-}
-
-.milkdown-editor-wrapper::-webkit-scrollbar-thumb:hover {
-  background: #525252;
+.milkdown::-webkit-scrollbar {
+  display: none !important;
 }
 
 /* Override Nord theme colors */
