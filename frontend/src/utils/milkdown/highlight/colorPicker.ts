@@ -118,10 +118,16 @@ class TooltipPluginView {
         if (this.manuallyClosed) {
           const currentSelectionHash = `${from}-${to}`;
           if (currentSelectionHash !== this.lastClosedSelectionHash) {
-            // Selection changed, reset the flag
-            this.manuallyClosed = false;
-            this.content.style.display = "";
-            this.lastClosedSelectionHash = "";
+            // Selection changed, reset the flag only if there's a mark to show
+            if (hasMark) {
+              this.manuallyClosed = false;
+              this.content.style.display = "";
+              this.lastClosedSelectionHash = "";
+            } else {
+              // No mark, keep it closed but reset the hash
+              this.lastClosedSelectionHash = "";
+              return false;
+            }
           } else {
             // Same selection, keep it hidden
             return false;

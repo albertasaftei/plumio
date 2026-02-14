@@ -341,15 +341,15 @@ export default function EditorPage() {
 
           {/* Document Actions Toolbar */}
           <Show when={currentPath() && currentView() === "editor"}>
-            <div class="h-12 border-b border-neutral-800 flex items-center justify-between px-2 sm:px-4 bg-neutral-950">
+            <div class="h-12 border-b border-neutral-800 flex items-center justify-between p-2 sm:px-4 bg-neutral-950">
               {/* View Mode Toggle */}
-              <div class="flex items-center gap-1 border border-neutral-800 rounded-lg overflow-hidden">
+              <div class="flex items-center border border-neutral-800 rounded-md overflow-hidden">
                 <Button
                   onClick={() => setUseLivePreview(false)}
                   variant="ghost"
                   size="sm"
                   active={!useLivePreview()}
-                  class="flex items-center"
+                  class="flex items-center rounded-none"
                   title="Plain text editor"
                 >
                   <div class="i-carbon-code w-4 h-4" />
@@ -360,7 +360,7 @@ export default function EditorPage() {
                   variant="ghost"
                   size="sm"
                   active={useLivePreview()}
-                  class="flex items-center"
+                  class="flex items-center rounded-none"
                   title="Live preview editor"
                 >
                   <div class="i-carbon-view w-4 h-4" />
