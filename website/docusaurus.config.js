@@ -115,6 +115,12 @@ const config = {
             className: "header-github-link",
             "aria-label": "GitHub repository",
           },
+          {
+            href: "https://discord.gg/CqUHUBz6NP",
+            position: "right",
+            className: "header-discord-link",
+            "aria-label": "Join our Discord community",
+          },
         ],
       },
       footer: {
