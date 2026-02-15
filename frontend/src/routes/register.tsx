@@ -3,6 +3,7 @@ import { useNavigate } from "@solidjs/router";
 import { api } from "~/lib/api";
 import Logo from "~/components/Logo";
 import Button from "~/components/Button";
+import { routes } from "~/routes";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ export default function Register() {
       await api.register(username(), email(), password());
       setSuccess(true);
       setTimeout(() => {
-        navigate("/");
+        navigate(routes.login);
       }, 2000);
     } catch (err: any) {
       setError(err.message || "Registration failed");
@@ -151,8 +152,8 @@ export default function Register() {
           <div class="mt-6 text-center">
             <span class="text-neutral-400">Already have an account?</span>
             <button
-              onClick={() => navigate("/")}
-              class="ml-2 text-primary hover:underline"
+              onClick={() => navigate(routes.login)}
+              class="ml-2 text-primary hover:underline cursor-pointer"
             >
               Login
             </button>

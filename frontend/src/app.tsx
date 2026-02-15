@@ -4,6 +4,7 @@ import { Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { Suspense } from "solid-js";
 import { DemoBanner } from "./components/DemoBanner";
+import { AuthenticatedLayout } from "./components/AuthenticatedLayout";
 import "./styles/globals.css";
 
 export default function App() {
@@ -12,7 +13,9 @@ export default function App() {
       root={(props) => (
         <>
           <DemoBanner />
-          <Suspense>{props.children}</Suspense>
+          <AuthenticatedLayout>
+            <Suspense>{props.children}</Suspense>
+          </AuthenticatedLayout>
         </>
       )}
     >

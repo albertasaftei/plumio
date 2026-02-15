@@ -13,6 +13,7 @@ import { useNavigate } from "@solidjs/router";
 import AlertDialog from "./AlertDialog";
 import OrganizationSelector from "./OrganizationSelector";
 import PopoverItem from "./PopoverItem";
+import { routes } from "~/routes";
 
 export default function Sidebar(props: Readonly<SidebarProps>) {
   const navigate = useNavigate();
@@ -312,13 +313,12 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
       >
         {/* Sidebar Header */}
         <div class="p-4 sm:p-4 border-b border-neutral-800">
-          <div class="w-full flex items-center justify-end pb-4">
+          <div class="w-full flex items-center justify-end pb-4 lg:hidden">
             <Button
               onClick={() => props.setSidebarOpen(false)}
               variant="icon"
               size="md"
               title="Close sidebar"
-              class="lg:hidden"
             >
               <div class="i-carbon-close w-5 h-5" />
             </Button>
@@ -402,7 +402,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             <span class="ml-2">Recently Deleted</span>
           </Button>
           <Button
-            onClick={() => navigate("/settings")}
+            onClick={() => navigate(routes.settings)}
             variant="ghost"
             size="md"
             fullWidth

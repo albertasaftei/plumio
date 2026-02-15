@@ -1,4 +1,4 @@
-import { createSignal, Show, onMount } from "solid-js";
+import { createSignal, Show, onMount, JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { api } from "~/lib/api";
 import { isMobile } from "~/utils/device.utils";
@@ -10,6 +10,11 @@ import ImportExport from "~/components/SettingsView/ImportExport";
 import OrganizationPanel from "~/components/OrganizationPanel";
 import AdminPanel from "~/components/SettingsView/AdminPanel";
 import Button from "~/components/Button";
+import { routes } from "~/routes";
+
+const SectionsWrapper = ({ children }: { children: JSX.Element }) => {
+  return <div class="p-8 max-w-5xl mx-auto">{children}</div>;
+};
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -23,7 +28,7 @@ export default function SettingsPage() {
     // Validate session first
     const isValid = await api.validateSession();
     if (!isValid) {
-      navigate("/");
+      navigate(routes.login);
       return;
     }
 
@@ -37,11 +42,11 @@ export default function SettingsPage() {
 
   const handleLogout = () => {
     api.clearToken();
-    window.location.href = "/";
+    window.location.href = routes.login;
   };
 
   const handleClose = () => {
-    navigate("/editor");
+    navigate(routes.homepage);
   };
 
   const handleSectionChange = (section: SettingsSection) => {
@@ -50,17 +55,6 @@ export default function SettingsPage() {
     if (isMobile()) {
       setSidebarOpen(false);
     }
-  };
-
-  const CurrentSection = () => {
-    const sections = {
-        account: Account,
-        "import-export": ImportExport,
-        organization: OrganizationPanel,
-        admin: AdminPanel,
-      },
-      SectionComponent = sections[activeSection()!];
-    return <SectionComponent isOpen={true} inline={true} onClose={() => {}} />;
   };
 
   return (
@@ -110,7 +104,7 @@ export default function SettingsPage() {
           }
         >
           <Show when={activeSection() === "account"}>
-            <div class="p-8 max-w-4xl mx-auto">
+            <SectionsWrapper>
               <div class="flex items-center gap-3 mb-6">
                 <Button
                   onClick={handleClose}
@@ -123,11 +117,11 @@ export default function SettingsPage() {
                 <h2 class="text-2xl font-bold text-white">Account</h2>
               </div>
               <Account />
-            </div>
+            </SectionsWrapper>
           </Show>
 
           <Show when={activeSection() === "import-export"}>
-            <div class="p-8 max-w-4xl mx-auto">
+            <SectionsWrapper>
               <div class="flex items-center gap-3 mb-6">
                 <Button
                   onClick={handleClose}
@@ -140,11 +134,11 @@ export default function SettingsPage() {
                 <h2 class="text-2xl font-bold text-white">Import / Export</h2>
               </div>
               <ImportExport />
-            </div>
+            </SectionsWrapper>
           </Show>
 
           <Show when={activeSection() === "organization"}>
-            <div class="p-8 max-w-4xl mx-auto">
+            <SectionsWrapper>
               <div class="flex items-center gap-3 mb-6">
                 <Button
                   onClick={handleClose}
@@ -161,11 +155,11 @@ export default function SettingsPage() {
                 inline
                 onClose={() => setActiveSection(null)}
               />
-            </div>
+            </SectionsWrapper>
           </Show>
 
           <Show when={activeSection() === "admin"}>
-            <div class="p-8 max-w-4xl mx-auto">
+            <SectionsWrapper>
               <div class="flex items-center gap-3 mb-6">
                 <Button
                   onClick={handleClose}
@@ -182,7 +176,7 @@ export default function SettingsPage() {
                 inline={true}
                 onClose={() => setActiveSection(null)}
               />
-            </div>
+            </SectionsWrapper>
           </Show>
         </Show>
       </div>

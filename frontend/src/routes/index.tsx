@@ -3,6 +3,7 @@ import { useNavigate } from "@solidjs/router";
 import { api } from "~/lib/api";
 import Logo from "~/components/Logo";
 import Button from "~/components/Button";
+import { routes } from "~/routes";
 
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 
@@ -21,7 +22,7 @@ export default function Home() {
     // In demo mode, skip auth and go straight to editor
     if (isDemoMode) {
       setLoading(false);
-      navigate("/editor");
+      navigate(routes.homepage);
       return;
     }
 
@@ -34,7 +35,7 @@ export default function Home() {
       if (!result.needsSetup && localStorage.getItem("plumio_token")) {
         const isValid = await api.validateSession();
         if (isValid) {
-          navigate("/editor");
+          navigate(routes.homepage);
         }
         // If invalid, token was cleared by validateSession()
       }
@@ -80,7 +81,7 @@ export default function Home() {
 
     try {
       await api.login(username(), password());
-      navigate("/editor");
+      navigate(routes.homepage);
     } catch (err: any) {
       setError(err.message || "Login failed");
     }
@@ -199,7 +200,7 @@ export default function Home() {
               <div class="mt-6 text-center">
                 <span class="text-neutral-400">Don't have an account?</span>
                 <button
-                  onClick={() => navigate("/register")}
+                  onClick={() => navigate(routes.register)}
                   class="ml-2 text-primary hover:underline cursor-pointer"
                 >
                   Register

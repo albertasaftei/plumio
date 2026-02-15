@@ -22,20 +22,19 @@ interface SettingsSidebarProps {
 export default function SettingsSidebar(props: SettingsSidebarProps) {
   return (
     <aside
-      class="w-80 h-full border-r border-neutral-800 bg-neutral-950 flex flex-col fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto transition-transform duration-300 ease-in-out"
+      class="w-80 h-full border-r py-2 border-neutral-800 bg-neutral-950 flex flex-col fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto transition-transform duration-300 ease-in-out"
       classList={{
         "-translate-x-full lg:translate-x-0": !props.isOpen,
         "translate-x-0": props.isOpen,
       }}
     >
-      <div class="flex items-center justify-between p-4 border-b border-neutral-800">
-        <h2 class="text-lg font-semibold text-white">Settings</h2>
+      <div class="flex items-center justify-end p-4 border-neutral-800 lg:hidden">
         <Button
           onClick={props.onToggle}
           variant="icon"
           size="md"
           title="Close sidebar"
-          class="lg:hidden"
+          class=""
         >
           <div class="i-carbon-close w-5 h-5" />
         </Button>
