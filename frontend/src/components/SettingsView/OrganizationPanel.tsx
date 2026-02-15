@@ -1,8 +1,8 @@
 import { createSignal, createEffect, For, Show, onMount } from "solid-js";
 import { api } from "~/lib/api";
-import Button from "./Button";
-import AlertDialog from "./AlertDialog";
-import Toast from "./Toast";
+import Button from "../Button";
+import AlertDialog from "../AlertDialog";
+import Toast from "../Toast";
 
 interface Member {
   id: number;
@@ -248,7 +248,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
             </div>
           }
         >
-          <div class="border border-neutral-700 rounded-lg overflow-hidden">
+          <div class="border border-neutral-700 rounded-lg overflow-auto">
             <table class="w-full">
               <thead class="bg-neutral-800/50">
                 <tr>

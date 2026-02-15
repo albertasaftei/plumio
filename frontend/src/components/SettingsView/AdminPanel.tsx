@@ -204,7 +204,7 @@ export default function AdminPanel(props: AdminPanelProps) {
           </div>
         }
       >
-        <div class="border border-neutral-700 rounded-lg overflow-hidden">
+        <div class="border border-neutral-700 rounded-lg overflow-auto">
           <table class="w-full">
             <thead class="bg-neutral-800/50">
               <tr>

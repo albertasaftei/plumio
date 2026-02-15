@@ -7,7 +7,7 @@ import SettingsSidebar, {
 } from "~/components/SettingsView/Sidebar";
 import Account from "~/components/SettingsView/Account";
 import ImportExport from "~/components/SettingsView/ImportExport";
-import OrganizationPanel from "~/components/OrganizationPanel";
+import OrganizationPanel from "~/components/SettingsView/OrganizationPanel";
 import AdminPanel from "~/components/SettingsView/AdminPanel";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
