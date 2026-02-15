@@ -1,4 +1,12 @@
-import { createSignal, For, Show, createMemo, createEffect } from "solid-js";
+import {
+  createSignal,
+  For,
+  Show,
+  createMemo,
+  createEffect,
+  onCleanup,
+  onMount,
+} from "solid-js";
 import { Popover } from "@kobalte/core/popover";
 import ColorPicker from "./ColorPicker";
 import Button from "./Button";
@@ -14,6 +22,7 @@ import AlertDialog from "./AlertDialog";
 import OrganizationSelector from "./OrganizationSelector";
 import PopoverItem from "./PopoverItem";
 import { routes } from "~/routes";
+import { ResizableContainer } from "./ResizableContainer";
 
 export default function Sidebar(props: Readonly<SidebarProps>) {
   const navigate = useNavigate();
@@ -25,6 +34,9 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
   const [itemToRename, setItemToRename] = createSignal<string | null>(null);
   const [openMenuPath, setOpenMenuPath] = createSignal<string | null>(null);
   const [searchQuery, setSearchQuery] = createSignal("");
+  // Start with false to match SSR, update after mount
+  const [isMobile, setIsMobile] = createSignal(false);
+  const [isMounted, setIsMounted] = createSignal(false);
 
   let newDocInputRef: HTMLInputElement | undefined;
   let newFolderInputRef: HTMLInputElement | undefined;
@@ -37,6 +49,17 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
   };
 
   const filteredTree = () => filterTreeNodes(buildTree(), searchQuery());
+
+  // Detect mobile view after mount to prevent hydration mismatch
+  onMount(() => {
+    setIsMounted(true);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    onCleanup(() => window.removeEventListener("resize", checkMobile));
+  });
 
   // Auto-focus inputs when modals open
   createEffect(() => {
@@ -302,116 +325,139 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     );
   };
 
+  const SidebarContent = () => (
+    <>
+      {/* Sidebar Header */}
+      <div class="p-4 sm:p-4 border-b border-neutral-800">
+        <div class="w-full flex items-center justify-end pb-4 lg:hidden">
+          <Button
+            onClick={() => props.setSidebarOpen(false)}
+            variant="icon"
+            size="md"
+            title="Close sidebar"
+          >
+            <div class="i-carbon-close w-5 h-5" />
+          </Button>
+        </div>
+        <div class="pb-4">
+          <OrganizationSelector onSwitch={props.onOrgSwitch} fullWidth />
+        </div>
+
+        <div class="flex gap-2 mb-3">
+          <Button
+            onClick={() => {
+              setTargetFolder("/");
+              setShowNewDocModal(true);
+            }}
+            variant="primary"
+            size="md"
+            fullWidth
+            class="justify-center"
+          >
+            <div class="i-carbon-document-add w-4 h-4" />
+            New file
+          </Button>
+          <Button
+            onClick={() => {
+              setTargetFolder("/");
+              setShowNewFolderModal(true);
+            }}
+            variant="secondary"
+            size="md"
+            title="New folder"
+          >
+            <div class="i-carbon-folder-add w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Search */}
+        <div class="relative">
+          <div class="absolute left-3 top-1/2 -translate-y-1/2 i-carbon-search w-4 h-4 text-neutral-500" />
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchQuery()}
+            onInput={(e) => setSearchQuery(e.currentTarget.value)}
+            class="w-full pl-9 pr-3 py-2 bg-neutral-900 border border-neutral-800 rounded-lg  text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700"
+          />
+        </div>
+      </div>
+
+      {/* Documents Tree */}
+      <div class="flex-1 overflow-y-auto scrollbar-none">
+        <For each={filteredTree()}>{(node) => <TreeNode node={node} />}</For>
+      </div>
+
+      {/* Archive & Recently Deleted Buttons */}
+      <div class="p-4 space-y-2">
+        <Button
+          onClick={() => props.onViewHome()}
+          variant="ghost"
+          size="md"
+          fullWidth
+        >
+          <div class="i-carbon-home w-4 h-4" />
+          <span class="ml-2">Homepage</span>
+        </Button>
+        <Button
+          onClick={() => props.onViewArchive()}
+          variant="ghost"
+          size="md"
+          fullWidth
+        >
+          <div class="i-carbon-archive w-4 h-4" />
+          <span class="ml-2">View Archive</span>
+        </Button>
+        <Button
+          onClick={() => props.onViewDeleted()}
+          variant="ghost"
+          size="md"
+          fullWidth
+        >
+          <div class="i-carbon-trash-can w-4 h-4" />
+          <span class="ml-2">Recently Deleted</span>
+        </Button>
+        <Button
+          onClick={() => navigate(routes.settings)}
+          variant="ghost"
+          size="md"
+          fullWidth
+        >
+          <div class="i-carbon-settings w-4 h-4" />
+          <span class="ml-2">Settings</span>
+        </Button>
+      </div>
+    </>
+  );
+
   return (
     <>
-      <aside
-        class="w-80 h-full border-r border-neutral-800 bg-neutral-950 flex flex-col fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto transition-transform duration-300 ease-in-out"
-        classList={{
-          "-translate-x-full lg:translate-x-0": !props.sidebarOpen,
-          "translate-x-0": props.sidebarOpen,
-        }}
-      >
-        {/* Sidebar Header */}
-        <div class="p-4 sm:p-4 border-b border-neutral-800">
-          <div class="w-full flex items-center justify-end pb-4 lg:hidden">
-            <Button
-              onClick={() => props.setSidebarOpen(false)}
-              variant="icon"
-              size="md"
-              title="Close sidebar"
-            >
-              <div class="i-carbon-close w-5 h-5" />
-            </Button>
-          </div>
-          <div class="pb-4">
-            <OrganizationSelector onSwitch={props.onOrgSwitch} fullWidth />
-          </div>
+      {/* Mobile: Simple aside with fixed positioning */}
+      <Show when={isMounted() && isMobile()}>
+        <aside
+          class="w-80 h-full border-r border-neutral-800 bg-neutral-950 flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out"
+          classList={{
+            "-translate-x-full": !props.sidebarOpen,
+            "translate-x-0": props.sidebarOpen,
+          }}
+        >
+          <SidebarContent />
+        </aside>
+      </Show>
 
-          <div class="flex gap-2 mb-3">
-            <Button
-              onClick={() => {
-                setTargetFolder("/");
-                setShowNewDocModal(true);
-              }}
-              variant="primary"
-              size="md"
-              fullWidth
-              class="justify-center"
-            >
-              <div class="i-carbon-document-add w-4 h-4" />
-              New file
-            </Button>
-            <Button
-              onClick={() => {
-                setTargetFolder("/");
-                setShowNewFolderModal(true);
-              }}
-              variant="secondary"
-              size="md"
-              title="New folder"
-            >
-              <div class="i-carbon-folder-add w-4 h-4" />
-            </Button>
-          </div>
-
-          {/* Search */}
-          <div class="relative">
-            <div class="absolute left-3 top-1/2 -translate-y-1/2 i-carbon-search w-4 h-4 text-neutral-500" />
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery()}
-              onInput={(e) => setSearchQuery(e.currentTarget.value)}
-              class="w-full pl-9 pr-3 py-2 bg-neutral-900 border border-neutral-800 rounded-lg  text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700"
-            />
-          </div>
-        </div>
-
-        {/* Documents Tree */}
-        <div class="flex-1 overflow-y-auto scrollbar-none">
-          <For each={filteredTree()}>{(node) => <TreeNode node={node} />}</For>
-        </div>
-
-        {/* Archive & Recently Deleted Buttons */}
-        <div class="p-4 space-y-2">
-          <Button
-            onClick={() => props.onViewHome()}
-            variant="ghost"
-            size="md"
-            fullWidth
-          >
-            <div class="i-carbon-home w-4 h-4" />
-            <span class="ml-2">Homepage</span>
-          </Button>
-          <Button
-            onClick={() => props.onViewArchive()}
-            variant="ghost"
-            size="md"
-            fullWidth
-          >
-            <div class="i-carbon-archive w-4 h-4" />
-            <span class="ml-2">View Archive</span>
-          </Button>
-          <Button
-            onClick={() => props.onViewDeleted()}
-            variant="ghost"
-            size="md"
-            fullWidth
-          >
-            <div class="i-carbon-trash-can w-4 h-4" />
-            <span class="ml-2">Recently Deleted</span>
-          </Button>
-          <Button
-            onClick={() => navigate(routes.settings)}
-            variant="ghost"
-            size="md"
-            fullWidth
-          >
-            <div class="i-carbon-settings w-4 h-4" />
-            <span class="ml-2">Settings</span>
-          </Button>
-        </div>
-      </aside>
+      {/* Desktop: ResizableContainer for drag-to-resize functionality */}
+      {/* Show by default (SSR) and after mount when not mobile */}
+      <Show when={!isMounted() || !isMobile()}>
+        <ResizableContainer
+          initialSize={320}
+          minSize={240}
+          maxSize={600}
+          resizeFrom="right"
+          class="h-full border-r border-neutral-800 bg-neutral-950 flex flex-col relative"
+        >
+          <SidebarContent />
+        </ResizableContainer>
+      </Show>
 
       {/* New Document Modal */}
       <AlertDialog
