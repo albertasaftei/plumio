@@ -79,6 +79,18 @@ const config = {
     ({
       // Replace with your project's social card
       image: "img/plumio-social-card.jpg",
+      metadata: [
+        {
+          name: "description",
+          content:
+            "plumio is a self-hosted, privacy-first note-taking application. It offers a clean and intuitive interface for organizing your thoughts, ideas, and projects while keeping your data secure.",
+        },
+        {
+          name: "keywords",
+          content:
+            "note-taking, self-hosted, privacy-first, markdown, organization, productivity",
+        },
+      ],
       colorMode: {
         respectPrefersColorScheme: true,
       },
