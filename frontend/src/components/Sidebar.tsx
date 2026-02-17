@@ -184,32 +184,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             </Show>
 
             <div class="flex items-center gap-1 ">
-              <Show when={nodeProps.node.type === "folder"}>
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setTargetFolder(nodeProps.node.path);
-                    setShowNewDocModal(true);
-                  }}
-                  variant="icon"
-                  size="sm"
-                  title="Add file"
-                >
-                  <div class="i-carbon-add w-5 h-5 text-green-400" />
-                </Button>
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setTargetFolder(nodeProps.node.path);
-                    setShowNewFolderModal(true);
-                  }}
-                  variant="icon"
-                  size="sm"
-                  title="Add subfolder"
-                >
-                  <div class="i-carbon-folder-add w-5 h-5 text-blue-400" />
-                </Button>
-              </Show>
               <Popover
                 open={openMenuPath() === nodeProps.node.path}
                 onOpenChange={(isOpen) => {
@@ -234,6 +208,33 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                 />
                 <Popover.Portal>
                   <Popover.Content class="mt-1 mb-1 max-w-36 bg-neutral-800 border border-neutral-700 rounded-lg shadow-lg z-50 py-1 animate-slide-down">
+                    {/* Add file/folder actions (folders only) */}
+                    <Show when={nodeProps.node.type === "folder"}>
+                      <PopoverItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTargetFolder(nodeProps.node.path);
+                          setShowNewDocModal(true);
+                          setOpenMenuPath(null);
+                        }}
+                      >
+                        <div class="i-carbon-document-add w-4 h-4" />
+                        Add file
+                      </PopoverItem>
+                      <PopoverItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTargetFolder(nodeProps.node.path);
+                          setShowNewFolderModal(true);
+                          setOpenMenuPath(null);
+                        }}
+                      >
+                        <div class="i-carbon-folder-add w-4 h-4" />
+                        Add folder
+                      </PopoverItem>
+                      <div class="h-px bg-neutral-700 my-1" />
+                    </Show>
+
                     <Show when={props.onToggleFavorite}>
                       <PopoverItem
                         onClick={(e) => {
@@ -254,22 +255,10 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                         />
                         {nodeProps.node.favorite ? "Unfavorite" : "Favorite"}
                       </PopoverItem>
+                      <div class="h-px bg-neutral-700 my-1" />
                     </Show>
 
-                    <PopoverItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const fileName = nodeProps.node.name.split(".")[0];
-                        setItemToRename(nodeProps.node.path);
-                        setNewItemName(fileName);
-                        setShowRenameModal(true);
-                        setOpenMenuPath(null);
-                      }}
-                    >
-                      <div class="i-carbon-edit w-4 h-4" />
-                      Rename
-                    </PopoverItem>
-
+                    {/* Archive and rename actions */}
                     <PopoverItem
                       onClick={(e) => {
                         e.stopPropagation();
@@ -284,6 +273,22 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                     <PopoverItem
                       onClick={(e) => {
                         e.stopPropagation();
+                        const fileName = nodeProps.node.name.split(".")[0];
+                        setItemToRename(nodeProps.node.path);
+                        setNewItemName(fileName);
+                        setShowRenameModal(true);
+                        setOpenMenuPath(null);
+                      }}
+                    >
+                      <div class="i-carbon-edit w-4 h-4" />
+                      Rename
+                    </PopoverItem>
+                    <div class="h-px bg-neutral-700 my-1" />
+
+                    {/* Delete action */}
+                    <PopoverItem
+                      onClick={(e) => {
+                        e.stopPropagation();
                         props.onDeleteItem(nodeProps.node.path);
                         setOpenMenuPath(null);
                       }}
@@ -291,7 +296,10 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                       <div class="i-carbon-trash-can w-4 h-4" />
                       Delete
                     </PopoverItem>
+
+                    {/* Color picker */}
                     <Show when={props.onSetColor}>
+                      <div class="h-px bg-neutral-700 my-1" />
                       <ColorPicker
                         currentColor={nodeProps.node.color}
                         onColorSelect={(color) => {
@@ -388,7 +396,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         <For each={filteredTree()}>{(node) => <TreeNode node={node} />}</For>
       </div>
 
-      {/* Archive & Recently Deleted Buttons */}
+      {/* Options Buttons */}
       <div class="p-4 space-y-2">
         <Button
           onClick={() => props.onViewHome()}
