@@ -248,7 +248,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
             </div>
           }
         >
-          <div class="border border-neutral-700 rounded-lg overflow-auto">
+          <div class="border border-neutral-700 bg-neutral-900 rounded-lg overflow-auto">
             <table class="w-full">
               <thead class="bg-neutral-800/50">
                 <tr>
@@ -373,7 +373,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
         onCancel={() => setRemoveDialog({ isOpen: false, member: null })}
       />
 
-      <div class="max-w-4xl mx-auto py-6">
+      <div class="max-w-5xl bg-neutral-800 rounded-lg mx-auto p-6">
         <Show when={props.inline}>
           {/* Inline mode - just render content */}
           <div class="flex-1 overflow-auto">

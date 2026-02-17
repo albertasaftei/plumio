@@ -11,6 +11,7 @@ import OrganizationPanel from "~/components/SettingsView/OrganizationPanel";
 import AdminPanel from "~/components/SettingsView/AdminPanel";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
+import BuildInformation from "~/components/SettingsView/BuildInformation";
 
 const SectionsWrapper = ({ children }: { children: JSX.Element }) => {
   return <div class="p-8 max-w-5xl mx-auto">{children}</div>;
@@ -177,6 +178,23 @@ export default function SettingsPage() {
                 inline={true}
                 onClose={() => setActiveSection(null)}
               />
+            </SectionsWrapper>
+          </Show>
+
+          <Show when={activeSection() === "build-information"}>
+            <SectionsWrapper>
+              <div class="flex items-center gap-3 mb-6">
+                <Button
+                  onClick={handleClose}
+                  variant="ghost"
+                  size="md"
+                  title="Back to editor"
+                >
+                  <div class="i-carbon-arrow-left w-5 h-5" />
+                </Button>
+                <h2 class="text-2xl font-bold text-white">Build Information</h2>
+              </div>
+              <BuildInformation />
             </SectionsWrapper>
           </Show>
         </Show>

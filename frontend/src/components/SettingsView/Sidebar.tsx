@@ -6,6 +6,7 @@ export type SettingsSection =
   | "import-export"
   | "organization"
   | "admin"
+  | "build-information"
   | null;
 
 interface SettingsSidebarProps {
@@ -89,6 +90,20 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
               <span class="ml-2">Admin Panel</span>
             </Button>
           </Show>
+
+          <Button
+            onClick={() => props.onSectionChange("build-information")}
+            variant={
+              props.activeSection === "build-information"
+                ? "secondary"
+                : "ghost"
+            }
+            size="md"
+            fullWidth
+          >
+            <div class="i-carbon-document-import w-4 h-4" />
+            <span class="ml-2">Build Information</span>
+          </Button>
 
           <div class="border-t border-neutral-800 my-2" />
 

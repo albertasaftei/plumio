@@ -2,7 +2,14 @@
 FROM node:22-alpine AS frontend-builder
 
 ARG APP_VERSION=dev
+ARG GIT_COMMIT=unknown
+ARG GIT_BRANCH=unknown
+ARG BUILD_DATE=unknown
+
 ENV VITE_APP_VERSION=${APP_VERSION}
+ENV VITE_GIT_COMMIT=${GIT_COMMIT}
+ENV VITE_GIT_BRANCH=${GIT_BRANCH}
+ENV VITE_BUILD_DATE=${BUILD_DATE}
 
 # Install pnpm
 RUN npm install -g pnpm
