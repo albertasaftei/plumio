@@ -88,7 +88,7 @@ const config = {
         {
           name: "keywords",
           content:
-            "note-taking, self-hosted, privacy-first, markdown, organization, productivity",
+            "note taking app, self-hosted, privacy-first, markdown, organization, productivity",
         },
       ],
       colorMode: {
