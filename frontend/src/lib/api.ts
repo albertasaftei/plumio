@@ -410,7 +410,7 @@ export class ApiClient {
     const response = await fetch(`${API_URL}/api/documents/export`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("plumio_token")}`,
+        Authorization: `Bearer ${this.token}`,
       },
     });
 
@@ -437,7 +437,7 @@ export class ApiClient {
     const response = await fetch(`${API_URL}/api/documents/import`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("plumio_token")}`,
+        Authorization: `Bearer ${this.token}`,
       },
       body: formData,
     });
