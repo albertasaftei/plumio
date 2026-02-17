@@ -1,6 +1,9 @@
 # Multi-stage build for Plumio - Combined Frontend & Backend
 FROM node:22-alpine AS frontend-builder
 
+ARG APP_VERSION=dev
+ENV VITE_APP_VERSION=${APP_VERSION}
+
 # Install pnpm
 RUN npm install -g pnpm
 
