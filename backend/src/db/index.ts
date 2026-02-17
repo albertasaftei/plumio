@@ -151,7 +151,7 @@ export const documentQueries = {
   listByOrganization: db.prepare<[number], Document>(
     "SELECT * FROM documents WHERE organization_id = ? AND archived = 0 ORDER BY updated_at DESC",
   ),
-  updateColor: db.prepare<[string, number, string]>(
+  updateColor: db.prepare<[string | null, number, string]>(
     "UPDATE documents SET color = ?, updated_at = CURRENT_TIMESTAMP WHERE organization_id = ? AND path = ?",
   ),
   delete: db.prepare<[number, string]>(

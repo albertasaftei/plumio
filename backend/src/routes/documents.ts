@@ -538,7 +538,7 @@ documentsRouter.post("/rename", async (c) => {
 
 const colorDocumentSchema = z.object({
   path: z.string().min(1),
-  color: z.string(),
+  color: z.string().or(z.null()),
 });
 
 const favoriteDocumentSchema = z.object({
