@@ -1,5 +1,5 @@
 ---
-sidebar_position: 7
+sidebar_position: 6
 title: Troubleshooting
 ---
 
@@ -197,30 +197,11 @@ docker stats plumio
 
 **Solutions:**
 
-1. **Use SSD storage** for better performance
+1. Use SSD storage for better performance
+2. Clean up old data (archive unused notes, delete old revisions)
+3. Increase Docker resource limits
 
-2. **Optimize SQLite:**
-
-   ```bash
-   docker-compose exec plumio sh -c "
-     sqlite3 /data/plumio.db 'VACUUM;'
-     sqlite3 /data/plumio.db 'PRAGMA optimize;'
-   "
-   ```
-
-3. **Clean up old data:**
-   - Archive unused notes
-   - Delete old revisions
-   - Remove deleted items permanently
-
-4. **Increase resources:**
-   ```yaml
-   deploy:
-     resources:
-       limits:
-         cpus: "2.0"
-         memory: 2G
-   ```
+For detailed database optimization and performance tuning, see the [Self-Hosting Guide](/docs/self-hosting#database-maintenance)
 
 ---
 
@@ -228,35 +209,12 @@ docker stats plumio
 
 ### Forgot admin password
 
-**Option 1: Reset via database (if you have access):**
+If you've lost access to the admin account, you have two options:
 
-```bash
-# Generate bcrypt hash for new password
-docker-compose exec plumio node -e "
-const bcrypt = require('bcrypt');
-bcrypt.hash('new-password', 10, (err, hash) => {
-  console.log(hash);
-});
-"
+1. **Reset via database** - Requires database access to generate and update password hash
+2. **Reset all data (destructive)** - Creates fresh installation (backup first!)
 
-# Update database
-docker-compose exec plumio sqlite3 /data/plumio.db "
-UPDATE users SET password_hash='<hash-from-above>' WHERE username='admin';
-"
-```
-
-**Option 2: Reset all data (destructive):**
-
-```bash
-# Backup first!
-docker run --rm -v plumio_plumio-data:/data -v $(pwd):/backup \
-  alpine tar czf /backup/backup-before-reset.tar.gz -C /data .
-
-# Reset
-docker-compose down
-docker volume rm plumio_plumio-data
-docker-compose up -d
-```
+For detailed password reset procedures, see the [Self-Hosting Guide](/docs/self-hosting#security-considerations)
 
 ---
 
@@ -333,13 +291,7 @@ docker-compose up -d
    "
    ```
 
-3. **Restore from backup:**
-   ```bash
-   docker-compose down
-   docker run --rm -v plumio_plumio-data:/data -v $(pwd)/backups:/backup \
-     alpine tar xzf /backup/your-backup.tar.gz -C /data
-   docker-compose up -d
-   ```
+3. **Restore from backup** - See the [Self-Hosting Guide](/docs/self-hosting#data-backup-and-restore) for detailed backup and restore procedures
 
 ---
 
@@ -442,47 +394,37 @@ Encrypted documents cannot be decrypted without the original ENCRYPTION_KEY. Alw
 
 ### Backup fails
 
-**Error:** `tar: can't create file: Permission denied`
+**Common errors:**
 
-**Solution:**
+- `Permission denied` - Volume permissions issue
+- `No such file or directory` - Incorrect volume name or path
+- `tar: can't create file` - Write permissions on backup directory
 
-```bash
-# Use alpine container with proper permissions
-docker run --rm \
-  -v plumio_plumio-data:/data:ro \
-  -v $(pwd)/backups:/backup \
-  alpine sh -c "cd /data && tar czf /backup/backup-$(date +%Y%m%d).tar.gz ."
-```
+**Solutions:**
+
+1. Verify Docker volume exists: `docker volume ls`
+2. Check backup directory permissions
+3. Ensure sufficient disk space
+
+For detailed backup procedures and troubleshooting, see the [Self-Hosting Guide](/docs/self-hosting#data-backup-and-restore)
 
 ---
 
 ### Restore fails
 
-**Error:** `tar: can't open: No such file or directory`
+**Common errors:**
+
+- `tar: can't open: No such file or directory` - Backup file doesn't exist or has wrong path
+- `Permission denied` - Volume permissions issue
+- `Database is locked` - plumio container still running
 
 **Solutions:**
 
-1. **Verify backup file exists:**
+1. Verify backup file exists and is readable
+2. Check backup integrity: `tar tzf backups/your-backup.tar.gz | head`
+3. Ensure plumio containers are stopped before restore
 
-   ```bash
-   ls -lh backups/
-   ```
-
-2. **Check backup integrity:**
-
-   ```bash
-   tar tzf backups/your-backup.tar.gz | head
-   ```
-
-3. **Restore with correct permissions:**
-   ```bash
-   docker-compose down
-   docker run --rm \
-     -v plumio_plumio-data:/data \
-     -v $(pwd)/backups:/backup \
-     alpine sh -c "rm -rf /data/* && tar xzf /backup/your-backup.tar.gz -C /data"
-   docker-compose up -d
-   ```
+For detailed restore procedures, see the [Self-Hosting Guide](/docs/self-hosting#restoring-from-backup)
 
 ---
 
@@ -588,6 +530,7 @@ If your issue isn't listed here:
    - Relevant logs
 
 5. **Check documentation:**
+   - [Self-Hosting Guide](/docs/self-hosting)
    - [Installation Guide](/docs/installation)
    - [Configuration](/docs/configuration)
    - [FAQ](/docs/faq)

@@ -206,81 +206,15 @@ volumes:
 
 ## Backup Configuration
 
-### Automated Backups
+plumio supports automated backups using Docker Compose profiles and a backup service container.
 
-plumio includes an optional backup service in the compose file:
+### Quick Setup
 
-```yaml
-services:
-  backup:
-    image: alpine:latest
-    container_name: plumio-backup
-    restart: unless-stopped
-    profiles:
-      - backup
-    volumes:
-      - plumio-data:/data:ro # Read-only access
-      - ./backups:/backups # Backup destination
-      - ./backup.sh:/backup.sh
-    environment:
-      - BACKUP_RETENTION=7 # Keep last 7 backups
-    command: sh /backup.sh
-    depends_on:
-      - plumio
-    networks:
-      - plumio-network
-```
-
-### Enable Backups
-
-Start with backup profile:
-
-```bash
-docker-compose --profile backup up -d
-```
-
-### Backup Script
-
-Create `backup.sh`:
-
-```bash
-#!/bin/sh
-# Automated backup script for plumio
-
-BACKUP_DIR="/backups"
-DATA_DIR="/data"
-RETENTION_DAYS="${BACKUP_RETENTION:-7}"
-TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-BACKUP_FILE="${BACKUP_DIR}/plumio-backup-${TIMESTAMP}.tar.gz"
-
-echo "Starting backup at $(date)"
-
-# Create backup
-tar czf "${BACKUP_FILE}" -C "${DATA_DIR}" .
-
-# Verify backup
-if [ $? -eq 0 ]; then
-    echo "Backup created successfully: ${BACKUP_FILE}"
-
-    # Remove old backups
-    find "${BACKUP_DIR}" -name "plumio-backup-*.tar.gz" -mtime +${RETENTION_DAYS} -delete
-    echo "Old backups cleaned up (retention: ${RETENTION_DAYS} days)"
-else
-    echo "Backup failed!"
-    exit 1
-fi
-
-echo "Backup completed at $(date)"
-
-# Sleep until next backup (daily at 2 AM can be handled by cron or sleep loop)
-sleep 86400
-```
-
-Make it executable:
-
-```bash
-chmod +x backup.sh
-```
+1. Create a `backup.sh` script in your project directory
+2. Enable the backup service profile:
+   ```bash
+   docker-compose --profile backup up -d
+   ```
 
 ### Manual Backup
 
@@ -292,6 +226,8 @@ docker run --rm \
   -v $(pwd)/backups:/backup \
   alpine tar czf /backup/manual-backup-$(date +%Y%m%d-%H%M%S).tar.gz -C /data .
 ```
+
+For detailed backup configuration, automated backup scripts, and restore procedures, see the [Self-Hosting Guide](/docs/self-hosting#data-backup-and-restore)
 
 ---
 
@@ -424,16 +360,7 @@ docker-compose logs -f --timestamps plumio
 
 ### SQLite Optimization
 
-For better SQLite performance, tune these settings by mounting a custom config.
-
-Create `sqlite.conf`:
-
-```sql
-PRAGMA journal_mode = WAL;
-PRAGMA synchronous = NORMAL;
-PRAGMA cache_size = 10000;
-PRAGMA temp_store = MEMORY;
-```
+plumio uses SQLite with optimized settings for performance. For detailed database maintenance, optimization commands, and troubleshooting, see the [Self-Hosting Guide](/docs/self-hosting#database-maintenance)
 
 ### Node.js Memory
 

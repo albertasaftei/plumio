@@ -1,5 +1,5 @@
 ---
-sidebar_position: 6
+sidebar_position: 7
 title: FAQ
 ---
 
@@ -26,14 +26,7 @@ Common questions about plumio installation, configuration, and usage.
 
 ### Can I install plumio without Docker?
 
-Yes! You can run plumio manually:
-
-1. Install Node.js 22+
-2. Clone the repository
-3. Set up backend and frontend separately
-4. Configure environment variables
-
-See the [Manual Setup section](/docs/installation#option-2-manual-setup) for details.
+Yes! You can run Plumio from source. See the [Self-Hosting Guide - From Source](/docs/self-hosting#from-source) section for detailed instructions.
 
 ### Which databases does plumio support?
 
@@ -200,6 +193,8 @@ Backups include:
 - User settings and preferences
 - Folder structure
 
+For backup commands and instructions, see the [Self-Hosting Guide - Data Backup](/docs/self-hosting#data-backup) section.
+
 ### Can I migrate from another note-taking app?
 
 plumio can import from:
@@ -213,19 +208,7 @@ See [Import & Export](/docs/usage-guide#import--export).
 
 ### How do I migrate to a new server?
 
-1. Backup data from old server:
-
-   ```bash
-   docker-compose down
-   docker run --rm -v plumio_plumio-data:/data -v $(pwd):/backup alpine tar czf /backup/plumio-backup.tar.gz -C /data .
-   ```
-
-2. On new server, restore:
-   ```bash
-   docker volume create plumio_plumio-data
-   docker run --rm -v plumio_plumio-data:/data -v $(pwd):/backup alpine tar xzf /backup/plumio-backup.tar.gz -C /data
-   docker-compose up -d
-   ```
+For detailed backup and restore instructions, see the [Self-Hosting Guide - Data Backup](/docs/self-hosting#data-backup) section.
 
 ---
 
@@ -302,12 +285,7 @@ plumio doesn't sync - it's a centralized application. All users access the same 
 
 ### How do I update plumio?
 
-Simple update process:
-
-```bash
-docker-compose pull
-docker-compose up -d
-```
+For update instructions, see the [Self-Hosting Guide - Updating](/docs/self-hosting#updating) section.
 
 Docker will download the latest image and recreate the container while preserving data.
 
