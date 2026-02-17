@@ -32,7 +32,8 @@ export default function SettingsPage() {
       return;
     }
 
-    setIsAdmin(api.isAdmin());
+    const isAdmin = await api.isAdmin();
+    setIsAdmin(isAdmin);
     // Fetch org admin status from server for security
     const orgAdminStatus = await api.isOrgAdmin();
     setIsOrgAdmin(orgAdminStatus);
