@@ -38,7 +38,7 @@ plumio includes an optional automated backup system that runs daily to protect y
 
 ## Getting Started
 
-To get started with plumio, check out our [installation guide](https://plumio.app/docs/installation) for step-by-step instructions on how to set up your own instance. Once you have it up and running, you can start creating and organizing your notes right away!
+To get started with plumio, check out our [self-hosting guide](https://plumio.app/docs/self-hosting) for step-by-step instructions on how to set up your own instance. Once you have it up and running, you can start creating and organizing your notes right away!
 
 ## Contributing
 

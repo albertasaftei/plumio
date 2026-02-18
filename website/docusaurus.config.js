@@ -145,8 +145,8 @@ const config = {
                 to: "/docs/intro",
               },
               {
-                label: "Installation",
-                to: "/docs/installation",
+                label: "Self-Hosting",
+                to: "/docs/self-hosting",
               },
               {
                 label: "Configuration",

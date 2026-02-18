@@ -531,6 +531,5 @@ If your issue isn't listed here:
 
 5. **Check documentation:**
    - [Self-Hosting Guide](/docs/self-hosting)
-   - [Installation Guide](/docs/installation)
    - [Configuration](/docs/configuration)
    - [FAQ](/docs/faq)

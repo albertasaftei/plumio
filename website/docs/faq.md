@@ -140,7 +140,7 @@ FRONTEND_PORT=8080
 
 ### Can I use a custom domain?
 
-Yes! Set up a reverse proxy (Nginx, Caddy, Traefik) with your domain pointing to plumio. See the [Reverse Proxy section](/docs/installation#using-a-reverse-proxy).
+Yes! Set up a reverse proxy (Nginx, Caddy, Traefik) with your domain pointing to plumio. See the [Reverse Proxy section](/docs/self-hosting#using-a-reverse-proxy).
 
 ### How do I enable HTTPS?
 

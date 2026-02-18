@@ -68,7 +68,7 @@ Write in markdown with a powerful editor powered by Milkdown. Supports:
 
 ## Getting Started
 
-Ready to get started? Head over to the [Installation Guide](/docs/installation) to deploy plumio on your server.
+Ready to get started? Head over to the [Self-Hosting Guide](/docs/self-hosting) to deploy plumio on your server.
 
 ## Tech Stack
 
