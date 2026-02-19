@@ -17,6 +17,7 @@ import {
   filterTreeNodes,
   formatDate,
 } from "~/utils/sidebar.utils";
+import { getDisplayName } from "~/utils/document.utils";
 import { useNavigate } from "@solidjs/router";
 import AlertDialog from "./AlertDialog";
 import OrganizationSelector from "./OrganizationSelector";
@@ -187,7 +188,9 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             />
 
             <button class="flex-1 text-left text-neutral-200 dark:text-neutral-200 light:text-neutral-800 truncate hover:text-neutral-100 dark:hover:text-neutral-100 light:hover:text-neutral-900 cursor-pointer">
-              {nodeProps.node.name}
+              {nodeProps.node.type === "file"
+                ? getDisplayName(nodeProps.node.name)
+                : nodeProps.node.name}
             </button>
 
             <Show when={nodeProps.node.favorite}>
@@ -284,7 +287,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                     <PopoverItem
                       onClick={(e) => {
                         e.stopPropagation();
-                        const fileName = nodeProps.node.name.split(".")[0];
+                        const fileName = getDisplayName(nodeProps.node.name);
                         setItemToRename(nodeProps.node.path);
                         setNewItemName(fileName);
                         setShowRenameModal(true);
@@ -528,7 +531,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         onCancel={() => setShowRenameModal(false)}
       >
         <p class=" text-neutral-400 dark:text-neutral-400 light:text-neutral-600 mb-3">
-          Current: {itemToRename()}
+          Current: {itemToRename() ? getDisplayName(itemToRename()!) : ""}
         </p>
         <input
           ref={renameInputRef}

@@ -4,6 +4,7 @@ import { api, type Document } from "~/lib/api";
 import Button from "~/components/Button";
 import AlertDialog from "~/components/AlertDialog";
 import { routes } from "~/routes";
+import { getDisplayName } from "~/utils/document.utils";
 
 export default function DeletedPage() {
   const navigate = useNavigate();
@@ -77,12 +78,6 @@ export default function DeletedPage() {
     const diffMs = deleteDate.getTime() - now.getTime();
     const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
     return Math.max(0, diffDays);
-  };
-
-  const getDisplayName = (filePath: string) => {
-    const fileName = filePath.split("/").pop() || "";
-    // Remove .deleted-{timestamp} suffix from display
-    return fileName.replace(/\.deleted-\d+\.md$/, ".md");
   };
 
   return (

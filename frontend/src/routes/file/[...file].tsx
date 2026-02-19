@@ -4,6 +4,7 @@ import { api } from "~/lib/api";
 import Editor from "~/components/Editor";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
+import { getDisplayName } from "~/utils/document.utils";
 
 const MarkdownEditor = lazy(() => import("~/components/MarkdownEditor"));
 
@@ -90,7 +91,7 @@ export default function DocumentPage() {
             Current file:
           </span>
           <span class="text-sm text-neutral-200 dark:text-neutral-200 light:text-neutral-700 truncate">
-            {getDocumentPath()}
+            {getDisplayName(getDocumentPath())}
           </span>
         </div>
       </div>

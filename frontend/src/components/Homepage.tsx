@@ -1,5 +1,6 @@
 import { For, Show, createSignal, onMount } from "solid-js";
 import { api, type Document } from "~/lib/api";
+import { getDisplayName } from "~/utils/document.utils";
 
 interface HomepageProps {
   documents: Document[];
@@ -180,11 +181,11 @@ export default function Homepage(props: HomepageProps) {
                     />
                     <div class="flex-1 min-w-0">
                       <div class="text-neutral-100 dark:text-neutral-100 light:text-neutral-900 font-medium truncate flex items-center gap-2">
-                        {doc.name}
+                        {getDisplayName(doc.name)}
                         <div class="i-carbon-star-filled w-4 h-4 text-yellow-400" />
                       </div>
                       <div class="text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600 truncate">
-                        {doc.path}
+                        {getDisplayName(doc.path)}
                       </div>
                     </div>
                     <div class="flex items-center gap-4 text-sm text-neutral-500 dark:text-neutral-500 light:text-neutral-600">
@@ -229,10 +230,10 @@ export default function Homepage(props: HomepageProps) {
                     />
                     <div class="flex-1 min-w-0">
                       <div class="text-neutral-100 dark:text-neutral-100 light:text-neutral-900 font-medium truncate">
-                        {doc.name}
+                        {getDisplayName(doc.name)}
                       </div>
                       <div class="text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600 truncate">
-                        {doc.path}
+                        {getDisplayName(doc.path)}
                       </div>
                     </div>
                     <div class="flex items-center gap-4 text-sm text-neutral-500 dark:text-neutral-500 light:text-neutral-600">

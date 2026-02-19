@@ -4,6 +4,7 @@ import { api, type Document } from "~/lib/api";
 import Button from "~/components/Button";
 import AlertDialog from "~/components/AlertDialog";
 import { routes } from "~/routes";
+import { getDisplayName } from "~/utils/document.utils";
 
 export default function ArchivePage() {
   const navigate = useNavigate();
@@ -64,12 +65,6 @@ export default function ArchivePage() {
     if (diffDays === 1) return "Yesterday";
     if (diffDays < 7) return `${diffDays} days ago`;
     return date.toLocaleDateString();
-  };
-
-  const getDisplayName = (filePath: string) => {
-    const fileName = filePath.split("/").pop() || "";
-    // Remove .archived-{timestamp} suffix from display
-    return fileName.replace(/\.archived-\d+\.md$/, ".md");
   };
 
   return (
