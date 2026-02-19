@@ -110,8 +110,12 @@ export default function AdminPanel(props: AdminPanelProps) {
       {/* Create User Button */}
       <div class="mb-6 flex justify-between items-center">
         <div>
-          <h3 class="text-lg font-semibold text-neutral-100">Users</h3>
-          <p class="text-sm text-neutral-400">{users().length} total users</p>
+          <h3 class="text-lg font-semibold text-neutral-100 dark:text-neutral-100 light:text-neutral-900">
+            Users
+          </h3>
+          <p class="text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
+            {users().length} total users
+          </p>
         </div>
         <Button
           onClick={() => setShowCreateForm(!showCreateForm())}
@@ -125,13 +129,13 @@ export default function AdminPanel(props: AdminPanelProps) {
 
       {/* Create User Form */}
       <Show when={showCreateForm()}>
-        <div class="mb-6 p-4 bg-neutral-800/50 border border-neutral-700 rounded-lg">
-          <h4 class="text-md font-semibold text-neutral-100 mb-4">
+        <div class="mb-6 p-4 bg-neutral-800/50 dark:bg-neutral-800/50 light:bg-white border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-lg">
+          <h4 class="text-md font-semibold text-neutral-100 dark:text-neutral-100 light:text-neutral-900 mb-4">
             Create New User
           </h4>
           <form onSubmit={handleCreateUser} class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-neutral-300 mb-2">
+              <label class="block text-sm font-medium text-neutral-300 dark:text-neutral-300 light:text-neutral-700 mb-2">
                 Username
               </label>
               <input
@@ -139,13 +143,13 @@ export default function AdminPanel(props: AdminPanelProps) {
                 value={username()}
                 onInput={(e) => setUsername(e.currentTarget.value)}
                 required
-                class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700"
+                class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500"
                 placeholder="Enter username"
               />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-neutral-300 mb-2">
+              <label class="block text-sm font-medium text-neutral-300 dark:text-neutral-300 light:text-neutral-700 mb-2">
                 Email
               </label>
               <input
@@ -153,13 +157,13 @@ export default function AdminPanel(props: AdminPanelProps) {
                 value={email()}
                 onInput={(e) => setEmail(e.currentTarget.value)}
                 required
-                class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700"
+                class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500"
                 placeholder="Enter email"
               />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-neutral-300 mb-2">
+              <label class="block text-sm font-medium text-neutral-300 dark:text-neutral-300 light:text-neutral-700 mb-2">
                 Password
               </label>
               <input
@@ -168,7 +172,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                 onInput={(e) => setPassword(e.currentTarget.value)}
                 required
                 minLength={8}
-                class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700"
+                class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500"
                 placeholder="Min 8 characters"
               />
             </div>
@@ -200,44 +204,44 @@ export default function AdminPanel(props: AdminPanelProps) {
         when={!loading()}
         fallback={
           <div class="flex items-center justify-center py-12">
-            <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500" />
+            <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500 dark:text-neutral-500 light:text-neutral-400" />
           </div>
         }
       >
-        <div class="border border-neutral-700 bg-neutral-900 rounded-lg overflow-auto">
+        <div class="border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 bg-neutral-900 dark:bg-neutral-900 light:bg-white rounded-lg overflow-auto">
           <table class="w-full">
-            <thead class="bg-neutral-800/50">
+            <thead class="bg-neutral-800/50 dark:bg-neutral-800/50 light:bg-neutral-100">
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 dark:text-neutral-400 light:text-neutral-600 uppercase tracking-wider">
                   User
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 dark:text-neutral-400 light:text-neutral-600 uppercase tracking-wider">
                   Email
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 dark:text-neutral-400 light:text-neutral-600 uppercase tracking-wider">
                   Role
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-400 dark:text-neutral-400 light:text-neutral-600 uppercase tracking-wider">
                   Joined
                 </th>
-                <th class="px-4 py-3 text-right text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                <th class="px-4 py-3 text-right text-xs font-medium text-neutral-400 dark:text-neutral-400 light:text-neutral-600 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-neutral-700">
+            <tbody class="divide-y divide-neutral-700 dark:divide-neutral-700 light:divide-neutral-300">
               <For each={users()}>
                 {(user) => (
-                  <tr class="hover:bg-neutral-800/30">
+                  <tr class="hover:bg-neutral-800/30 dark:hover:bg-neutral-800/30 light:hover:bg-neutral-100">
                     <td class="px-4 py-3 whitespace-nowrap">
                       <div class="flex items-center">
-                        <div class="i-carbon-user-avatar w-8 h-8 text-neutral-400 mr-3" />
-                        <div class="text-sm font-medium text-neutral-100">
+                        <div class="i-carbon-user-avatar w-8 h-8 text-neutral-400 dark:text-neutral-400 light:text-neutral-500 mr-3" />
+                        <div class="text-sm font-medium text-neutral-100 dark:text-neutral-100 light:text-neutral-900">
                           {user.username}
                         </div>
                       </div>
                     </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-300">
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-300 dark:text-neutral-300 light:text-neutral-700">
                       {user.email}
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap">
@@ -254,7 +258,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                         </span>
                       </Show>
                     </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-400">
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
                       {formatDate(user.createdAt)}
                     </td>
                     <td class="flex items-center justify-end px-4 py-3 whitespace-nowrap text-right text-sm">
@@ -293,14 +297,14 @@ export default function AdminPanel(props: AdminPanelProps) {
         onConfirm={confirmDelete}
         onCancel={() => setDeleteDialog({ isOpen: false, user: null })}
       />
-      <div class="max-w-5xl bg-neutral-800 rounded-lg mx-auto p-6">
+      <div class="max-w-5xl bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 rounded-lg mx-auto p-6 border border-transparent light:border-neutral-300 light:shadow-md">
         <Show when={props.inline}>
           {/* Inline mode - just render content */}
           <div class="flex-1 overflow-auto">
-            <h2 class="text-xl font-bold text-neutral-100 mb-2">
+            <h2 class="text-xl font-bold text-neutral-100 dark:text-neutral-100 light:text-neutral-900 mb-2">
               Global User Management
             </h2>
-            <p class="text-sm text-neutral-400 mb-6">
+            <p class="text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600 mb-6">
               Manage global users and access
             </p>
             {renderContent()}
@@ -314,15 +318,15 @@ export default function AdminPanel(props: AdminPanelProps) {
             onClick={props.onClose}
           >
             <div
-              class="bg-neutral-900 border border-neutral-700 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+              class="bg-neutral-900 dark:bg-neutral-900 light:bg-white border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              <div class="px-6 py-4 border-b border-neutral-700 flex items-center justify-between">
+              <div class="px-6 py-4 border-b border-neutral-700 dark:border-neutral-700 light:border-neutral-300 flex items-center justify-between">
                 <div>
-                  <h2 class="text-2xl font-bold text-neutral-100">
+                  <h2 class="text-2xl font-bold text-neutral-100 dark:text-neutral-100 light:text-neutral-900">
                     Global User Management
                   </h2>
-                  <p class="text-sm text-neutral-400 mt-1">
+                  <p class="text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600 mt-1">
                     Manage global users and access
                   </p>
                 </div>

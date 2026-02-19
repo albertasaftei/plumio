@@ -96,11 +96,11 @@ export default function ImportExport() {
   return (
     <>
       <div class="space-y-4">
-        <div class="bg-neutral-800 rounded-lg p-6">
-          <h3 class="text-lg font-semibold text-white mb-2">
+        <div class="bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 rounded-lg p-6 border border-transparent light:border-neutral-300 light:shadow-sm">
+          <h3 class="text-lg font-semibold text-white dark:text-white light:text-neutral-900 mb-2">
             Export Documents
           </h3>
-          <p class="text-neutral-400 mb-4">
+          <p class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600 mb-4">
             Download all your documents as a compressed archive.
           </p>
           <Button
@@ -124,11 +124,11 @@ export default function ImportExport() {
           </Button>
         </div>
 
-        <div class="bg-neutral-800 rounded-lg p-6">
-          <h3 class="text-lg font-semibold text-white mb-2">
+        <div class="bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 rounded-lg p-6 border border-transparent light:border-neutral-300 light:shadow-sm">
+          <h3 class="text-lg font-semibold text-white dark:text-white light:text-neutral-900 mb-2">
             Import Documents
           </h3>
-          <p class="text-neutral-400 mb-4">
+          <p class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600 mb-4">
             Upload a previously exported archive to restore your documents.
           </p>
           <Button
@@ -180,7 +180,7 @@ export default function ImportExport() {
         onConfirm={confirmImport}
         onCancel={cancelImport}
       >
-        <p class="text-neutral-400">
+        <p class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
           Importing will merge with existing documents. Any files with the same
           name will be overwritten. Continue?
         </p>

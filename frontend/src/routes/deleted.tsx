@@ -96,9 +96,9 @@ export default function DeletedPage() {
           >
             <div class="i-carbon-arrow-left w-5 h-5" />
           </Button>
-          <div class="i-carbon-trash-can w-8 h-8 text-neutral-400" />
+          <div class="i-carbon-trash-can w-8 h-8 text-neutral-400 dark:text-neutral-400 light:text-neutral-500" />
         </div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-white">
+        <h1 class="text-2xl sm:text-3xl font-bold text-white dark:text-white light:text-neutral-900">
           Recently Deleted
         </h1>
       </div>
@@ -107,7 +107,7 @@ export default function DeletedPage() {
         when={!loading()}
         fallback={
           <div class="flex justify-center py-12">
-            <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500" />
+            <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500 dark:text-neutral-500 light:text-neutral-400" />
           </div>
         }
       >
@@ -115,11 +115,11 @@ export default function DeletedPage() {
           when={deletedDocs().length > 0}
           fallback={
             <div class="text-center py-12">
-              <div class="i-carbon-trash-can w-16 h-16 text-neutral-600 mx-auto mb-4" />
-              <p class="text-neutral-400 text-lg">
+              <div class="i-carbon-trash-can w-16 h-16 text-neutral-600 dark:text-neutral-600 light:text-neutral-400 mx-auto mb-4" />
+              <p class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600 text-lg">
                 No recently deleted documents
               </p>
-              <p class="text-neutral-500 text-sm mt-2">
+              <p class="text-neutral-500 dark:text-neutral-500 light:text-neutral-500 text-sm mt-2">
                 Deleted files will appear here and be kept for 30 days
               </p>
             </div>
@@ -130,16 +130,16 @@ export default function DeletedPage() {
               {(doc) => {
                 const daysLeft = getDaysUntilPermanentDelete(doc.deleted_at);
                 return (
-                  <div class="bg-neutral-800 rounded-lg p-4 hover:bg-neutral-750 transition-colors">
+                  <div class="bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 rounded-lg p-4 hover:bg-neutral-750 dark:hover:bg-neutral-750 light:hover:bg-neutral-100 transition-colors border border-transparent light:border-neutral-300 light:shadow-sm">
                     <div class="flex items-center justify-between gap-4">
                       <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-3">
-                          <div class="i-carbon-document w-5 h-5 text-neutral-400 flex-shrink-0" />
+                          <div class="i-carbon-document w-5 h-5 text-neutral-400 dark:text-neutral-400 light:text-neutral-500 flex-shrink-0" />
                           <div class="flex-1 min-w-0">
-                            <h3 class="text-white font-medium truncate">
+                            <h3 class="text-white dark:text-white light:text-neutral-900 font-medium truncate">
                               {getDisplayName(doc.path)}
                             </h3>
-                            <div class="flex items-center gap-4 mt-1 text-sm text-neutral-400">
+                            <div class="flex items-center gap-4 mt-1 text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
                               <span>Deleted {formatDate(doc.deleted_at)}</span>
                               <span class="text-yellow-400">
                                 {daysLeft === 0
@@ -156,7 +156,7 @@ export default function DeletedPage() {
                       <div class="flex items-center gap-2 flex-shrink-0">
                         <Button
                           onClick={() => handleRestore(doc.path)}
-                          variant="primary"
+                          variant="secondary"
                           size="sm"
                         >
                           <div class="i-carbon-reset w-4 h-4" />

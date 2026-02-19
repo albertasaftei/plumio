@@ -23,13 +23,13 @@ interface SettingsSidebarProps {
 export default function SettingsSidebar(props: SettingsSidebarProps) {
   return (
     <aside
-      class="w-80 h-full border-r py-2 border-neutral-800 bg-neutral-950 flex flex-col fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto transition-transform duration-300 ease-in-out"
+      class="w-80 h-full border-r py-2 border-neutral-800 dark:border-neutral-800 light:border-neutral-200 bg-neutral-950 dark:bg-neutral-950 light:bg-white flex flex-col fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto transition-transform duration-300 ease-in-out"
       classList={{
         "-translate-x-full lg:translate-x-0": !props.isOpen,
         "translate-x-0": props.isOpen,
       }}
     >
-      <div class="flex items-center justify-end p-4 border-neutral-800 lg:hidden">
+      <div class="flex items-center justify-end p-4 border-neutral-800 dark:border-neutral-800 light:border-neutral-200 lg:hidden">
         <Button
           onClick={props.onToggle}
           variant="icon"
@@ -105,7 +105,7 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
             <span class="ml-2">Build Information</span>
           </Button>
 
-          <div class="border-t border-neutral-800 my-2" />
+          <div class="border-t border-neutral-800 dark:border-neutral-800 light:border-neutral-200 my-2" />
 
           <Button
             onClick={props.onLogout}
@@ -118,8 +118,8 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
             <span class="ml-2">Logout</span>
           </Button>
         </div>
-        <div class="mt-auto p-2 border-t border-neutral-800 ">
-          <span class="text-sm text-neutral-500">
+        <div class="mt-auto p-2 border-t border-neutral-800 dark:border-neutral-800 light:border-neutral-200 ">
+          <span class="text-sm text-neutral-500 dark:text-neutral-500 light:text-neutral-600">
             v{import.meta.env.VITE_APP_VERSION}
           </span>
         </div>

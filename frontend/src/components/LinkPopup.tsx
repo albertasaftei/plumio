@@ -53,7 +53,7 @@ const LinkPopup: Component<LinkPopupProps> = (props) => {
   return (
     <Show when={props.show}>
       <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-neutral-900 rounded-lg shadow-xl border border-neutral-700 p-6 w-96">
+        <div class="bg-neutral-900 dark:bg-neutral-900 light:bg-white rounded-lg shadow-xl border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 p-6 w-96">
           <h2 class="text-lg font-semibold text-white mb-4">
             {props.isEdit ? "Edit Link" : "Add Link"}
           </h2>

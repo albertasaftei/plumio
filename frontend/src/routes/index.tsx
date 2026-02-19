@@ -88,11 +88,11 @@ export default function Home() {
   };
 
   return (
-    <div class="min-h-screen bg-neutral-950 flex items-center justify-center p-4">
+    <div class="min-h-screen bg-neutral-950 dark:bg-neutral-950 light:bg-neutral-100 flex items-center justify-center p-4">
       <Show
         when={!loading()}
         fallback={
-          <div class="text-neutral-400">
+          <div class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
             <div class="i-carbon-circle-dash animate-spin w-8 h-8 mx-auto" />
           </div>
         }
@@ -100,15 +100,17 @@ export default function Home() {
         <div class="w-full max-w-md">
           <div class="flex gap-4 items-center justify-center mb-8">
             <Logo color="#2a9d8f" size="48" />
-            <span class="text-4xl font-bold text-neutral-100 mb-2">plumio</span>
+            <span class="text-4xl font-bold text-neutral-100 dark:text-neutral-100 light:text-neutral-900 mb-2">
+              plumio
+            </span>
           </div>
 
-          <div class="bg-neutral-900 rounded-lg p-8 border border-neutral-800">
+          <div class="bg-neutral-900 dark:bg-neutral-900 light:bg-neutral-50 rounded-lg p-8 border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 light:shadow-xl">
             <Show when={isSetup()}>
               <h2 class="text-2xl font-semibold text-neutral-100 mb-6">
                 Initial Setup
               </h2>
-              <p class="text-neutral-400 mb-6 ">
+              <p class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600 mb-6 ">
                 Create your admin account to get started
               </p>
             </Show>
@@ -135,7 +137,7 @@ export default function Home() {
                   value={username()}
                   onInput={(e) => setUsername(e.currentTarget.value)}
                   required
-                  class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700"
+                  class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500"
                   placeholder="Enter username"
                 />
               </div>
@@ -150,7 +152,7 @@ export default function Home() {
                     value={email()}
                     onInput={(e) => setEmail(e.currentTarget.value)}
                     required
-                    class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700"
+                    class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500"
                     placeholder="Enter email"
                   />
                 </div>
@@ -165,7 +167,7 @@ export default function Home() {
                   value={password()}
                   onInput={(e) => setPassword(e.currentTarget.value)}
                   required
-                  class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700"
+                  class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500"
                   placeholder="Enter password"
                 />
               </div>
@@ -180,7 +182,7 @@ export default function Home() {
                     value={confirmPassword()}
                     onInput={(e) => setConfirmPassword(e.currentTarget.value)}
                     required
-                    class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700"
+                    class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500"
                     placeholder="Confirm password"
                   />
                 </div>
@@ -198,7 +200,9 @@ export default function Home() {
 
             <Show when={!isSetup()}>
               <div class="mt-6 text-center">
-                <span class="text-neutral-400">Don't have an account?</span>
+                <span class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
+                  Don't have an account?
+                </span>
                 <button
                   onClick={() => navigate(routes.register)}
                   class="ml-2 text-primary hover:underline cursor-pointer"

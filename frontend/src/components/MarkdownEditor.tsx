@@ -727,10 +727,10 @@ export default function MarkdownEditor(props: EditorProps) {
         onRemove={handleRemoveLink}
         onClose={() => setShowLinkPopup(false)}
       />
-      <div class="flex-1 overflow-auto">
+      <div class="overflow-auto">
         <div
           ref={editorRef}
-          class="milkdown-editor-wrapper h-full max-w-5xl mx-auto p-4 sm:p-8"
+          class="milkdown-editor-wrapper max-w-5xl mx-auto p-4 sm:pt-8 sm:pb-32 scrollbar-hidden"
         />
       </div>
     </div>

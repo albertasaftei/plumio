@@ -39,11 +39,11 @@ export default function Button(props: ButtonProps) {
         ? "bg-primary hover:bg-primary-dark text-white"
         : "bg-primary hover:bg-primary-dark text-white",
       secondary: local.active
-        ? "bg-neutral-700 text-neutral-100 border border-neutral-600"
-        : "bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700",
+        ? "bg-neutral-700 dark:bg-neutral-700 light:bg-neutral-200 text-neutral-100 dark:text-neutral-100 light:text-neutral-900 border border-neutral-600 dark:border-neutral-600 light:border-neutral-300"
+        : "bg-neutral-800 dark:bg-neutral-800 light:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-700 light:hover:bg-neutral-100 text-neutral-200 dark:text-neutral-200 light:text-neutral-700 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300",
       ghost: local.active
-        ? "bg-neutral-700 text-neutral-100"
-        : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800",
+        ? "bg-neutral-700 dark:bg-neutral-700 light:bg-neutral-200 text-neutral-100 dark:text-neutral-100 light:text-neutral-900"
+        : "text-neutral-400 dark:text-neutral-400 light:text-neutral-600 hover:text-neutral-200 dark:hover:text-neutral-200 light:hover:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-800 light:hover:bg-neutral-100",
       danger: local.active
         ? "bg-red-600 text-white"
         : "bg-red-600 hover:bg-red-500 text-white",
@@ -51,7 +51,7 @@ export default function Button(props: ButtonProps) {
         ? "bg-yellow-600 text-white"
         : "bg-yellow-700 hover:bg-yellow-600 text-white",
 
-      icon: "hover:bg-neutral-800 text-neutral-400",
+      icon: "hover:bg-neutral-800 dark:hover:bg-neutral-800 light:hover:bg-neutral-100 text-neutral-400 dark:text-neutral-400 light:text-neutral-600",
       none: "",
     };
     return classes[v];

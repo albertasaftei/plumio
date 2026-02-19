@@ -81,12 +81,14 @@ export default function Homepage(props: HomepageProps) {
   };
 
   return (
-    <div class="flex-1 overflow-auto p-8 bg-neutral-900">
+    <div class="flex-1 overflow-auto p-8 bg-neutral-900 dark:bg-neutral-900 light:bg-neutral-50">
       <div class="max-w-4xl mx-auto">
         {/* Header */}
         <div class="mb-8">
-          <h1 class="text-3xl font-bold text-neutral-100 mb-2">Homepage</h1>
-          <p class="text-neutral-400">
+          <h1 class="text-3xl font-bold text-neutral-100 dark:text-neutral-100 light:text-neutral-900 mb-2">
+            Homepage
+          </h1>
+          <p class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
             {currentOrg() ? `${currentOrg()!.name} - ` : ""}Welcome back! Here
             are your recently edited documents.
           </p>
@@ -94,52 +96,60 @@ export default function Homepage(props: HomepageProps) {
 
         {/* Stats Cards */}
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
-          <div class="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4">
+          <div class="bg-neutral-800/50 dark:bg-neutral-800/50 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-lg p-4 light:shadow-sm">
             <div class="flex items-center gap-3">
-              <div class="i-carbon-document w-8 h-8 text-blue-500" />
+              <div class="i-carbon-document w-8 h-8 dark:text-blue-500 light:text-blue-600" />
               <div>
-                <div class="text-2xl font-bold text-neutral-100">
+                <div class="text-2xl font-bold text-neutral-100 dark:text-neutral-100 light:text-neutral-900">
                   {props.documents.filter((d) => d.type === "file").length}
                 </div>
-                <div class="text-sm text-neutral-400">Documents</div>
+                <div class="text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
+                  Documents
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4">
+          <div class="bg-neutral-800/50 dark:bg-neutral-800/50 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-lg p-4 light:shadow-sm">
             <div class="flex items-center gap-3">
-              <div class="i-carbon-folder w-8 h-8 text-yellow-500" />
+              <div class="i-carbon-folder w-8 h-8 dark:text-amber-500 light:text-amber-500" />
               <div>
-                <div class="text-2xl font-bold text-neutral-100">
+                <div class="text-2xl font-bold text-neutral-100 dark:text-neutral-100 light:text-neutral-900">
                   {props.documents.filter((d) => d.type === "folder").length}
                 </div>
-                <div class="text-sm text-neutral-400">Folders</div>
+                <div class="text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
+                  Folders
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4">
+          <div class="bg-neutral-800/50 dark:bg-neutral-800/50 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-lg p-4 light:shadow-sm">
             <div class="flex items-center gap-3">
-              <div class="i-carbon-star-filled w-8 h-8 text-yellow-400" />
+              <div class="i-carbon-star-filled w-8 h-8 dark:text-yellow-400 light:text-yellow-500" />
               <div>
-                <div class="text-2xl font-bold text-neutral-100">
+                <div class="text-2xl font-bold text-neutral-100 dark:text-neutral-100 light:text-neutral-900">
                   {favoriteDocuments().length}
                 </div>
-                <div class="text-sm text-neutral-400">Favorites</div>
+                <div class="text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
+                  Favorites
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4">
+          <div class="bg-neutral-800/50 dark:bg-neutral-800/50 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-lg p-4 light:shadow-sm">
             <div class="flex items-center gap-3">
-              <div class="i-carbon-time w-8 h-8 text-green-500" />
+              <div class="i-carbon-time w-8 h-8 dark:text-green-500 light:text-green-600" />
               <div>
-                <div class="text-2xl font-bold text-neutral-100">
+                <div class="text-2xl font-bold text-neutral-100 dark:text-neutral-100 light:text-neutral-900">
                   {recentDocuments().length > 0
                     ? formatDate(recentDocuments()[0].modified)
                     : "N/A"}
                 </div>
-                <div class="text-sm text-neutral-400">Last edited</div>
+                <div class="text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
+                  Last edited
+                </div>
               </div>
             </div>
           </div>
@@ -147,37 +157,37 @@ export default function Homepage(props: HomepageProps) {
 
         {/* Favorite Documents */}
         <Show when={favoriteDocuments().length > 0}>
-          <div class="bg-neutral-800/50 border border-neutral-700 rounded-lg overflow-hidden mb-8">
-            <div class="px-6 py-4 border-b border-neutral-700 flex items-center gap-2">
+          <div class="bg-neutral-800/50 dark:bg-neutral-800/50 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-lg overflow-hidden mb-8 light:shadow-md">
+            <div class="px-6 py-4 border-b border-neutral-700 dark:border-neutral-700 light:border-neutral-200 flex items-center gap-2">
               <div class="i-carbon-star-filled w-5 h-5 text-yellow-400" />
-              <h2 class="text-lg font-semibold text-neutral-100">
+              <h2 class="text-lg font-semibold text-neutral-100 dark:text-neutral-100 light:text-neutral-900">
                 Favorite Documents
               </h2>
             </div>
-            <div class="divide-y divide-neutral-700">
+            <div class="divide-y divide-neutral-700 dark:divide-neutral-700 light:divide-neutral-200">
               <For each={favoriteDocuments()}>
                 {(doc) => (
                   <button
                     onClick={() => props.onSelectDocument(doc.path)}
-                    class={`w-full px-6 py-4 flex items-center cursor-pointer gap-4 hover:bg-neutral-800 transition-colors text-left border-l-4 ${
+                    class={`w-full px-6 py-4 flex items-center cursor-pointer gap-4 hover:bg-neutral-800 dark:hover:bg-neutral-800 light:hover:bg-neutral-50 transition-colors text-left border-l-4 ${
                       doc.color
                         ? colorClasses[doc.color] || "border-l-transparent"
                         : "border-l-transparent"
                     }`}
                   >
                     <div
-                      class={`${getFileIcon(doc.name)} w-6 h-6 text-neutral-400`}
+                      class={`${getFileIcon(doc.name)} w-6 h-6 text-neutral-400 dark:text-neutral-400 light:text-neutral-500`}
                     />
                     <div class="flex-1 min-w-0">
-                      <div class="text-neutral-100 font-medium truncate flex items-center gap-2">
+                      <div class="text-neutral-100 dark:text-neutral-100 light:text-neutral-900 font-medium truncate flex items-center gap-2">
                         {doc.name}
                         <div class="i-carbon-star-filled w-4 h-4 text-yellow-400" />
                       </div>
-                      <div class="text-sm text-neutral-400 truncate">
+                      <div class="text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600 truncate">
                         {doc.path}
                       </div>
                     </div>
-                    <div class="flex items-center gap-4 text-sm text-neutral-500">
+                    <div class="flex items-center gap-4 text-sm text-neutral-500 dark:text-neutral-500 light:text-neutral-600">
                       <span>{formatSize(doc.size)}</span>
                       <span class="min-w-20 text-right">
                         {formatDate(doc.modified)}
@@ -191,9 +201,9 @@ export default function Homepage(props: HomepageProps) {
         </Show>
 
         {/* Recent Documents */}
-        <div class="bg-neutral-800/50 border border-neutral-700 rounded-lg overflow-hidden">
-          <div class="px-6 py-4 border-b border-neutral-700">
-            <h2 class="text-lg font-semibold text-neutral-100">
+        <div class="bg-neutral-800/50 dark:bg-neutral-800/50 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-lg overflow-hidden light:shadow-md">
+          <div class="px-6 py-4 border-b border-neutral-700 dark:border-neutral-700 light:border-neutral-200">
+            <h2 class="text-lg font-semibold text-neutral-100 dark:text-neutral-100 light:text-neutral-900">
               Recent Documents
             </h2>
           </div>
@@ -201,31 +211,31 @@ export default function Homepage(props: HomepageProps) {
           <Show
             when={recentDocuments().length > 0}
             fallback={
-              <div class="px-6 py-12 text-center text-neutral-500">
+              <div class="px-6 py-12 text-center text-neutral-500 dark:text-neutral-500 light:text-neutral-600">
                 <div class="i-carbon-document-blank w-12 h-12 mx-auto mb-3 opacity-20" />
                 <p>No documents yet. Create one to get started!</p>
               </div>
             }
           >
-            <div class="divide-y divide-neutral-700">
+            <div class="divide-y divide-neutral-700 dark:divide-neutral-700 light:divide-neutral-200">
               <For each={recentDocuments()}>
                 {(doc) => (
                   <button
                     onClick={() => props.onSelectDocument(doc.path)}
-                    class={`w-full px-6 py-4 flex items-center cursor-pointer gap-4 hover:bg-neutral-800 transition-colors text-left`}
+                    class={`w-full px-6 py-4 flex items-center cursor-pointer gap-4 hover:bg-neutral-800 dark:hover:bg-neutral-800 light:hover:bg-neutral-50 transition-colors text-left`}
                   >
                     <div
-                      class={`${getFileIcon(doc.name)} w-6 h-6 text-neutral-400`}
+                      class={`${getFileIcon(doc.name)} w-6 h-6 text-neutral-400 dark:text-neutral-400 light:text-neutral-500`}
                     />
                     <div class="flex-1 min-w-0">
-                      <div class="text-neutral-100 font-medium truncate">
+                      <div class="text-neutral-100 dark:text-neutral-100 light:text-neutral-900 font-medium truncate">
                         {doc.name}
                       </div>
-                      <div class="text-sm text-neutral-400 truncate">
+                      <div class="text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600 truncate">
                         {doc.path}
                       </div>
                     </div>
-                    <div class="flex items-center gap-4 text-sm text-neutral-500">
+                    <div class="flex items-center gap-4 text-sm text-neutral-500 dark:text-neutral-500 light:text-neutral-600">
                       <span>{formatSize(doc.size)}</span>
                       <span class="min-w-20 text-right">
                         {formatDate(doc.modified)}

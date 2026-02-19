@@ -1,30 +1,42 @@
-.milkdown-editor-wrapper {
+/* Dark theme (default) */
+.dark .milkdown-editor-wrapper {
   background: #171717;
   color: #e5e5e5;
 }
 
-.milkdown {
-  background: transparent !important;
-  height: 100% !important;
-  overflow: auto !important;
+/* Light theme */
+.light .milkdown-editor-wrapper {
+  background: #ffffff;
+  color: #1a1a1a;
 }
 
-.milkdown .editor {
+.milkdown {
+  background: transparent !important;
+}
+
+/* Dark theme editor */
+.dark .milkdown .editor {
   background: transparent !important;
   color: #e5e5e5 !important;
   outline: none !important;
   padding: 0 !important;
-  min-height: 100% !important;
+}
+
+/* Light theme editor */
+.light .milkdown .editor {
+  background: transparent !important;
+  color: #1a1a1a !important;
+  outline: none !important;
+  padding: 0 !important;
 }
 
 .milkdown .ProseMirror {
   outline: none !important;
-  min-height: 100% !important;
 }
 
-/* Typography - More specific selectors */
-.milkdown .editor h1,
-.milkdown .ProseMirror h1 {
+/* Typography - Dark theme */
+.dark .milkdown .editor h1,
+.dark .milkdown .ProseMirror h1 {
   color: #f5f5f5 !important;
   font-size: 2.25rem !important;
   font-weight: 700 !important;
@@ -35,8 +47,21 @@
   padding-bottom: 0.5rem !important;
 }
 
-.milkdown .editor h2,
-.milkdown .ProseMirror h2 {
+/* Typography - Light theme */
+.light .milkdown .editor h1,
+.light .milkdown .ProseMirror h1 {
+  color: #0a0a0a !important;
+  font-size: 2.25rem !important;
+  font-weight: 700 !important;
+  line-height: 2.5rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 1rem !important;
+  border-bottom: 1px solid #e5e5e5 !important;
+  padding-bottom: 0.5rem !important;
+}
+
+.dark .milkdown .editor h2,
+.dark .milkdown .ProseMirror h2 {
   color: #f5f5f5 !important;
   font-size: 1.875rem !important;
   font-weight: 600 !important;
@@ -47,6 +72,107 @@
   padding-bottom: 0.5rem !important;
 }
 
+.light .milkdown .editor h2,
+.light .milkdown .ProseMirror h2 {
+  color: #0a0a0a !important;
+  font-size: 1.875rem !important;
+  font-weight: 600 !important;
+  line-height: 2.25rem !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 1rem !important;
+  border-bottom: 1px solid #e5e5e5 !important;
+  padding-bottom: 0.5rem !important;
+}
+
+.dark .milkdown .editor h3,
+.dark .milkdown .ProseMirror h3,
+.dark .milkdown .editor h4,
+.dark .milkdown .ProseMirror h4,
+.dark .milkdown .editor h5,
+.dark .milkdown .ProseMirror h5,
+.dark .milkdown .editor h6,
+.dark .milkdown .ProseMirror h6 {
+  color: #f5f5f5 !important;
+  font-weight: 600 !important;
+}
+
+.dark .milkdown .editor h3,
+.dark .milkdown .ProseMirror h3 {
+  font-size: 1.5rem !important;
+  line-height: 2rem !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.dark .milkdown .editor h4,
+.dark .milkdown .ProseMirror h4 {
+  font-size: 1.25rem !important;
+  line-height: 1.75rem !important;
+  margin-top: 1.25rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.dark .milkdown .editor h5,
+.dark .milkdown .ProseMirror h5 {
+  font-size: 1.125rem !important;
+  line-height: 1.75rem !important;
+  margin-top: 1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.dark .milkdown .editor h6,
+.dark .milkdown .ProseMirror h6 {
+  font-size: 1rem !important;
+  line-height: 1.5rem !important;
+  margin-top: 1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.light .milkdown .editor h3,
+.light .milkdown .ProseMirror h3,
+.light .milkdown .editor h4,
+.light .milkdown .ProseMirror h4,
+.light .milkdown .editor h5,
+.light .milkdown .ProseMirror h5,
+.light .milkdown .editor h6,
+.light .milkdown .ProseMirror h6 {
+  color: #0a0a0a !important;
+  font-weight: 600 !important;
+}
+
+.light .milkdown .editor h3,
+.light .milkdown .ProseMirror h3 {
+  font-size: 1.5rem !important;
+  line-height: 2rem !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.light .milkdown .editor h4,
+.light .milkdown .ProseMirror h4 {
+  font-size: 1.25rem !important;
+  line-height: 1.75rem !important;
+  margin-top: 1.25rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.light .milkdown .editor h5,
+.light .milkdown .ProseMirror h5 {
+  font-size: 1.125rem !important;
+  line-height: 1.75rem !important;
+  margin-top: 1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.light .milkdown .editor h6,
+.light .milkdown .ProseMirror h6 {
+  font-size: 1rem !important;
+  line-height: 1.5rem !important;
+  margin-top: 1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Generic fallback styles */
 .milkdown .editor h3,
 .milkdown .ProseMirror h3 {
   color: #f5f5f5 !important;
@@ -526,11 +652,6 @@
   padding: 2px 10px;
   cursor: pointer;
   transition: all 0.15s;
-  opacity: 0;
-}
-
-.code-block-wrapper:hover .code-block-copy-btn {
-  opacity: 1;
 }
 
 .code-block-copy-btn:hover {
@@ -588,4 +709,151 @@
 .milkdown .editor,
 .milkdown .ProseMirror {
   padding-bottom: 20vh !important;
+}
+/* ═══════════════════════════════════════════════════════════════ */
+/* ── LIGHT THEME OVERRIDES ──────────────────────────────────────  */
+/* ═══════════════════════════════════════════════════════════════ */
+
+.light .milkdown-editor-wrapper {
+  background: #ffffff !important;
+  color: #1a1a1a !important;
+}
+
+.light .milkdown .editor,
+.light .milkdown .ProseMirror {
+  color: #1a1a1a !important;
+}
+
+/* Light theme headings */
+.light .milkdown .editor h1,
+.light .milkdown .ProseMirror h1,
+.light .milkdown .editor h2,
+.light .milkdown .ProseMirror h2 {
+  color: #0a0a0a !important;
+  border-bottom-color: #e5e5e5 !important;
+}
+
+.light .milkdown .editor h3,
+.light .milkdown .ProseMirror h3,
+.light .milkdown .editor h4,
+.light .milkdown .ProseMirror h4,
+.light .milkdown .editor h5,
+.light .milkdown .ProseMirror h5,
+.light .milkdown .editor h6,
+.light .milkdown .ProseMirror h6 {
+  color: #0a0a0a !important;
+}
+
+/* Light theme text */
+.light .milkdown .editor p,
+.light .milkdown .ProseMirror p,
+.light .milkdown ul,
+.light .milkdown ol,
+.light .milkdown li {
+  color: #1a1a1a !important;
+}
+
+/* Light theme links */
+.light .milkdown .editor a,
+.light .milkdown .ProseMirror a {
+  color: #2563eb !important;
+}
+
+.light .milkdown .editor a:hover,
+.light .milkdown .ProseMirror a:hover {
+  color: #1d4ed8 !important;
+}
+
+/* Light theme inline code */
+.light .milkdown .editor code:not(pre code),
+.light .milkdown .ProseMirror code:not(pre code) {
+  background: #f5f5f5 !important;
+  color: #d97706 !important;
+}
+
+/* Light theme code blocks */
+.light .milkdown .editor pre,
+.light .milkdown .ProseMirror pre {
+  background: #fafafa !important;
+  border: 1px solid #e5e5e5 !important;
+}
+
+.light .milkdown .editor pre code,
+.light .milkdown .ProseMirror pre code {
+  color: #1a1a1a !important;
+}
+
+/* Light theme blockquotes */
+.light .milkdown blockquote {
+  border-left-color: #d4d4d4 !important;
+  color: #525252 !important;
+  background: #fafafa !important;
+}
+
+.light .milkdown blockquote p {
+  color: #525252 !important;
+}
+
+/* Light theme tables */
+.light .milkdown table {
+  border-color: #e5e5e5 !important;
+}
+
+.light .milkdown th,
+.light .milkdown td {
+  border-color: #e5e5e5 !important;
+  color: #1a1a1a !important;
+}
+
+.light .milkdown th {
+  background: #f5f5f5 !important;
+}
+
+.light .milkdown tr:nth-child(even) {
+  background: #fafafa !important;
+}
+
+/* Light theme hr */
+.light .milkdown hr {
+  border-color: #e5e5e5 !important;
+}
+
+/* Light theme strong/em */
+.light .milkdown strong {
+  color: #0a0a0a !important;
+}
+
+.light .milkdown em {
+  color: #404040 !important;
+}
+
+/* Light theme task lists */
+.light .milkdown li[data-item-type="task"]::before {
+  border-color: #a3a3a3 !important;
+}
+
+.light .milkdown li[data-item-type="task"]:hover::before {
+  border-color: #2563eb !important;
+}
+
+.light .milkdown li[data-item-type="task"][data-checked="true"]::before {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+/* Light theme code block copy button */
+.light .code-block-copy-btn {
+  color: #525252 !important;
+  background: #ffffff !important;
+  border-color: #d4d4d4 !important;
+}
+
+.light .code-block-copy-btn:hover {
+  color: #1a1a1a !important;
+  background: #f5f5f5 !important;
+  border-color: #a3a3a3 !important;
+}
+
+.light .code-block-copy-btn.copied {
+  color: #16a34a !important;
 }

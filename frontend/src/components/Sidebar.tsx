@@ -121,11 +121,18 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     const isExpanded = () => props.expandedFolders.has(nodeProps.node.path);
     const paddingLeft = () => `${nodeProps.node.depth * 16 + 16}px`;
     const getBackgroundColor = () => {
+      // Check if in light mode (via CSS class on document)
+      const isLightMode =
+        typeof document !== "undefined" &&
+        document.documentElement.classList.contains("light");
+
       if (nodeProps.node.path === props.currentPath) {
         return nodeProps.node.color
           ? COLOR_PALETTE.find((c) => c.value === nodeProps.node.color)?.bg ||
-              "#171717"
-          : "#171717";
+              (isLightMode ? "#f3f4f6" : "#171717")
+          : isLightMode
+            ? "#f3f4f6"
+            : "#171717";
       }
       return nodeProps.node.color
         ? COLOR_PALETTE.find((c) => c.value === nodeProps.node.color)?.bg
@@ -135,7 +142,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     return (
       <>
         <div
-          class={`group relative hover:bg-neutral-900 border-l-4 transition-colors border-y border-neutral-800/50 ${
+          class={`group relative hover:bg-neutral-900 dark:hover:bg-neutral-900 light:hover:bg-neutral-100 border-l-4 transition-colors border-y border-neutral-800/50 dark:border-neutral-800/50 light:border-neutral-200/50 ${
             nodeProps.node.path === props.currentPath
               ? "border-l-primary"
               : "border-l-transparent"
@@ -156,7 +163,11 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             class="flex items-center gap-2 py-2 pr-2"
           >
             <Show when={nodeProps.node.type === "folder"}>
-              <Button variant="icon" size="sm" class="text-neutral-500">
+              <Button
+                variant="icon"
+                size="sm"
+                class="text-neutral-500 dark:text-neutral-500 light:text-neutral-400"
+              >
                 <div
                   class={`w-3 h-3 transition-transform ${
                     isExpanded()
@@ -171,11 +182,11 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
               class={`w-4 h-4 flex-shrink-0 ${
                 nodeProps.node.type === "folder"
                   ? "i-carbon-folder text-blue-400"
-                  : "i-carbon-document text-neutral-400"
+                  : "i-carbon-document text-neutral-400 dark:text-neutral-400 light:text-neutral-500"
               }`}
             />
 
-            <button class="flex-1 text-left text-neutral-200 truncate hover:text-neutral-100 cursor-pointer">
+            <button class="flex-1 text-left text-neutral-200 dark:text-neutral-200 light:text-neutral-800 truncate hover:text-neutral-100 dark:hover:text-neutral-100 light:hover:text-neutral-900 cursor-pointer">
               {nodeProps.node.name}
             </button>
 
@@ -202,12 +213,12 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                       size="sm"
                       title="More options"
                     >
-                      <div class="i-carbon-overflow-menu-vertical w-5 h-5 text-neutral-400" />
+                      <div class="i-carbon-overflow-menu-vertical w-5 h-5 text-neutral-400 dark:text-neutral-400 light:text-neutral-500" />
                     </Button>
                   )}
                 />
                 <Popover.Portal>
-                  <Popover.Content class="mt-1 mb-1 max-w-36 bg-neutral-800 border border-neutral-700 rounded-lg shadow-lg z-50 py-1 animate-slide-down">
+                  <Popover.Content class="mt-1 mb-1 max-w-36 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-lg shadow-lg light:shadow-xl z-50 py-1 animate-slide-down">
                     {/* Add file/folder actions (folders only) */}
                     <Show when={nodeProps.node.type === "folder"}>
                       <PopoverItem
@@ -232,7 +243,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                         <div class="i-carbon-folder-add w-4 h-4" />
                         Add folder
                       </PopoverItem>
-                      <div class="h-px bg-neutral-700 my-1" />
+                      <div class="h-px bg-neutral-700 dark:bg-neutral-700 light:bg-neutral-300 my-1" />
                     </Show>
 
                     <Show when={props.onToggleFavorite}>
@@ -255,7 +266,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                         />
                         {nodeProps.node.favorite ? "Unfavorite" : "Favorite"}
                       </PopoverItem>
-                      <div class="h-px bg-neutral-700 my-1" />
+                      <div class="h-px bg-neutral-700 dark:bg-neutral-700 light:bg-neutral-300 my-1" />
                     </Show>
 
                     {/* Archive and rename actions */}
@@ -283,7 +294,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                       <div class="i-carbon-edit w-4 h-4" />
                       Rename
                     </PopoverItem>
-                    <div class="h-px bg-neutral-700 my-1" />
+                    <div class="h-px bg-neutral-700 dark:bg-neutral-700 light:bg-neutral-300 my-1" />
 
                     {/* Delete action */}
                     <PopoverItem
@@ -299,7 +310,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
 
                     {/* Color picker */}
                     <Show when={props.onSetColor}>
-                      <div class="h-px bg-neutral-700 my-1" />
+                      <div class="h-px bg-neutral-700 dark:bg-neutral-700 light:bg-neutral-300 my-1" />
                       <ColorPicker
                         currentColor={nodeProps.node.color}
                         onColorSelect={(color) => {
@@ -316,7 +327,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
 
           <Show when={nodeProps.node.type === "file"}>
             <div
-              class="text-sm text-neutral-600 pb-1 flex items-center gap-2"
+              class="text-sm text-neutral-600 dark:text-neutral-600 light:text-neutral-500 pb-1 flex items-center gap-2"
               style={{ "padding-left": "28px" }}
             >
               <span>{formatDate(nodeProps.node.modified)}</span>
@@ -336,7 +347,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
   const SidebarContent = () => (
     <>
       {/* Sidebar Header */}
-      <div class="p-4 sm:p-4 border-b border-neutral-800">
+      <div class="p-4 sm:p-4 border-b border-neutral-800 dark:border-neutral-800 light:border-neutral-200">
         <div class="w-full flex items-center justify-end pb-4 lg:hidden">
           <Button
             onClick={() => props.setSidebarOpen(false)}
@@ -380,13 +391,13 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
 
         {/* Search */}
         <div class="relative">
-          <div class="absolute left-3 top-1/2 -translate-y-1/2 i-carbon-search w-4 h-4 text-neutral-500" />
+          <div class="absolute left-3 top-1/2 -translate-y-1/2 i-carbon-search w-4 h-4 text-neutral-500 dark:text-neutral-500 light:text-neutral-400" />
           <input
             type="text"
             placeholder="Search..."
             value={searchQuery()}
             onInput={(e) => setSearchQuery(e.currentTarget.value)}
-            class="w-full pl-9 pr-3 py-2 bg-neutral-900 border border-neutral-800 rounded-lg  text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700"
+            class="w-full pl-9 pr-3 py-2 bg-neutral-900 dark:bg-neutral-900 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-primary"
           />
         </div>
       </div>
@@ -443,7 +454,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
       {/* Mobile: Simple aside with fixed positioning */}
       <Show when={isMounted() && isMobile()}>
         <aside
-          class="w-80 h-full border-r border-neutral-800 bg-neutral-950 flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out"
+          class="w-80 h-full border-r border-neutral-800 dark:border-neutral-800 light:border-neutral-200 bg-neutral-950 dark:bg-neutral-950 light:bg-white flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out"
           classList={{
             "-translate-x-full": !props.sidebarOpen,
             "translate-x-0": props.sidebarOpen,
@@ -461,7 +472,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           minSize={240}
           maxSize={600}
           resizeFrom="right"
-          class="h-full border-r border-neutral-800 bg-neutral-950 flex flex-col relative"
+          class="h-full border-r border-neutral-800 dark:border-neutral-800 light:border-neutral-200 bg-neutral-950 dark:bg-neutral-950 light:bg-white flex flex-col relative"
         >
           <SidebarContent />
         </ResizableContainer>
@@ -474,7 +485,9 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         onConfirm={handleCreateDocument}
         onCancel={() => setShowNewDocModal(false)}
       >
-        <p class=" text-neutral-400 mb-3">Creating in: {targetFolder()}</p>
+        <p class=" text-neutral-400 dark:text-neutral-400 light:text-neutral-600 mb-3">
+          Creating in: {targetFolder()}
+        </p>
         <input
           ref={newDocInputRef}
           type="text"
@@ -482,7 +495,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           value={newItemName()}
           onInput={(e) => setNewItemName(e.currentTarget.value)}
           onKeyPress={(e) => e.key === "Enter" && handleCreateDocument()}
-          class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
+          class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-primary mb-4"
         />
       </AlertDialog>
 
@@ -493,7 +506,9 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         onConfirm={handleCreateFolder}
         onCancel={() => setShowNewFolderModal(false)}
       >
-        <p class=" text-neutral-400 mb-3">Creating in: {targetFolder()}</p>
+        <p class=" text-neutral-400 dark:text-neutral-400 light:text-neutral-600 mb-3">
+          Creating in: {targetFolder()}
+        </p>
         <input
           ref={newFolderInputRef}
           type="text"
@@ -501,7 +516,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           value={newItemName()}
           onInput={(e) => setNewItemName(e.currentTarget.value)}
           onKeyPress={(e) => e.key === "Enter" && handleCreateFolder()}
-          class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
+          class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-primary mb-4"
         />
       </AlertDialog>
 
@@ -512,7 +527,9 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         onConfirm={handleRename}
         onCancel={() => setShowRenameModal(false)}
       >
-        <p class=" text-neutral-400 mb-3">Current: {itemToRename()}</p>
+        <p class=" text-neutral-400 dark:text-neutral-400 light:text-neutral-600 mb-3">
+          Current: {itemToRename()}
+        </p>
         <input
           ref={renameInputRef}
           type="text"
@@ -520,7 +537,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           value={newItemName()}
           onInput={(e) => setNewItemName(e.currentTarget.value)}
           onKeyPress={(e) => e.key === "Enter" && handleRename()}
-          class="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-neutral-700 mb-4"
+          class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-primary mb-4"
         />
       </AlertDialog>
     </>

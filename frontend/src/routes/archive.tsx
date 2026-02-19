@@ -82,8 +82,8 @@ export default function ArchivePage() {
         >
           <div class="i-carbon-arrow-left w-5 h-5" />
         </Button>
-        <div class="i-carbon-archive w-8 h-8 text-neutral-400" />
-        <h1 class="text-2xl sm:text-3xl font-bold text-white">
+        <div class="i-carbon-archive w-8 h-8 text-neutral-400 dark:text-neutral-400 light:text-neutral-500" />
+        <h1 class="text-2xl sm:text-3xl font-bold text-white dark:text-white light:text-neutral-900">
           Archived Documents
         </h1>
       </div>
@@ -92,14 +92,14 @@ export default function ArchivePage() {
         when={!loading()}
         fallback={
           <div class="flex justify-center py-12">
-            <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500" />
+            <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500 dark:text-neutral-500 light:text-neutral-400" />
           </div>
         }
       >
         <Show
           when={archivedDocs().length > 0}
           fallback={
-            <div class="text-center py-12 text-neutral-400">
+            <div class="text-center py-12 text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
               <div class="i-carbon-folder-off w-16 h-16 mx-auto mb-4 opacity-50" />
               <p>No archived documents</p>
             </div>
@@ -108,18 +108,15 @@ export default function ArchivePage() {
           <div class="space-y-2 w-full">
             <For each={archivedDocs()}>
               {(doc) => (
-                <div class="bg-neutral-800 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-neutral-750 transition-colors">
+                <div class="bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-neutral-750 dark:hover:bg-neutral-750 light:hover:bg-neutral-100 transition-colors border border-transparent light:border-neutral-300 light:shadow-sm">
                   <div class="flex items-center gap-3 flex-1 min-w-0">
-                    <div class="i-carbon-document w-5 h-5 text-neutral-400 flex-shrink-0" />
+                    <div class="i-carbon-document w-5 h-5 text-neutral-400 dark:text-neutral-400 light:text-neutral-500 flex-shrink-0" />
                     <div class="min-w-0 flex-1">
-                      <p class="text-white truncate">
+                      <p class="text-white dark:text-white light:text-neutral-900 font-medium truncate">
                         {getDisplayName(doc.path)}
                       </p>
-                      <p class="text-xs text-neutral-400 truncate">
-                        {doc.path}
-                      </p>
                       <Show when={doc.archived_at}>
-                        <p class="text-xs text-neutral-500 mt-1">
+                        <p class="text-xs text-neutral-500 dark:text-neutral-500 light:text-neutral-500 mt-1">
                           Archived {formatDate(doc.archived_at)}
                         </p>
                       </Show>
@@ -129,13 +126,10 @@ export default function ArchivePage() {
                   <div class="flex items-center gap-2 w-full sm:w-auto">
                     <Button
                       onClick={() => handleRestore(doc.path)}
-                      variant="ghost"
+                      variant="secondary"
                       size="sm"
-                      class="flex-1 sm:flex-none"
-                      title="Restore document"
                     >
-                      <div class="i-carbon-undo w-4 h-4" />
-                      <span>Restore</span>
+                      <div class="i-carbon-reset w-4 h-4" />
                     </Button>
 
                     <Button
@@ -160,7 +154,7 @@ export default function ArchivePage() {
         onConfirm={() => deleteConfirm() && handleDelete(deleteConfirm()!)}
         onCancel={() => setDeleteConfirm(null)}
       >
-        <p class="text-neutral-400">
+        <p class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
           Are you sure you want to permanently delete "
           {deleteConfirm() && getDisplayName(deleteConfirm()!)}"? This action
           cannot be undone.

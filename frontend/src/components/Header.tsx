@@ -10,7 +10,7 @@ interface HeaderProps {
 
 export default function Header(props: HeaderProps) {
   return (
-    <header class="h-14 border-b border-neutral-800 flex items-center justify-between px-2 sm:px-4 bg-neutral-950">
+    <header class="h-14 border-b border-neutral-800 dark:border-neutral-800 light:border-neutral-200 flex items-center justify-between px-2 sm:px-4 bg-neutral-950 dark:bg-neutral-950 light:bg-white">
       <div class="flex items-center gap-1 sm:gap-2">
         <Show when={!props.sidebarOpen}>
           <Button
@@ -30,7 +30,7 @@ export default function Header(props: HeaderProps) {
           title="Go to Dashboard"
         >
           <Logo color="#2a9d8f" />
-          <h1 class="hidden sm:block text-lg font-semibold text-neutral-100">
+          <h1 class="hidden sm:block text-lg font-semibold text-neutral-100 dark:text-neutral-100 light:text-neutral-900">
             plumio
           </h1>
         </Button>
