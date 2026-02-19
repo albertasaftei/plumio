@@ -249,15 +249,57 @@ export default function MarkdownEditor(props: EditorProps) {
             break;
           }
           case "toggleBulletList": {
-            const { wrapInBulletListCommand } =
-              await import("@milkdown/preset-commonmark");
-            callCommand(wrapInBulletListCommand.key)(ctx);
+            const { state } = view;
+            const { $from } = state.selection;
+            let inBulletList = false;
+
+            // Check if we're in a bullet list
+            for (let d = $from.depth; d > 0; d--) {
+              const node = $from.node(d);
+              if (node.type.name === "bullet_list") {
+                inBulletList = true;
+                break;
+              }
+            }
+
+            if (inBulletList) {
+              // Already in bullet list, lift out
+              const { liftListItemCommand } =
+                await import("@milkdown/preset-commonmark");
+              callCommand(liftListItemCommand.key)(ctx);
+            } else {
+              // Not in bullet list, wrap
+              const { wrapInBulletListCommand } =
+                await import("@milkdown/preset-commonmark");
+              callCommand(wrapInBulletListCommand.key)(ctx);
+            }
             break;
           }
           case "toggleOrderedList": {
-            const { wrapInOrderedListCommand } =
-              await import("@milkdown/preset-commonmark");
-            callCommand(wrapInOrderedListCommand.key)(ctx);
+            const { state } = view;
+            const { $from } = state.selection;
+            let inOrderedList = false;
+
+            // Check if we're in an ordered list
+            for (let d = $from.depth; d > 0; d--) {
+              const node = $from.node(d);
+              if (node.type.name === "ordered_list") {
+                inOrderedList = true;
+                break;
+              }
+            }
+
+            if (inOrderedList) {
+              // Already in ordered list, lift out
+              const { liftListItemCommand } =
+                await import("@milkdown/preset-commonmark");
+              callCommand(liftListItemCommand.key)(ctx);
+            } else {
+              // Not in ordered list, wrap
+              const { wrapInOrderedListCommand } =
+                await import("@milkdown/preset-commonmark");
+              callCommand(wrapInOrderedListCommand.key)(ctx);
+            }
             break;
           }
           case "toggleTaskList": {
@@ -269,15 +311,12 @@ export default function MarkdownEditor(props: EditorProps) {
               if (node.type.name === "list_item") {
                 const pos = $from.before(d);
                 if (node.attrs.checked != null) {
-                  // Convert back to regular list item
-                  view.dispatch(
-                    state.tr.setNodeMarkup(pos, undefined, {
-                      ...node.attrs,
-                      checked: null,
-                    }),
-                  );
+                  // Already a task list item, lift out entirely
+                  const { liftListItemCommand } =
+                    await import("@milkdown/preset-commonmark");
+                  callCommand(liftListItemCommand.key)(ctx);
                 } else {
-                  // Convert to task list item
+                  // Regular list item, convert to task list item
                   view.dispatch(
                     state.tr.setNodeMarkup(pos, undefined, {
                       ...node.attrs,
