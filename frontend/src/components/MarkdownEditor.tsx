@@ -398,7 +398,6 @@ export default function MarkdownEditor(props: EditorProps) {
       const { upload } = await import("@milkdown/plugin-upload");
       const { math } = await import("@milkdown/plugin-math");
 
-      await import("@milkdown/theme-nord/style.css");
       await import("../styles/milkdown-theme.css");
 
       editorInstance = await Editor.make()

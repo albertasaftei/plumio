@@ -5,8 +5,6 @@ const LANGUAGES = [
   { value: "", label: "Plain Text" },
   { value: "javascript", label: "JavaScript" },
   { value: "typescript", label: "TypeScript" },
-  { value: "jsx", label: "JSX" },
-  { value: "tsx", label: "TSX" },
   { value: "html", label: "HTML" },
   { value: "css", label: "CSS" },
   { value: "scss", label: "SCSS" },
@@ -174,11 +172,13 @@ export const codeBlockViewPlugin = $prose(() => {
 
           // ── Pre / Code elements (ProseMirror content goes in <code>) ──
           const pre = document.createElement("pre");
+          const code = document.createElement("code");
+
           if (initialNode.attrs.language) {
             pre.dataset.language = initialNode.attrs.language;
+            code.className = `language-${initialNode.attrs.language}`;
           }
 
-          const code = document.createElement("code");
           pre.appendChild(code);
 
           wrapper.appendChild(header);
@@ -200,8 +200,10 @@ export const codeBlockViewPlugin = $prose(() => {
 
               if (lang) {
                 pre.dataset.language = lang;
+                code.className = `language-${lang}`;
               } else {
                 delete pre.dataset.language;
+                code.className = "";
               }
               return true;
             },
