@@ -143,11 +143,11 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     return (
       <>
         <div
-          class={`group relative hover:bg-neutral-900 dark:hover:bg-neutral-900 light:hover:bg-neutral-100 border-l-4 transition-colors border-y border-neutral-800/50 dark:border-neutral-800/50 light:border-neutral-200/50 ${
+          class={`group relative hover:bg-neutral-900 dark:hover:bg-neutral-900 light:hover:bg-neutral-100 border-l-4 transition-colors rounded-md m-2 ${
             nodeProps.node.path === props.currentPath
               ? "border-l-primary"
               : "border-l-transparent"
-          }`}
+          } ${nodeProps.node.depth === 0 ? "mb-0" : ""}`}
           style={{
             "padding-left": paddingLeft(),
             "background-color": getBackgroundColor(),
@@ -327,21 +327,16 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
               </Popover>
             </div>
           </div>
-
-          <Show when={nodeProps.node.type === "file"}>
-            <div
-              class="text-sm text-neutral-600 dark:text-neutral-600 light:text-neutral-500 pb-1 flex items-center gap-2"
-              style={{ "padding-left": "28px" }}
-            >
-              <span>{formatDate(nodeProps.node.modified)}</span>
-            </div>
-          </Show>
         </div>
 
         <Show when={nodeProps.node.type === "folder" && isExpanded()}>
-          <For each={nodeProps.node.children}>
-            {(child) => <TreeNode node={child} />}
-          </For>
+          <div
+            class={`${nodeProps.node.depth === 0 ? "mb-1" : ""} ml-8 mr-2 pl-2 border-l-2 border-neutral-800 dark:border-neutral-800 light:border-neutral-300`}
+          >
+            <For each={nodeProps.node.children}>
+              {(child) => <TreeNode node={child} />}
+            </For>
+          </div>
         </Show>
       </>
     );
