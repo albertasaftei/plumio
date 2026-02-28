@@ -1,5 +1,4 @@
 import type { Document } from "~/lib/api";
-import type { JSX } from "solid-js";
 
 export interface SidebarProps {
   documents: Document[];

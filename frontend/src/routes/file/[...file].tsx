@@ -25,7 +25,9 @@ export default function DocumentPage() {
     // params.file contains the full path for catch-all routes
     // Decode URI components to handle spaces and special characters
     const path = params.file || "";
-    return decodeURIComponent(path);
+    const decoded = decodeURIComponent(path);
+    // Ensure path always starts with /
+    return decoded.startsWith("/") ? decoded : `/${decoded}`;
   };
 
   const loadDocument = async () => {
