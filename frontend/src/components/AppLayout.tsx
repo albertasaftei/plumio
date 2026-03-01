@@ -329,7 +329,6 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
                   onClick={() => setSidebarOpen(true)}
                   variant="ghost"
                   size="md"
-                  class="lg:hidden"
                 >
                   <div class="i-carbon-menu w-5 h-5" />
                 </Button>

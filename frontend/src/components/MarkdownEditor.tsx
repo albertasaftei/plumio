@@ -751,7 +751,7 @@ export default function MarkdownEditor(props: EditorProps) {
   });
 
   return (
-    <div class="w-full h-full flex flex-col not-prose">
+    <div class="flex-1 min-h-0 flex flex-col not-prose">
       <EditorToolbar
         onCommand={handleCommand}
         hasSelection={hasSelection()}
@@ -765,7 +765,7 @@ export default function MarkdownEditor(props: EditorProps) {
         onRemove={handleRemoveLink}
         onClose={() => setShowLinkPopup(false)}
       />
-      <div class="overflow-auto">
+      <div class="flex-1 min-h-0 overflow-auto">
         <div
           ref={editorRef}
           class="milkdown-editor-wrapper max-w-5xl mx-auto p-4 sm:pt-8 sm:pb-32 scrollbar-hidden"
