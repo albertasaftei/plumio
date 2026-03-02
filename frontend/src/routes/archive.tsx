@@ -105,7 +105,7 @@ export default function ArchivePage() {
           <div class="space-y-2 w-full">
             <For each={archivedDocs()}>
               {(doc) => (
-                <div class="bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-neutral-750 dark:hover:bg-neutral-750 light:hover:bg-neutral-100 transition-colors border border-transparent light:border-neutral-300 light:shadow-sm">
+                <div class="bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-neutral-750 dark:hover:bg-neutral-750 light:hover:bg-neutral-100 transition-colors border border-transparent light:border-neutral-300 light:shadow-sm cursor-pointer">
                   <div class="flex items-center gap-3 flex-1 min-w-0">
                     <div class="i-carbon-document w-5 h-5 text-neutral-400 dark:text-neutral-400 light:text-neutral-500 flex-shrink-0" />
                     <div class="min-w-0 flex-1">

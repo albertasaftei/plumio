@@ -166,6 +166,24 @@ export const documentQueries = {
     WHERE d.organization_id = ? AND d.archived = 0 AND documents_fts MATCH ?
     ORDER BY rank
   `),
+  searchWithSnippets: db.prepare<
+    [number, string],
+    {
+      path: string;
+      title: string;
+      color: string | null;
+      updated_at: string;
+      size: number;
+      snippet: string;
+    }
+  >(`
+    SELECT d.path, d.title, d.color, d.updated_at, d.size,
+           snippet(documents_fts, 2, '<mark>', '</mark>', '...', 20) as snippet
+    FROM documents_fts
+    INNER JOIN documents d ON documents_fts.rowid = d.id
+    WHERE d.organization_id = ? AND d.archived = 0 AND (d.deleted = 0 OR d.deleted IS NULL) AND documents_fts MATCH ?
+    ORDER BY rank
+  `),
   updateContent: db.prepare<[number, string]>(`
     DELETE FROM documents_fts 
     WHERE rowid = (SELECT id FROM documents WHERE organization_id = ? AND path = ?)

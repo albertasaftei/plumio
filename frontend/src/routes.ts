@@ -5,5 +5,6 @@ export const routes = {
   file: "/file/*",
   archive: "/archive",
   deleted: "/deleted",
+  search: "/search",
   settings: "/settings",
 } as const;

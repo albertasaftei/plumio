@@ -498,6 +498,19 @@ export class ApiClient {
       body: JSON.stringify({ path, favorite }),
     });
   }
+
+  async searchDocuments(query: string) {
+    return this.request<{
+      results: Array<{
+        path: string;
+        title: string;
+        color: string | null;
+        modified: string;
+        size: number;
+        snippet: string;
+      }>;
+    }>(`/api/documents/search?q=${encodeURIComponent(query)}`);
+  }
 }
 
 // Conditional API client - uses demo client in demo mode, otherwise real API client

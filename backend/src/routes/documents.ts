@@ -57,6 +57,11 @@ function decrypt(text: string): string {
   return decrypted;
 }
 
+// Escape HTML special characters before storing in FTS to prevent XSS via snippet()
+function escapeHtmlForFts(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 // Sanitize path to prevent directory traversal
 function sanitizePath(userPath: string, organizationId: number): string {
   const normalized = path.normalize(userPath).replace(/^(\.\.[\/\\])+/, "");
@@ -368,7 +373,7 @@ documentsRouter.post("/save", async (c) => {
       uniquePath,
       organizationId,
       uniquePath,
-      content,
+      escapeHtmlForFts(content),
     );
 
     return c.json({ message: "Document saved successfully", path: uniquePath });
@@ -797,8 +802,18 @@ documentsRouter.get("/search", async (c) => {
       return c.json({ error: "No organization context" }, 400);
     }
 
-    // Search using SQLite FTS5
-    const results = documentQueries.search.all(organizationId, query);
+    // Search using SQLite FTS5 with snippets
+    const sanitizedQuery = query.trim().replace(/['"*]/g, "");
+    const tokens = sanitizedQuery.split(/\s+/).filter(Boolean);
+    if (tokens.length === 0) {
+      return c.json({ results: [] });
+    }
+    const ftsQuery = tokens.map((token) => `"${token}"*`).join(" OR ");
+
+    const results = documentQueries.searchWithSnippets.all(
+      organizationId,
+      ftsQuery,
+    );
 
     // Return results with relevant info
     const searchResults = results.map((doc) => ({
@@ -807,6 +822,7 @@ documentsRouter.get("/search", async (c) => {
       color: doc.color,
       modified: doc.updated_at,
       size: doc.size,
+      snippet: doc.snippet || "",
     }));
 
     return c.json({ results: searchResults });

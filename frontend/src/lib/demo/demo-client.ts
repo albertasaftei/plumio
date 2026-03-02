@@ -454,6 +454,54 @@ export const demoClient = {
     return { items: docs.filter((d) => d.deleted) };
   },
 
+  async searchDocuments(query: string) {
+    await ensureReady();
+    const docs = getDemoDocuments().filter((d) => !d.deleted && !d.archived);
+    const lower = query.toLowerCase();
+
+    const results = docs
+      .filter(
+        (d) =>
+          d.content?.toLowerCase().includes(lower) ||
+          d.path.toLowerCase().includes(lower),
+      )
+      .map((d) => {
+        // Build a simple snippet around the first match
+        const rawContent = d.content || "";
+        const escapedQuery = lower.replace(/[&<>"']/g, "");
+        const idx = rawContent.toLowerCase().indexOf(lower);
+        let snippet = "";
+        if (idx !== -1) {
+          const start = Math.max(0, idx - 60);
+          const end = Math.min(rawContent.length, idx + lower.length + 60);
+          // Escape HTML in the slice before inserting mark tags
+          const rawSlice = rawContent.slice(start, end);
+          const escapedSlice = rawSlice
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+          const highlighted = escapedSlice.replace(
+            new RegExp(escapedQuery, "gi"),
+            (m) => `<mark>${m}</mark>`,
+          );
+          snippet =
+            (start > 0 ? "..." : "") +
+            highlighted +
+            (end < rawContent.length ? "..." : "");
+        }
+        return {
+          path: d.path,
+          title: d.path.split("/").pop()?.replace(/\.md$/, "") ?? d.path,
+          color: d.color ?? null,
+          modified: d.modified ?? new Date().toISOString(),
+          size: d.size ?? 0,
+          snippet,
+        };
+      });
+
+    return { results };
+  },
+
   async restoreDeletedDocument(path: string) {
     await ensureReady();
     const docs = getDemoDocuments();

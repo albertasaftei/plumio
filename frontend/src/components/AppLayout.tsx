@@ -317,6 +317,12 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
                   setSidebarOpen(false);
                 }
               }}
+              onViewSearch={() => {
+                navigate(routes.search);
+                if (window.innerWidth < 1024) {
+                  setSidebarOpen(false);
+                }
+              }}
             />
           )}
 

@@ -360,6 +360,14 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           <div class="i-carbon-home w-5 h-5 flex-shrink-0" />
         </Button>
         <Button
+          onClick={() => props.onViewSearch()}
+          variant="icon"
+          size="md"
+          title="Full-text Search"
+        >
+          <div class="i-carbon-search w-5 h-5 flex-shrink-0" />
+        </Button>
+        <Button
           onClick={() => props.onViewArchive()}
           variant="icon"
           size="md"
@@ -404,7 +412,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             <OrganizationSelector onSwitch={props.onOrgSwitch} fullWidth />
           </div>
 
-          <div class="flex gap-2 mb-3">
+          <div class="flex gap-2">
             <Button
               onClick={() => {
                 setTargetFolder("/");
@@ -429,18 +437,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             >
               <div class="i-carbon-folder-add w-4 h-4" />
             </Button>
-          </div>
-
-          {/* Search */}
-          <div class="relative">
-            <div class="absolute left-3 top-1/2 -translate-y-1/2 i-carbon-search w-4 h-4 text-neutral-500 dark:text-neutral-500 light:text-neutral-400" />
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery()}
-              onInput={(e) => setSearchQuery(e.currentTarget.value)}
-              class="w-full pl-9 pr-3 py-2 bg-neutral-900 dark:bg-neutral-900 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-primary"
-            />
           </div>
         </div>
 
