@@ -419,7 +419,6 @@ export default function MarkdownEditor(props: EditorProps) {
         .use(listener)
         .use(history)
         .use(prism)
-        .use(block)
         .use(indent)
         .use(upload)
         .use(math)

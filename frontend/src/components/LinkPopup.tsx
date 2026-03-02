@@ -5,6 +5,7 @@ import {
   Show,
   createMemo,
 } from "solid-js";
+import Button from "./Button";
 
 interface LinkPopupProps {
   show: boolean;
@@ -97,27 +98,26 @@ const LinkPopup: Component<LinkPopupProps> = (props) => {
 
           <div class="flex gap-3 mt-6">
             <Show when={props.isEdit}>
-              <button
-                onClick={props.onRemove}
-                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-              >
+              <Button variant="danger" onClick={props.onRemove}>
                 Remove
-              </button>
+              </Button>
             </Show>
             <div class="flex-1 flex gap-3">
-              <button
+              <Button
+                variant="secondary"
                 onClick={props.onClose}
-                class="flex-1 px-4 py-2 bg-neutral-700 hover:bg-neutral-600 text-white rounded transition-colors"
+                class="w-full justify-center"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
                 onClick={handleSubmit}
                 disabled={!href().trim()}
-                class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-700 disabled:cursor-not-allowed text-white rounded transition-colors"
+                class="w-full justify-center"
               >
                 {props.isEdit ? "Update" : "Add"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

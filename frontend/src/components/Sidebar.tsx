@@ -197,7 +197,12 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
               <div class="i-carbon-star-filled w-4 h-4 text-yellow-400 flex-shrink-0" />
             </Show>
 
-            <div class="flex items-center gap-1 ">
+            <div
+              class="flex items-center gap-1 transition-opacity opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+              classList={{
+                "lg:!opacity-100": openMenuPath() === nodeProps.node.path,
+              }}
+            >
               <Popover
                 open={openMenuPath() === nodeProps.node.path}
                 onOpenChange={(isOpen) => {
@@ -343,108 +348,108 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
   };
 
   const SidebarContent = () => (
-    <>
-      {/* Sidebar Header */}
-      <div class="p-4 sm:p-4 border-b border-neutral-800 dark:border-neutral-800 light:border-neutral-200">
-        <div class="w-full flex items-center justify-end pb-4 lg:hidden">
-          <Button
-            onClick={() => props.setSidebarOpen(false)}
-            variant="icon"
-            size="md"
-            title="Close sidebar"
-          >
-            <div class="i-carbon-close w-5 h-5" />
-          </Button>
-        </div>
-        <div class="pb-4">
-          <OrganizationSelector onSwitch={props.onOrgSwitch} fullWidth />
-        </div>
-
-        <div class="flex gap-2 mb-3">
-          <Button
-            onClick={() => {
-              setTargetFolder("/");
-              setShowNewDocModal(true);
-            }}
-            variant="primary"
-            size="md"
-            fullWidth
-            class="justify-center"
-          >
-            <div class="i-carbon-document-add w-4 h-4" />
-            New file
-          </Button>
-          <Button
-            onClick={() => {
-              setTargetFolder("/");
-              setShowNewFolderModal(true);
-            }}
-            variant="secondary"
-            size="md"
-            title="New folder"
-          >
-            <div class="i-carbon-folder-add w-4 h-4" />
-          </Button>
-        </div>
-
-        {/* Search */}
-        <div class="relative">
-          <div class="absolute left-3 top-1/2 -translate-y-1/2 i-carbon-search w-4 h-4 text-neutral-500 dark:text-neutral-500 light:text-neutral-400" />
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery()}
-            onInput={(e) => setSearchQuery(e.currentTarget.value)}
-            class="w-full pl-9 pr-3 py-2 bg-neutral-900 dark:bg-neutral-900 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-primary"
-          />
-        </div>
-      </div>
-
-      {/* Documents Tree */}
-      <div class="flex-1 overflow-y-auto scrollbar-none">
-        <For each={filteredTree()}>{(node) => <TreeNode node={node} />}</For>
-      </div>
-
-      {/* Options Buttons */}
-      <div class="p-4 space-y-2">
+    <div class="flex h-full w-full">
+      {/* Small Sidebar */}
+      <div class="w-14 flex-shrink-0 border-r border-neutral-800 dark:border-neutral-800 light:border-neutral-200 bg-neutral-950 dark:bg-neutral-950 light:bg-neutral-50 flex flex-col items-center py-4 gap-4">
         <Button
           onClick={() => props.onViewHome()}
-          variant="ghost"
+          variant="icon"
           size="md"
-          fullWidth
+          title="Homepage"
         >
-          <div class="i-carbon-home w-4 h-4" />
-          <span class="ml-2">Homepage</span>
+          <div class="i-carbon-home w-5 h-5 flex-shrink-0" />
         </Button>
         <Button
           onClick={() => props.onViewArchive()}
-          variant="ghost"
+          variant="icon"
           size="md"
-          fullWidth
+          title="View Archive"
         >
-          <div class="i-carbon-archive w-4 h-4" />
-          <span class="ml-2">View Archive</span>
+          <div class="i-carbon-archive w-5 h-5 flex-shrink-0" />
         </Button>
         <Button
           onClick={() => props.onViewDeleted()}
-          variant="ghost"
+          variant="icon"
           size="md"
-          fullWidth
+          title="Recently Deleted"
         >
-          <div class="i-carbon-trash-can w-4 h-4" />
-          <span class="ml-2">Recently Deleted</span>
+          <div class="i-carbon-trash-can w-5 h-5 flex-shrink-0" />
         </Button>
+        <div class="flex-1" />
         <Button
           onClick={() => navigate(routes.settings)}
-          variant="ghost"
+          variant="icon"
           size="md"
-          fullWidth
+          title="Settings"
         >
-          <div class="i-carbon-settings w-4 h-4" />
-          <span class="ml-2">Settings</span>
+          <div class="i-carbon-settings w-5 h-5 flex-shrink-0" />
         </Button>
       </div>
-    </>
+
+      {/* Big Sidebar */}
+      <div class="flex-1 flex flex-col min-w-0 bg-neutral-950 dark:bg-neutral-950 light:bg-white">
+        {/* Sidebar Header */}
+        <div class="p-4 sm:p-4 border-b border-neutral-800 dark:border-neutral-800 light:border-neutral-200">
+          <div class="w-full flex items-center justify-end pb-4 lg:hidden">
+            <Button
+              onClick={() => props.setSidebarOpen(false)}
+              variant="icon"
+              size="md"
+              title="Close sidebar"
+            >
+              <div class="i-carbon-close w-5 h-5" />
+            </Button>
+          </div>
+          <div class="pb-4">
+            <OrganizationSelector onSwitch={props.onOrgSwitch} fullWidth />
+          </div>
+
+          <div class="flex gap-2 mb-3">
+            <Button
+              onClick={() => {
+                setTargetFolder("/");
+                setShowNewDocModal(true);
+              }}
+              variant="primary"
+              size="md"
+              fullWidth
+              class="justify-center"
+            >
+              <div class="i-carbon-document-add w-4 h-4" />
+              New file
+            </Button>
+            <Button
+              onClick={() => {
+                setTargetFolder("/");
+                setShowNewFolderModal(true);
+              }}
+              variant="secondary"
+              size="md"
+              title="New folder"
+            >
+              <div class="i-carbon-folder-add w-4 h-4" />
+            </Button>
+          </div>
+
+          {/* Search */}
+          <div class="relative">
+            <div class="absolute left-3 top-1/2 -translate-y-1/2 i-carbon-search w-4 h-4 text-neutral-500 dark:text-neutral-500 light:text-neutral-400" />
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery()}
+              onInput={(e) => setSearchQuery(e.currentTarget.value)}
+              class="w-full pl-9 pr-3 py-2 bg-neutral-900 dark:bg-neutral-900 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-primary"
+            />
+          </div>
+        </div>
+
+        {/* Documents Tree */}
+        <div class="flex-1 overflow-y-auto scrollbar-none pb-4">
+          <For each={filteredTree()}>{(node) => <TreeNode node={node} />}</For>
+        </div>
+      </div>
+    </div>
   );
 
   return (
@@ -466,8 +471,8 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
       {/* Show by default (SSR) and after mount when not mobile */}
       <Show when={!isMounted() || !isMobile()}>
         <ResizableContainer
-          initialSize={320}
-          minSize={240}
+          initialSize={350}
+          minSize={300}
           maxSize={600}
           resizeFrom="right"
           class="h-full border-r border-neutral-800 dark:border-neutral-800 light:border-neutral-200 bg-neutral-950 dark:bg-neutral-950 light:bg-white flex flex-col relative"
