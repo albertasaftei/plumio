@@ -20,6 +20,44 @@ async function ensureReady() {
   await ensureDemoSeeded();
 }
 
+// Generate a unique path by appending (1), (2), etc. if the path already exists
+function getUniquePath(
+  basePath: string,
+  existingPaths: string[],
+  isFolder: boolean = false,
+): string {
+  if (!existingPaths.includes(basePath)) {
+    return basePath;
+  }
+
+  const lastSlash = basePath.lastIndexOf("/");
+  const dir = lastSlash > 0 ? basePath.substring(0, lastSlash) : "/";
+  const filename = basePath.substring(lastSlash + 1);
+
+  if (isFolder) {
+    let counter = 1;
+    while (true) {
+      const newName = `${filename} (${counter})`;
+      const newPath = dir === "/" ? `/${newName}` : `${dir}/${newName}`;
+      if (!existingPaths.includes(newPath)) return newPath;
+      counter++;
+    }
+  } else {
+    const lastDot = filename.lastIndexOf(".");
+    const ext = lastDot > 0 ? filename.substring(lastDot) : "";
+    const nameWithoutExt =
+      lastDot > 0 ? filename.substring(0, lastDot) : filename;
+
+    let counter = 1;
+    while (true) {
+      const newName = `${nameWithoutExt} (${counter})${ext}`;
+      const newPath = dir === "/" ? `/${newName}` : `${dir}/${newName}`;
+      if (!existingPaths.includes(newPath)) return newPath;
+      counter++;
+    }
+  }
+}
+
 export const demoClient = {
   // Auth
   async checkSetup() {
@@ -178,15 +216,17 @@ export const demoClient = {
     const docs = getDemoDocuments();
 
     if (isNew) {
+      const existingPaths = docs.filter((d) => !d.deleted).map((d) => d.path);
+      const uniquePath = getUniquePath(path, existingPaths, false);
       const newDoc = {
-        path,
+        path: uniquePath,
         content,
         modified: new Date().toISOString(),
         size: content.length,
       };
       docs.push(newDoc);
       saveDemoDocuments(docs);
-      return { message: "Document created", path };
+      return { message: "Document created", path: uniquePath };
     } else {
       const doc = docs.find((d) => d.path === path && !d.deleted);
       if (!doc) throw new Error("Document not found");
@@ -202,9 +242,24 @@ export const demoClient = {
 
   async createFolder(path: string) {
     await ensureReady();
-    // Store this folder so it persists even when empty
-    addCreatedFolder(path);
-    return { message: "Folder created", path };
+    const docs = getDemoDocuments();
+    // Collect all known folder paths (explicit + implicit from document paths)
+    const implicitFolders = new Set<string>();
+    docs
+      .filter((d) => !d.deleted)
+      .forEach((d) => {
+        const parts = d.path.split("/").filter(Boolean);
+        for (let i = 1; i < parts.length; i++) {
+          implicitFolders.add("/" + parts.slice(0, i).join("/"));
+        }
+      });
+    const existingFolderPaths = [
+      ...getCreatedFolders(),
+      ...Array.from(implicitFolders),
+    ];
+    const uniquePath = getUniquePath(path, existingFolderPaths, true);
+    addCreatedFolder(uniquePath);
+    return { message: "Folder created", path: uniquePath };
   },
 
   async deleteItem(path: string) {
