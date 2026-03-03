@@ -12,7 +12,6 @@
     "@kobalte/core": "^0.13.11",
     "@milkdown/core": "^7.18.0",
     "@milkdown/ctx": "^7.18.0",
-    "@milkdown/plugin-block": "^7.18.0",
     "@milkdown/plugin-history": "^7.18.0",
     "@milkdown/plugin-indent": "^7.18.0",
     "@milkdown/plugin-listener": "^7.18.0",
