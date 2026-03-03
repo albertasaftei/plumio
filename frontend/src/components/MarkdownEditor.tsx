@@ -393,7 +393,6 @@ export default function MarkdownEditor(props: EditorProps) {
         await import("@milkdown/plugin-listener");
       const { history } = await import("@milkdown/plugin-history");
       const { prism } = await import("@milkdown/plugin-prism");
-      const { block } = await import("@milkdown/plugin-block");
       const { indent } = await import("@milkdown/plugin-indent");
       const { upload } = await import("@milkdown/plugin-upload");
       const { math } = await import("@milkdown/plugin-math");
