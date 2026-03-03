@@ -31,10 +31,9 @@
 }
 
 .feature_card {
-  border: 1px solid var(--ifm-border-color);
   border-radius: var(--ifm-global-radius);
   padding: 1.5rem;
   transition: all 0.2s ease;
   min-height: 200px;
-  box-shadow: 0px 0px 10px 0px #ffffff20;
+  background-color: #17171c;
 }

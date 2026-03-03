@@ -62,7 +62,6 @@
   justify-content: center;
   border: 1px solid var(--ifm-border-color);
   border-radius: 12px;
-  box-shadow: 0px 0px 25px 0px var(--ifm-border-color);
 }
 
 .hero-text__container {
