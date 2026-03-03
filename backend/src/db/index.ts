@@ -11,6 +11,8 @@ import {
   Session,
   User,
 } from "./index.types.js";
+import fsp from "fs/promises";
+import pathMod from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -357,5 +359,107 @@ setInterval(
   },
   24 * 60 * 60 * 1000,
 ); // Every 24 hours
+
+// Reconcile DB records against physical files - runs daily
+async function reconcileDocuments() {
+  try {
+    let orgDirs: string[];
+    try {
+      const entries = await fsp.readdir(DOCUMENTS_PATH, {
+        withFileTypes: true,
+      });
+
+      orgDirs = entries
+        .filter((e) => e.isDirectory() && e.name.startsWith("org-"))
+        .map((e) => e.name);
+    } catch {
+      return; // Documents directory doesn't exist yet
+    }
+
+    const findAnyRecord = db.prepare<[number, string], { id: number }>(
+      "SELECT id FROM documents WHERE organization_id = ? AND path = ? LIMIT 1",
+    );
+
+    const activeRecords = db.prepare<[number], { id: number; path: string }>(
+      "SELECT id, path FROM documents WHERE organization_id = ? AND (deleted = 0 OR deleted IS NULL) AND (archived = 0 OR archived IS NULL)",
+    );
+
+    let removedRecords = 0;
+    let removedFiles = 0;
+    let checked = 0;
+
+    for (const orgDir of orgDirs) {
+      const orgId = parseInt(orgDir.replace("org-", ""), 10);
+      if (isNaN(orgId)) continue;
+
+      const orgPath = pathMod.join(DOCUMENTS_PATH, orgDir);
+
+      // 1. DB records with no physical file → purge the record
+      const records = activeRecords.all(orgId);
+      for (const record of records) {
+        checked++;
+        const filePath = pathMod.join(orgPath, record.path);
+        try {
+          await fsp.access(filePath);
+        } catch {
+          console.log(
+            `  🗑️  Reconciliation: orphaned record removed [org-${orgId}] ${record.path}`,
+          );
+          documentQueries.permanentlyDeleteWithFtsCleanup(orgId, record.path);
+          removedRecords++;
+        }
+      }
+
+      // 2. Physical .md files with no DB record (any status) → delete the file
+      let diskFiles: string[];
+      try {
+        diskFiles = await fsp.readdir(orgPath);
+      } catch {
+        continue;
+      }
+
+      for (const fileName of diskFiles) {
+        // Only consider plain .md files; skip meta, deleted, archived variants
+        if (!fileName.endsWith(".md")) continue;
+        if (/\.(deleted|archived)-\d+\.md$/.test(fileName)) continue;
+
+        // Normalize to the path stored in DB (leading slash)
+        const docPath = `/${fileName}`;
+        const existing = findAnyRecord.get(orgId, docPath);
+        if (!existing) {
+          const filePath = pathMod.join(orgPath, fileName);
+          try {
+            await fsp.unlink(filePath);
+            console.log(
+              `  🗑️  Reconciliation: untracked file deleted [org-${orgId}] ${fileName}`,
+            );
+            removedFiles++;
+          } catch (err) {
+            console.error(
+              `  ❌  Reconciliation: failed to delete untracked file [org-${orgId}] ${fileName}:`,
+              err,
+            );
+          }
+        }
+      }
+    }
+
+    const total = removedRecords + removedFiles;
+    if (total > 0) {
+      console.log(
+        `✅ Reconciliation complete: checked ${checked} records, removed ${removedRecords} orphaned DB entries and ${removedFiles} untracked files`,
+      );
+    } else {
+      console.log(
+        `✅ Reconciliation complete: checked ${checked} records, no issues found`,
+      );
+    }
+  } catch (error) {
+    console.error("❌ Reconciliation job failed:", error);
+  }
+}
+
+reconcileDocuments();
+setInterval(reconcileDocuments, 24 * 60 * 60 * 1000); // Every 24 hours
 
 export default db;

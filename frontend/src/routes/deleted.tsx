@@ -13,7 +13,6 @@ export default function DeletedPage() {
   const [deleteConfirm, setDeleteConfirm] = createSignal<string | null>(null);
 
   const loadDeleted = async () => {
-    console.log("loadDeleted");
     setLoading(true);
     try {
       const result = await api.listDeletedDocuments();
