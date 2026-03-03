@@ -26,13 +26,13 @@ export default function Editor(props: EditorProps) {
   };
 
   return (
-    <div class="flex-1 min-h-0 flex flex-col max-w-5xl mx-auto bg-neutral-900">
+    <div class="flex-1 min-h-0 flex flex-col min-w-5xl max-w-5xl mx-auto bg-neutral-950 dark:bg-neutral-950 light:bg-neutral-50">
       <textarea
         ref={textareaRef}
         value={props.content}
         onInput={handleInput}
         onKeyDown={handleKeyDown}
-        class="flex-1 min-h-0 w-full p-3 sm:p-6 bg-neutral-900 text-neutral-100 font-mono text-sm sm:text-base resize-none focus:outline-none"
+        class="flex-1 min-h-0 w-full p-3 sm:p-6 bg-neutral-950 dark:bg-neutral-950 light:bg-white font-mono text-sm sm:text-base resize-none focus:outline-none"
         placeholder="Start writing your markdown..."
         spellcheck={false}
       />
