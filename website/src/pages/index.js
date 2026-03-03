@@ -49,7 +49,7 @@ function HomepageHeader() {
         </div>
         <div className={styles["hero-image__container"]}>
           <img
-            src="/img/app-preview-v2.webp"
+            src="/img/app-preview-v2.3.0.webp"
             alt="plumio app preview"
             className={styles["preview-image"]}
           />
