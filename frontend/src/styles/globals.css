@@ -1,3 +1,42 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+
+/* ─── Design Tokens ─────────────────────────────────────────── */
+:root {
+  --color-primary: #2a9d8f;
+  --color-primary-dark: #21867a;
+  --color-primary-light: #3dbaa8;
+
+  /* Dark theme defaults */
+  --color-bg-base: #0a0a0a;
+  --color-bg-surface: #171717;
+  --color-bg-elevated: #262626;
+  --color-border: #404040;
+  --color-border-subtle: #262626;
+  --color-text-primary: #e5e5e5;
+  --color-text-secondary: #a3a3a3;
+  --color-text-muted: #525252;
+}
+
+.light {
+  --color-bg-base: #f5f5f5;
+  --color-bg-surface: #ffffff;
+  --color-bg-elevated: #fafafa;
+  --color-border: #d4d4d4;
+  --color-border-subtle: #e5e5e5;
+  --color-text-primary: #171717;
+  --color-text-secondary: #525252;
+  --color-text-muted: #a3a3a3;
+}
+
+/* ─── Focus Ring ─────────────────────────────────────────────── */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--color-bg-surface),
+    0 0 0 4px color-mix(in srgb, var(--color-primary) 60%, transparent);
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────── */
 .scrollbar-none {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */

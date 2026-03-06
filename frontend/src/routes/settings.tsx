@@ -60,7 +60,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div class="flex h-screen overflow-hidden bg-neutral-950 dark:bg-neutral-950 light:bg-neutral-100">
+    <div class="flex h-screen overflow-hidden bg-base">
       {/* Sidebar Overlay for mobile */}
       <Show when={sidebarOpen()}>
         <div
@@ -81,9 +81,9 @@ export default function SettingsPage() {
       />
 
       {/* Main Content */}
-      <div class="flex-1 overflow-auto bg-neutral-900 dark:bg-neutral-900 light:bg-white">
+      <div class="flex-1 overflow-auto bg-surface">
         {/* Mobile header with menu toggle */}
-        <div class="lg:hidden sticky top-0 z-10 bg-neutral-950 dark:bg-neutral-950 light:bg-white border-b border-neutral-800 dark:border-neutral-800 light:border-neutral-200 p-4 flex items-center gap-2">
+        <div class="lg:hidden sticky top-0 z-10 bg-base border-b border-subtle p-4 flex items-center gap-2">
           <Button
             onClick={() => setSidebarOpen(true)}
             variant="ghost"
@@ -98,7 +98,7 @@ export default function SettingsPage() {
           when={activeSection()}
           fallback={
             <div class="flex items-center justify-center h-full">
-              <div class="text-center text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
+              <div class="text-center text-muted-body">
                 <div class="i-carbon-settings w-16 h-16 mx-auto mb-4 opacity-50" />
                 <p>Select a settings option from the sidebar</p>
               </div>
@@ -116,7 +116,7 @@ export default function SettingsPage() {
                 >
                   <div class="i-carbon-arrow-left w-5 h-5" />
                 </Button>
-                <h2 class="text-2xl font-bold dark:text-white light:text-neutral-900">
+                <h2 class="text-2xl font-bold text-body">
                   Account
                 </h2>
               </div>
@@ -135,7 +135,7 @@ export default function SettingsPage() {
                 >
                   <div class="i-carbon-arrow-left w-5 h-5" />
                 </Button>
-                <h2 class="text-2xl font-bold dark:text-white light:text-neutral-900">
+                <h2 class="text-2xl font-bold text-body">
                   Import / Export
                 </h2>
               </div>
@@ -154,7 +154,7 @@ export default function SettingsPage() {
                 >
                   <div class="i-carbon-arrow-left w-5 h-5" />
                 </Button>
-                <h2 class="text-2xl font-bold dark:text-white light:text-neutral-900">
+                <h2 class="text-2xl font-bold text-body">
                   Organization
                 </h2>
               </div>
@@ -177,7 +177,7 @@ export default function SettingsPage() {
                 >
                   <div class="i-carbon-arrow-left w-5 h-5" />
                 </Button>
-                <h2 class="text-2xl font-bold dark:text-white light:text-neutral-900">
+                <h2 class="text-2xl font-bold text-body">
                   Admin Panel
                 </h2>
               </div>
@@ -200,7 +200,7 @@ export default function SettingsPage() {
                 >
                   <div class="i-carbon-arrow-left w-5 h-5" />
                 </Button>
-                <h2 class="text-2xl font-bold dark:text-white light:text-neutral-900">
+                <h2 class="text-2xl font-bold text-body">
                   Build Information
                 </h2>
               </div>

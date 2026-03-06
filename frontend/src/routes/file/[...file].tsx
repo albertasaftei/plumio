@@ -86,22 +86,22 @@ export default function DocumentPage() {
   return (
     <>
       {/* Current File Breadcrumb */}
-      <div class="px-4 py-2 border-b border-neutral-800 dark:border-neutral-800 light:border-neutral-300 bg-neutral-950 dark:bg-neutral-950 light:bg-white">
+      <div class="px-4 py-2 border-b border-subtle bg-base">
         <div class="flex items-center gap-2">
-          <div class="i-carbon-document w-4 h-4 text-neutral-500 dark:text-neutral-500 light:text-neutral-500" />
-          <span class="text-xs text-neutral-500 dark:text-neutral-500 light:text-neutral-500">
+          <div class="i-carbon-document w-4 h-4 text-muted-body" />
+          <span class="text-xs text-muted-body">
             Current file:
           </span>
-          <span class="text-sm text-neutral-200 dark:text-neutral-200 light:text-neutral-700 truncate">
+          <span class="text-sm text-secondary-body truncate">
             {getDisplayName(getDocumentPath())}
           </span>
         </div>
       </div>
 
       {/* Document Actions Toolbar */}
-      <div class="h-12 border-b border-neutral-800 dark:border-neutral-800 light:border-neutral-300 flex items-center justify-between p-2 sm:px-4 bg-neutral-950 dark:bg-neutral-950 light:bg-white">
+      <div class="h-12 border-b border-subtle flex items-center justify-between p-2 sm:px-4 bg-base">
         {/* View Mode Toggle */}
-        <div class="flex items-center border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-md overflow-hidden">
+        <div class="flex items-center border border-subtle rounded-md overflow-hidden">
           <Button
             onClick={() => setUseLivePreview(false)}
             variant="ghost"
@@ -129,7 +129,7 @@ export default function DocumentPage() {
         {/* Save Status */}
         <div class="flex items-center">
           <Show when={saveStatus() === "saving"}>
-            <span class="text-xs text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
+            <span class="text-xs text-muted-body">
               Saving...
             </span>
           </Show>
@@ -150,7 +150,7 @@ export default function DocumentPage() {
         when={!loading()}
         fallback={
           <div class="flex-1 flex items-center justify-center">
-            <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500 dark:text-neutral-500 light:text-neutral-400" />
+            <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-muted-body" />
           </div>
         }
       >
@@ -158,7 +158,7 @@ export default function DocumentPage() {
           <Suspense
             fallback={
               <div class="flex-1 flex items-center justify-center">
-                <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500 dark:text-neutral-500 light:text-neutral-400" />
+                <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-muted-body" />
               </div>
             }
           >

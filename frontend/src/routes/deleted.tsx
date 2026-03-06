@@ -3,6 +3,7 @@ import { useNavigate } from "@solidjs/router";
 import { api, type Document } from "~/lib/api";
 import Button from "~/components/Button";
 import AlertDialog from "~/components/AlertDialog";
+import DocumentListPage from "~/components/DocumentListPage";
 import { routes } from "~/routes";
 import { getDisplayName } from "~/utils/document.utils";
 
@@ -80,96 +81,85 @@ export default function DeletedPage() {
   };
 
   return (
-    <div class="flex flex-col w-full overflow-auto lg:max-w-5xl mx-auto p-4 sm:p-8">
-      <div class="flex items-center mb-6 gap-4">
-        <div class="flex">
-          <Button
-            onClick={() => navigate(routes.homepage)}
-            variant="ghost"
-            size="md"
-          >
-            <div class="i-carbon-arrow-left w-5 h-5" />
-          </Button>
-          <div class="i-carbon-trash-can w-8 h-8 text-neutral-400 dark:text-neutral-400 light:text-neutral-500" />
+    <DocumentListPage
+      title="Recently Deleted"
+      icon="i-carbon-trash-can"
+      loading={loading()}
+      onBack={() => navigate(routes.homepage)}
+      emptyState={
+        <div class="text-center py-12">
+          <div class="i-carbon-trash-can w-16 h-16 text-muted-body mx-auto mb-4" />
+          <p class="text-muted-body text-lg">No recently deleted documents</p>
+          <p class="text-muted-body text-sm mt-2">
+            Deleted files will appear here and be kept for 30 days
+          </p>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-white dark:text-white light:text-neutral-900">
-          Recently Deleted
-        </h1>
-      </div>
-
+      }
+    >
       <Show
-        when={!loading()}
+        when={deletedDocs().length > 0}
         fallback={
-          <div class="flex justify-center py-12">
-            <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500 dark:text-neutral-500 light:text-neutral-400" />
+          <div class="text-center py-12">
+            <div class="i-carbon-trash-can w-16 h-16 text-muted-body mx-auto mb-4" />
+            <p class="text-muted-body text-lg">No recently deleted documents</p>
+            <p class="text-muted-body text-sm mt-2">
+              Deleted files will appear here and be kept for 30 days
+            </p>
           </div>
         }
       >
-        <Show
-          when={deletedDocs().length > 0}
-          fallback={
-            <div class="text-center py-12">
-              <div class="i-carbon-trash-can w-16 h-16 text-neutral-600 dark:text-neutral-600 light:text-neutral-400 mx-auto mb-4" />
-              <p class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600 text-lg">
-                No recently deleted documents
-              </p>
-              <p class="text-neutral-500 dark:text-neutral-500 light:text-neutral-500 text-sm mt-2">
-                Deleted files will appear here and be kept for 30 days
-              </p>
-            </div>
-          }
-        >
-          <div class="space-y-2 w-full">
-            <For each={deletedDocs()}>
-              {(doc) => {
-                const daysLeft = getDaysUntilPermanentDelete(doc.deleted_at);
-                return (
-                  <div class="bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 rounded-lg p-4 hover:bg-neutral-750 dark:hover:bg-neutral-750 light:hover:bg-neutral-100 transition-colors border border-transparent light:border-neutral-300 light:shadow-sm cursor-pointer">
-                    <div class="flex items-center justify-between gap-4">
-                      <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-3">
-                          <div class="i-carbon-document w-5 h-5 text-neutral-400 dark:text-neutral-400 light:text-neutral-500 flex-shrink-0" />
-                          <div class="flex-1 min-w-0">
-                            <h3 class="text-white dark:text-white light:text-neutral-900 font-medium truncate">
-                              {getDisplayName(doc.path)}
-                            </h3>
-                            <div class="flex items-center gap-4 mt-1 text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
-                              <span>Deleted {formatDate(doc.deleted_at)}</span>
-                              <span class="text-yellow-400">
-                                {daysLeft === 0
-                                  ? "Deletes today"
-                                  : daysLeft === 1
-                                    ? "Deletes tomorrow"
-                                    : `Deletes in ${daysLeft} days`}
-                              </span>
-                            </div>
+        <div class="space-y-2 w-full">
+          <For each={deletedDocs()}>
+            {(doc) => {
+              const daysLeft = getDaysUntilPermanentDelete(doc.deleted_at);
+              return (
+                <div class="bg-elevated border border-base rounded-lg p-4 hover:bg-neutral-750 transition-colors light:shadow-sm cursor-pointer">
+                  <div class="flex items-center justify-between gap-4">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-3">
+                        <div class="i-carbon-document w-5 h-5 text-secondary-body flex-shrink-0" />
+                        <div class="flex-1 min-w-0">
+                          <h3 class="text-body font-medium truncate mb-1">
+                            {getDisplayName(doc.path)}
+                          </h3>
+                          <div class="flex items-center gap-4 text-sm text-muted-body">
+                            <span class="text-xs text-muted-body">
+                              Deleted {formatDate(doc.deleted_at)}
+                            </span>
+                            <span class="text-xs text-yellow-400 dark:text-yellow-400 light:text-yellow-600">
+                              {daysLeft === 0
+                                ? "Deletes today"
+                                : daysLeft === 1
+                                  ? "Deletes tomorrow"
+                                  : `Deletes in ${daysLeft} days`}
+                            </span>
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      <div class="flex items-center gap-2 flex-shrink-0">
-                        <Button
-                          onClick={() => handleRestore(doc.path)}
-                          variant="secondary"
-                          size="sm"
-                        >
-                          <div class="i-carbon-reset w-4 h-4" />
-                        </Button>
-                        <Button
-                          onClick={() => setDeleteConfirm(doc.path)}
-                          variant="danger"
-                          size="sm"
-                        >
-                          <div class="i-carbon-trash-can w-4 h-4" />
-                        </Button>
-                      </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                      <Button
+                        onClick={() => handleRestore(doc.path)}
+                        variant="secondary"
+                        size="sm"
+                      >
+                        <div class="i-carbon-reset w-4 h-4" />
+                      </Button>
+                      <Button
+                        onClick={() => setDeleteConfirm(doc.path)}
+                        variant="secondary"
+                        size="sm"
+                      >
+                        <div class="i-carbon-trash-can w-4 h-4 text-red400" />
+                      </Button>
                     </div>
                   </div>
-                );
-              }}
-            </For>
-          </div>
-        </Show>
+                </div>
+              );
+            }}
+          </For>
+        </div>
       </Show>
 
       <AlertDialog
@@ -184,6 +174,6 @@ export default function DeletedPage() {
         confirmText="Delete"
         variant="danger"
       />
-    </div>
+    </DocumentListPage>
   );
 }

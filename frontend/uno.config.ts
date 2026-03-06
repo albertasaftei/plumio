@@ -4,6 +4,20 @@ import presetIcons from "@unocss/preset-icons";
 import presetTypography from "@unocss/preset-typography";
 
 export default defineConfig({
+  shortcuts: {
+    // ─── Semantic background tokens ──────────────────────────────
+    "bg-base": "bg-[var(--color-bg-base)]",
+    "bg-surface": "bg-[var(--color-bg-surface)]",
+    "bg-elevated": "bg-[var(--color-bg-elevated)]",
+    // ─── Semantic border tokens ───────────────────────────────────
+    "border-base": "border-[var(--color-border)]",
+    "border-subtle": "border-[var(--color-border-subtle)]",
+    // ─── Semantic text tokens ─────────────────────────────────────
+    "text-body": "text-[var(--color-text-primary)]",
+    "text-secondary-body": "text-[var(--color-text-secondary)]",
+    "text-muted-body": "text-[var(--color-text-muted)]",
+    "placeholder-muted-body": "placeholder-[var(--color-text-muted)]",
+  },
   presets: [
     presetWind(),
     presetTypography(),

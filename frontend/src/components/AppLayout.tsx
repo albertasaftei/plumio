@@ -247,7 +247,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
 
   return (
     <AppLayoutContext.Provider value={contextValue}>
-      <div class="h-dvh flex flex-col overflow-hidden bg-neutral-900 dark:bg-neutral-900 light:bg-neutral-50">
+      <div class="h-dvh flex flex-col overflow-hidden bg-surface">
         {/* Delete Confirmation Dialog */}
         <AlertDialog
           isOpen={deleteDialog().isOpen}
@@ -330,7 +330,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
           <div class="flex-1 flex flex-col overflow-hidden">
             {/* Mobile header with menu toggle */}
             {props.showSidebar && (
-              <div class="lg:hidden border-b border-neutral-800 dark:border-neutral-800 light:border-neutral-200 bg-neutral-950 dark:bg-neutral-950 light:bg-white p-4">
+              <div class="lg:hidden border-b border-subtle bg-base p-4">
                 <Button
                   onClick={() => setSidebarOpen(true)}
                   variant="ghost"

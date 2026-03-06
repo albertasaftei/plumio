@@ -49,17 +49,17 @@ export default function Register() {
   };
 
   return (
-    <div class="min-h-screen bg-neutral-950 dark:bg-neutral-950 light:bg-neutral-100 flex items-center justify-center p-4">
+    <div class="min-h-screen bg-base flex items-center justify-center p-4">
       <div class="w-full max-w-md">
         <div class="flex gap-4 items-center justify-center mb-8">
           <Logo color="#2a9d8f" size="48" />
-          <span class="text-4xl font-bold text-neutral-100 dark:text-neutral-100 light:text-neutral-900 mb-2">
+          <span class="text-4xl font-bold text-body mb-2">
             plumio
           </span>
         </div>
 
-        <div class="bg-neutral-900 dark:bg-neutral-900 light:bg-neutral-50 rounded-lg p-8 border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 light:shadow-xl">
-          <h2 class="text-2xl font-semibold text-neutral-100 dark:text-neutral-100 light:text-neutral-900 mb-6">
+        <div class="bg-surface rounded-lg p-8 border border-subtle light:shadow-xl">
+          <h2 class="text-2xl font-semibold text-body mb-6">
             Create Account
           </h2>
 
@@ -77,7 +77,7 @@ export default function Register() {
 
           <form onSubmit={handleRegister}>
             <div class="mb-4">
-              <label class="block font-medium text-neutral-300 dark:text-neutral-300 light:text-neutral-700 mb-2">
+              <label class="block font-medium text-secondary-body mb-2">
                 Username
               </label>
               <input
@@ -86,13 +86,13 @@ export default function Register() {
                 onInput={(e) => setUsername(e.currentTarget.value)}
                 required
                 disabled={loading() || success()}
-                class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500 disabled:opacity-50"
+                class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-base disabled:opacity-50"
                 placeholder="Choose a username"
               />
             </div>
 
             <div class="mb-4">
-              <label class="block font-medium text-neutral-300 dark:text-neutral-300 light:text-neutral-700 mb-2">
+              <label class="block font-medium text-secondary-body mb-2">
                 Email
               </label>
               <input
@@ -101,13 +101,13 @@ export default function Register() {
                 onInput={(e) => setEmail(e.currentTarget.value)}
                 required
                 disabled={loading() || success()}
-                class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500 disabled:opacity-50"
+                class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-base disabled:opacity-50"
                 placeholder="your@email.com"
               />
             </div>
 
             <div class="mb-4">
-              <label class="block font-medium text-neutral-300 dark:text-neutral-300 light:text-neutral-700 mb-2">
+              <label class="block font-medium text-secondary-body mb-2">
                 Password
               </label>
               <input
@@ -116,13 +116,13 @@ export default function Register() {
                 onInput={(e) => setPassword(e.currentTarget.value)}
                 required
                 disabled={loading() || success()}
-                class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500 disabled:opacity-50"
+                class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-base disabled:opacity-50"
                 placeholder="At least 8 characters"
               />
             </div>
 
             <div class="mb-6">
-              <label class="block font-medium text-neutral-300 dark:text-neutral-300 light:text-neutral-700 mb-2">
+              <label class="block font-medium text-secondary-body mb-2">
                 Confirm Password
               </label>
               <input
@@ -131,7 +131,7 @@ export default function Register() {
                 onInput={(e) => setConfirmPassword(e.currentTarget.value)}
                 required
                 disabled={loading() || success()}
-                class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500 disabled:opacity-50"
+                class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-base disabled:opacity-50"
                 placeholder="Confirm your password"
               />
             </div>
@@ -152,7 +152,7 @@ export default function Register() {
           </form>
 
           <div class="mt-6 text-center">
-            <span class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
+            <span class="text-muted-body">
               Already have an account?
             </span>
             <button

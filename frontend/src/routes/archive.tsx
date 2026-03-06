@@ -3,6 +3,7 @@ import { useNavigate } from "@solidjs/router";
 import { api, type Document } from "~/lib/api";
 import Button from "~/components/Button";
 import AlertDialog from "~/components/AlertDialog";
+import DocumentListPage from "~/components/DocumentListPage";
 import { routes } from "~/routes";
 import { getDisplayName } from "~/utils/document.utils";
 
@@ -68,81 +69,67 @@ export default function ArchivePage() {
   };
 
   return (
-    <div class="flex flex-col w-full overflow-auto lg:max-w-5xl mx-auto p-4 sm:p-8">
-      <div class="flex items-center mb-6 gap-4">
-        <div class="flex items-center">
-          <Button
-            onClick={() => navigate(routes.homepage)}
-            variant="ghost"
-            size="md"
-          >
-            <div class="i-carbon-arrow-left w-5 h-5" />
-          </Button>
-          <div class="i-carbon-archive w-8 h-8 text-neutral-400 dark:text-neutral-400 light:text-neutral-500" />
+    <DocumentListPage
+      title="Archived Documents"
+      icon="i-carbon-archive"
+      loading={loading()}
+      onBack={() => navigate(routes.homepage)}
+      emptyState={
+        <div class="text-center py-12 text-secondary-body">
+          <div class="i-carbon-folder-off w-16 h-16 mx-auto mb-4 opacity-50" />
+          <p>No archived documents</p>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-white dark:text-white light:text-neutral-900">
-          Archived Documents
-        </h1>
-      </div>
-
+      }
+    >
       <Show
-        when={!loading()}
+        when={archivedDocs().length > 0}
         fallback={
-          <div class="flex justify-center py-12">
-            <div class="i-carbon-circle-dash animate-spin w-8 h-8 text-neutral-500 dark:text-neutral-500 light:text-neutral-400" />
+          <div class="text-center py-12 text-secondary-body">
+            <div class="i-carbon-folder-off w-16 h-16 mx-auto mb-4 opacity-50" />
+            <p>No archived documents</p>
           </div>
         }
       >
-        <Show
-          when={archivedDocs().length > 0}
-          fallback={
-            <div class="text-center py-12 text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
-              <div class="i-carbon-folder-off w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p>No archived documents</p>
-            </div>
-          }
-        >
-          <div class="space-y-2 w-full">
-            <For each={archivedDocs()}>
-              {(doc) => (
-                <div class="bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-neutral-750 dark:hover:bg-neutral-750 light:hover:bg-neutral-100 transition-colors border border-transparent light:border-neutral-300 light:shadow-sm cursor-pointer">
-                  <div class="flex items-center gap-3 flex-1 min-w-0">
-                    <div class="i-carbon-document w-5 h-5 text-neutral-400 dark:text-neutral-400 light:text-neutral-500 flex-shrink-0" />
-                    <div class="min-w-0 flex-1">
-                      <p class="text-white dark:text-white light:text-neutral-900 font-medium truncate">
-                        {getDisplayName(doc.path)}
+        <div class="space-y-2 w-full">
+          <For each={archivedDocs()}>
+            {(doc) => (
+              <div class="bg-elevated border border-base rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-neutral-750 transition-colors light:shadow-sm cursor-pointer">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                  <div class="i-carbon-document w-5 h-5 text-secondary-body flex-shrink-0" />
+                  <div class="min-w-0 flex-1">
+                    <p class="text-body font-medium truncate mb-1">
+                      {getDisplayName(doc.path)}
+                    </p>
+                    <Show when={doc.archived_at}>
+                      <p class="text-xs text-muted-body">
+                        Archived {formatDate(doc.archived_at)}
                       </p>
-                      <Show when={doc.archived_at}>
-                        <p class="text-xs text-neutral-500 dark:text-neutral-500 light:text-neutral-500 mt-1">
-                          Archived {formatDate(doc.archived_at)}
-                        </p>
-                      </Show>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <Button
-                      onClick={() => handleRestore(doc.path)}
-                      variant="secondary"
-                      size="sm"
-                    >
-                      <div class="i-carbon-reset w-4 h-4" />
-                    </Button>
-
-                    <Button
-                      onClick={() => setDeleteConfirm(doc.path)}
-                      variant="danger"
-                      size="sm"
-                      title="Delete permanently"
-                    >
-                      <div class="i-carbon-trash-can w-4 h-4" />
-                    </Button>
+                    </Show>
                   </div>
                 </div>
-              )}
-            </For>
-          </div>
-        </Show>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                  <Button
+                    onClick={() => handleRestore(doc.path)}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    <div class="i-carbon-reset w-4 h-4" />
+                  </Button>
+
+                  <Button
+                    onClick={() => setDeleteConfirm(doc.path)}
+                    variant="secondary"
+                    size="sm"
+                    title="Delete permanently"
+                  >
+                    <div class="i-carbon-trash-can w-4 h-4 text-red-400" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </For>
+        </div>
       </Show>
 
       <AlertDialog
@@ -151,12 +138,12 @@ export default function ArchivePage() {
         onConfirm={() => deleteConfirm() && handleDelete(deleteConfirm()!)}
         onCancel={() => setDeleteConfirm(null)}
       >
-        <p class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
+        <p class="text-muted-body">
           Are you sure you want to permanently delete "
           {deleteConfirm() && getDisplayName(deleteConfirm()!)}"? This action
           cannot be undone.
         </p>
       </AlertDialog>
-    </div>
+    </DocumentListPage>
   );
 }

@@ -11,9 +11,9 @@ export default function ColorPicker(props: ColorPickerProps) {
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      class="px-3 py-2 border-t border-neutral-800 dark:border-neutral-800 light:border-neutral-300"
+      class="px-3 py-2 border-t border-subtle"
     >
-      <div class="text-xs text-neutral-500 dark:text-neutral-500 light:text-neutral-600 mb-2">
+      <div class="text-xs text-muted-body mb-2">
         Color
       </div>
       <div class="flex flex-wrap gap-1">
@@ -44,10 +44,10 @@ export default function ColorPicker(props: ColorPickerProps) {
             }}
             variant="icon"
             size="sm"
-            class="w-5 h-5 rounded-sm border-2 border-neutral-700 dark:border-neutral-700 light:border-neutral-400 hover:scale-110 transition-transform flex items-center justify-center"
+            class="w-5 h-5 rounded-sm border-2 border-base hover:scale-110 transition-transform flex items-center justify-center"
             title="Remove color"
           >
-            <div class="i-carbon-close w-3 h-3 text-neutral-500 dark:text-neutral-500 light:text-neutral-600" />
+            <div class="i-carbon-close w-3 h-3 text-muted-body" />
           </Button>
         </Show>
       </div>

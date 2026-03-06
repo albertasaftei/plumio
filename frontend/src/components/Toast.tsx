@@ -47,7 +47,7 @@ export default function Toast(props: ToastProps) {
   return (
     <Show when={visible()}>
       <div
-        class={`fixed bottom-6 right-6 z-[100] rounded-lg border shadow-xl text-white overflow-hidden transform transition-all duration-300 ease-out animate-toast-slide-in ${typeStyles()} ${
+        class={`fixed bottom-6 right-6 z-[100] max-w-sm rounded-lg border shadow-xl text-white overflow-hidden transform transition-all duration-300 ease-out animate-toast-slide-in ${typeStyles()} ${
           visible()
             ? "translate-x-0 opacity-100 scale-100"
             : "translate-x-8 opacity-0 scale-95"

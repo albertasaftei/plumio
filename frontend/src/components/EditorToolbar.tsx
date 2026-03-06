@@ -22,7 +22,8 @@ interface ToolbarProps {
 }
 
 interface ToolbarButtonProps {
-  icon: string;
+  icon?: string;
+  label?: string;
   title: string;
   onClick: () => void;
   class?: string;
@@ -51,28 +52,32 @@ const ToolbarButton: Component<ToolbarButtonProps> = (props) => {
       disabled={props.disabled}
       class={`toolbar-button p-1.5 rounded transition-colors duration-150 ${
         props.disabled
-          ? "text-neutral-600 dark:text-neutral-600 light:text-neutral-400 cursor-not-allowed"
+          ? "text-muted-body cursor-not-allowed"
           : props.active
-            ? "bg-neutral-700 dark:bg-neutral-700 light:bg-blue-100 text-blue-400 dark:text-blue-400 light:text-blue-600"
-            : "text-neutral-300 dark:text-neutral-300 light:text-neutral-700 hover:text-white dark:hover:text-white light:hover:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-800 light:hover:bg-neutral-200 active:bg-neutral-700 dark:active:bg-neutral-700 light:active:bg-neutral-300"
+            ? "bg-elevated light:bg-primary/10 text-primary"
+            : "text-secondary-body hover:text-body hover:bg-surface active:bg-[var(--color-border)]"
       } ${props.class || ""}`}
       title={props.title}
       onMouseDown={handleMouseDown}
     >
-      <div class={`${props.icon} ${props.iconClass || "w-4 h-4"}`} />
+      {props.label ? (
+        <span class="text-xs font-bold leading-none">{props.label}</span>
+      ) : (
+        <div class={`${props.icon} ${props.iconClass || "w-4 h-4"}`} />
+      )}
     </button>
   );
 };
 
 const ToolbarDivider: Component = () => (
-  <div class="w-px h-5 bg-neutral-700 dark:bg-neutral-700 light:bg-neutral-300 mx-0.5 shrink-0" />
+  <div class="w-px h-5 bg-[var(--color-border)] mx-0.5 shrink-0" />
 );
 
 export default function EditorToolbar(props: ToolbarProps) {
   const s = () => props.activeState || {};
 
   return (
-    <div class="editor-toolbar flex items-center gap-0.5 px-3 py-1.5 bg-neutral-900 dark:bg-neutral-900 light:bg-neutral-50 border-b border-neutral-800 dark:border-neutral-800 light:border-neutral-300 overflow-x-auto shrink-0 light:shadow-sm">
+    <div class="editor-toolbar flex items-center gap-0.5 px-3 py-1.5 bg-surface border-b border-subtle overflow-x-auto shrink-0 light:shadow-sm">
       {/* Undo / Redo */}
       <ToolbarButton
         icon="i-carbon-undo"
@@ -123,24 +128,25 @@ export default function EditorToolbar(props: ToolbarProps) {
 
       {/* Headings */}
       <ToolbarButton
-        icon="i-carbon-heading"
-        title="Heading 1"
+        label="H1"
+        title={`Heading 1 (${mod}1)`}
         active={s().headingLevel === 1}
         onClick={() => props.onCommand("setHeading", 1)}
+        class="min-w-[28px] justify-center"
       />
       <ToolbarButton
-        icon="i-carbon-heading"
-        title="Heading 2"
+        label="H2"
+        title={`Heading 2 (${mod}2)`}
         active={s().headingLevel === 2}
-        iconClass="w-3.5 h-3.5"
         onClick={() => props.onCommand("setHeading", 2)}
+        class="min-w-[28px] justify-center"
       />
       <ToolbarButton
-        icon="i-carbon-heading"
-        title="Heading 3"
+        label="H3"
+        title={`Heading 3 (${mod}3)`}
         active={s().headingLevel === 3}
-        iconClass="w-3 h-3"
         onClick={() => props.onCommand("setHeading", 3)}
+        class="min-w-[28px] justify-center"
       />
 
       <ToolbarDivider />

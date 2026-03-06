@@ -30,28 +30,28 @@ export default function Button(props: ButtonProps) {
   const size = () => local.size || "md";
 
   const baseClasses =
-    "flex items-center gap-2 rounded-lg transition-all duration-150 cursor-pointer active:scale-95 hover:scale-[1.02]";
+    "flex items-center gap-2 rounded-lg transition-all duration-150 cursor-pointer active:scale-95";
 
   const variantClasses = () => {
     const v = variant();
     const classes = {
       primary: local.active
-        ? "bg-primary hover:bg-primary-dark text-white"
-        : "bg-primary hover:bg-primary-dark text-white",
+        ? "bg-primary-dark text-white ring-2 ring-primary/50 ring-offset-2 ring-offset-neutral-900"
+        : "bg-primary hover:bg-primary-dark text-white hover:scale-[1.02]",
       secondary: local.active
-        ? "bg-neutral-700 dark:bg-neutral-700 light:bg-neutral-200 text-neutral-100 dark:text-neutral-100 light:text-neutral-900 border border-neutral-600 dark:border-neutral-600 light:border-neutral-300"
-        : "bg-neutral-800 dark:bg-neutral-800 light:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-700 light:hover:bg-neutral-100 text-neutral-200 dark:text-neutral-200 light:text-neutral-700 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300",
+        ? "bg-neutral-700 text-body border border-neutral-600"
+        : "bg-elevated hover:bg-neutral-700 text-body border border-base",
       ghost: local.active
-        ? "bg-neutral-700 dark:bg-neutral-700 light:bg-neutral-200 text-neutral-100 dark:text-neutral-100 light:text-neutral-900"
-        : "text-neutral-400 dark:text-neutral-400 light:text-neutral-600 hover:text-neutral-200 dark:hover:text-neutral-200 light:hover:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-800 light:hover:bg-neutral-100",
+        ? "bg-neutral-700 text-body"
+        : "text-secondary-body hover:text-body hover:bg-elevated",
       danger: local.active
-        ? "bg-red-600 text-white"
+        ? "bg-red-700 text-white ring-2 ring-red-500/50 ring-offset-2 ring-offset-neutral-900"
         : "bg-red-600 hover:bg-red-500 text-white",
       warning: local.active
-        ? "bg-yellow-600 text-white"
+        ? "bg-yellow-700 text-white ring-2 ring-yellow-500/50 ring-offset-2 ring-offset-neutral-900"
         : "bg-yellow-700 hover:bg-yellow-600 text-white",
 
-      icon: "hover:bg-neutral-800 dark:hover:bg-neutral-800 light:hover:bg-neutral-100 text-neutral-400 dark:text-neutral-400 light:text-neutral-600",
+      icon: "hover:bg-elevated text-secondary-body",
       none: "",
     };
     return classes[v];

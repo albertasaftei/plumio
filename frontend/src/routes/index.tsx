@@ -4,6 +4,7 @@ import { api } from "~/lib/api";
 import Logo from "~/components/Logo";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
+import "~/styles/globals.css";
 
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 
@@ -17,6 +18,8 @@ export default function Home() {
   const [confirmPassword, setConfirmPassword] = createSignal("");
   const [error, setError] = createSignal("");
   const [loading, setLoading] = createSignal(true);
+  const [showPassword, setShowPassword] = createSignal(false);
+  const [showConfirmPassword, setShowConfirmPassword] = createSignal(false);
 
   onMount(async () => {
     // In demo mode, skip auth and go straight to editor
@@ -88,11 +91,11 @@ export default function Home() {
   };
 
   return (
-    <div class="min-h-screen bg-neutral-950 dark:bg-neutral-950 light:bg-neutral-100 flex items-center justify-center p-4">
+    <div class="min-h-screen bg-base flex items-center justify-center p-4">
       <Show
         when={!loading()}
         fallback={
-          <div class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
+          <div class="text-secondary-body">
             <div class="i-carbon-circle-dash animate-spin w-8 h-8 mx-auto" />
           </div>
         }
@@ -100,17 +103,15 @@ export default function Home() {
         <div class="w-full max-w-md">
           <div class="flex gap-4 items-center justify-center mb-8">
             <Logo color="#2a9d8f" size="48" />
-            <span class="text-4xl font-bold text-neutral-100 dark:text-neutral-100 light:text-neutral-900 mb-2">
-              plumio
-            </span>
+            <span class="text-4xl font-bold text-body mb-2">plumio</span>
           </div>
 
-          <div class="bg-neutral-900 dark:bg-neutral-900 light:bg-neutral-50 rounded-lg p-8 border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 light:shadow-xl">
+          <div class="bg-surface rounded-lg p-8 border border-subtle light:shadow-xl">
             <Show when={isSetup()}>
               <h2 class="text-2xl font-semibold text-neutral-100 mb-6">
                 Initial Setup
               </h2>
-              <p class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600 mb-6 ">
+              <p class="text-secondary-body mb-6">
                 Create your admin account to get started
               </p>
             </Show>
@@ -129,7 +130,7 @@ export default function Home() {
 
             <form onSubmit={isSetup() ? handleSetup : handleLogin}>
               <div class="mb-4">
-                <label class="block  font-medium text-neutral-300 mb-2">
+                <label class="block font-medium text-neutral-300 mb-2">
                   Username
                 </label>
                 <input
@@ -137,14 +138,14 @@ export default function Home() {
                   value={username()}
                   onInput={(e) => setUsername(e.currentTarget.value)}
                   required
-                  class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500"
+                  class="focus-ring w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-primary transition-colors"
                   placeholder="Enter username"
                 />
               </div>
 
               <Show when={isSetup()}>
                 <div class="mb-4">
-                  <label class="block  font-medium text-neutral-300 mb-2">
+                  <label class="block font-medium text-neutral-300 mb-2">
                     Email
                   </label>
                   <input
@@ -152,39 +153,77 @@ export default function Home() {
                     value={email()}
                     onInput={(e) => setEmail(e.currentTarget.value)}
                     required
-                    class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500"
+                    class="focus-ring w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-primary transition-colors"
                     placeholder="Enter email"
                   />
                 </div>
               </Show>
 
               <div class="mb-4">
-                <label class="block  font-medium text-neutral-300 mb-2">
+                <label class="block font-medium text-neutral-300 mb-2">
                   Password
                 </label>
-                <input
-                  type="password"
-                  value={password()}
-                  onInput={(e) => setPassword(e.currentTarget.value)}
-                  required
-                  class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500"
-                  placeholder="Enter password"
-                />
+                <div class="relative">
+                  <input
+                    type={showPassword() ? "text" : "password"}
+                    value={password()}
+                    onInput={(e) => setPassword(e.currentTarget.value)}
+                    required
+                    class="focus-ring w-full px-3 py-2 pr-10 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-primary transition-colors"
+                    placeholder="Enter password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword())}
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 light:hover:text-neutral-700 transition-colors cursor-pointer"
+                    title={showPassword() ? "Hide password" : "Show password"}
+                  >
+                    <div
+                      class={
+                        showPassword()
+                          ? "i-carbon-view-off w-4 h-4"
+                          : "i-carbon-view w-4 h-4"
+                      }
+                    />
+                  </button>
+                </div>
               </div>
 
               <Show when={isSetup()}>
                 <div class="mb-6">
-                  <label class="block  font-medium text-neutral-300 mb-2">
+                  <label class="block font-medium text-neutral-300 mb-2">
                     Confirm Password
                   </label>
-                  <input
-                    type="password"
-                    value={confirmPassword()}
-                    onInput={(e) => setConfirmPassword(e.currentTarget.value)}
-                    required
-                    class="w-full px-3 py-2 bg-neutral-950 dark:bg-neutral-950 light:bg-white border border-neutral-800 dark:border-neutral-800 light:border-neutral-300 rounded-lg text-neutral-200 dark:text-neutral-200 light:text-neutral-900 placeholder-neutral-600 dark:placeholder-neutral-600 light:placeholder-neutral-400 focus:outline-none focus:border-neutral-700 dark:focus:border-neutral-700 light:focus:border-neutral-500"
-                    placeholder="Confirm password"
-                  />
+                  <div class="relative">
+                    <input
+                      type={showConfirmPassword() ? "text" : "password"}
+                      value={confirmPassword()}
+                      onInput={(e) => setConfirmPassword(e.currentTarget.value)}
+                      required
+                      class="focus-ring w-full px-3 py-2 pr-10 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-primary transition-colors"
+                      placeholder="Confirm password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword())
+                      }
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 light:hover:text-neutral-700 transition-colors cursor-pointer"
+                      title={
+                        showConfirmPassword()
+                          ? "Hide password"
+                          : "Show password"
+                      }
+                    >
+                      <div
+                        class={
+                          showConfirmPassword()
+                            ? "i-carbon-view-off w-4 h-4"
+                            : "i-carbon-view w-4 h-4"
+                        }
+                      />
+                    </button>
+                  </div>
                 </div>
               </Show>
 
@@ -200,9 +239,7 @@ export default function Home() {
 
             <Show when={!isSetup()}>
               <div class="mt-6 text-center">
-                <span class="text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
-                  Don't have an account?
-                </span>
+                <span class="text-muted-body">Don't have an account?</span>
                 <button
                   onClick={() => navigate(routes.register)}
                   class="ml-2 text-primary hover:underline cursor-pointer"

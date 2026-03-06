@@ -19,33 +19,33 @@ export default function Account() {
   };
 
   return (
-    <div class="space-y-4 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 rounded-lg p-6 border border-transparent light:border-neutral-300 light:shadow-sm">
+    <div class="space-y-4 bg-elevated rounded-lg p-6 border border-transparent light:border-base light:shadow-sm">
       <div>
-        <h3 class="text-lg font-semibold text-white dark:text-white light:text-neutral-900 mb-2">
+        <h3 class="text-lg font-semibold text-body mb-2">
           Profile
         </h3>
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-neutral-300 dark:text-neutral-300 light:text-neutral-700 mb-1">
+            <label class="block text-sm font-medium text-secondary-body mb-1">
               Username
             </label>
-            <div class="text-neutral-100 dark:text-neutral-100 light:text-neutral-900">
+            <div class="text-body">
               {username() || "Loading..."}
             </div>
           </div>
         </div>
       </div>
       <div>
-        <h3 class="text-lg font-semibold text-white dark:text-white light:text-neutral-900 mb-2">
+        <h3 class="text-lg font-semibold text-body mb-2">
           Theme
         </h3>
         <div class="space-y-4">
           <div class="flex items-center justify-between">
             <div class="flex-1">
-              <label class="block text-sm font-medium text-neutral-300 dark:text-neutral-300 light:text-neutral-700 mb-1">
+              <label class="block text-sm font-medium text-secondary-body mb-1">
                 Appearance
               </label>
-              <p class="text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-500">
+              <p class="text-sm text-muted-body">
                 Choose between light and dark mode
               </p>
             </div>
