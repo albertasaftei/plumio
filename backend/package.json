@@ -13,11 +13,11 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.14.1",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "better-sqlite3": "^11.8.1",
     "dotenv": "^16.4.7",
-    "hono": "^4.7.9",
-    "jose": "^5.9.6",
+    "hono": "^4.12.5",
+    "jose": "^5.10.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
