@@ -18,7 +18,7 @@ import {
   formatDate,
 } from "~/utils/sidebar.utils";
 import { getDisplayName } from "~/utils/document.utils";
-import { useNavigate } from "@solidjs/router";
+import { useNavigate, useLocation } from "@solidjs/router";
 import AlertDialog from "./AlertDialog";
 import OrganizationSelector from "./OrganizationSelector";
 import PopoverItem from "./PopoverItem";
@@ -28,7 +28,11 @@ import { useTheme } from "~/lib/theme";
 
 export default function Sidebar(props: Readonly<SidebarProps>) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [theme] = useTheme();
+
+  const isActiveRoute = (route: string) =>
+    location.pathname === route || location.pathname.startsWith(route + "/");
   const [showNewDocModal, setShowNewDocModal] = createSignal(false);
   const [showNewFolderModal, setShowNewFolderModal] = createSignal(false);
   const [showRenameModal, setShowRenameModal] = createSignal(false);
@@ -163,11 +167,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             class="flex items-center gap-2 py-2 pr-2"
           >
             <Show when={nodeProps.node.type === "folder"}>
-              <Button
-                variant="icon"
-                size="sm"
-                class="text-muted-body"
-              >
+              <Button variant="icon" size="sm" class="text-muted-body">
                 <div
                   class={`w-3 h-3 transition-transform ${
                     isExpanded()
@@ -355,6 +355,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           variant="icon"
           size="md"
           title="Homepage"
+          active={isActiveRoute(routes.homepage)}
         >
           <div class="i-carbon-home w-5 h-5 flex-shrink-0" />
         </Button>
@@ -363,6 +364,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           variant="icon"
           size="md"
           title="Full-text Search"
+          active={isActiveRoute(routes.search)}
         >
           <div class="i-carbon-search w-5 h-5 flex-shrink-0" />
         </Button>
@@ -371,6 +373,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           variant="icon"
           size="md"
           title="View Archive"
+          active={isActiveRoute(routes.archive)}
         >
           <div class="i-carbon-archive w-5 h-5 flex-shrink-0" />
         </Button>
@@ -379,6 +382,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           variant="icon"
           size="md"
           title="Recently Deleted"
+          active={isActiveRoute(routes.deleted)}
         >
           <div class="i-carbon-trash-can w-5 h-5 flex-shrink-0" />
         </Button>
@@ -388,6 +392,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           variant="icon"
           size="md"
           title="Settings"
+          active={isActiveRoute(routes.settings)}
         >
           <div class="i-carbon-settings w-5 h-5 flex-shrink-0" />
         </Button>
@@ -483,9 +488,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         onConfirm={handleCreateDocument}
         onCancel={() => setShowNewDocModal(false)}
       >
-        <p class=" text-muted-body mb-3">
-          Creating in: {targetFolder()}
-        </p>
+        <p class=" text-muted-body mb-3">Creating in: {targetFolder()}</p>
         <input
           ref={newDocInputRef}
           type="text"
@@ -504,9 +507,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         onConfirm={handleCreateFolder}
         onCancel={() => setShowNewFolderModal(false)}
       >
-        <p class=" text-muted-body mb-3">
-          Creating in: {targetFolder()}
-        </p>
+        <p class=" text-muted-body mb-3">Creating in: {targetFolder()}</p>
         <input
           ref={newFolderInputRef}
           type="text"

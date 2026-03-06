@@ -51,7 +51,9 @@ export default function Button(props: ButtonProps) {
         ? "bg-yellow-700 text-white ring-2 ring-yellow-500/50 ring-offset-2 ring-offset-neutral-900"
         : "bg-yellow-700 hover:bg-yellow-600 text-white",
 
-      icon: "hover:bg-elevated text-secondary-body",
+      icon: local.active
+        ? "bg-elevated text-primary"
+        : "hover:bg-elevated text-secondary-body",
       none: "",
     };
     return classes[v];
