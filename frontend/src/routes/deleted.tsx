@@ -88,9 +88,11 @@ export default function DeletedPage() {
       onBack={() => navigate(routes.homepage)}
       emptyState={
         <div class="text-center py-12">
-          <div class="i-carbon-trash-can w-16 h-16 text-muted-body mx-auto mb-4" />
-          <p class="text-muted-body text-lg">No recently deleted documents</p>
-          <p class="text-muted-body text-sm mt-2">
+          <div class="i-carbon-trash-can w-16 h-16 text-[var(--color-text-muted)] mx-auto mb-4" />
+          <p class="text-[var(--color-text-secondary)] text-lg">
+            No recently deleted documents
+          </p>
+          <p class="text-[var(--color-text-muted)] text-sm mt-2">
             Deleted files will appear here and be kept for 30 days
           </p>
         </div>
@@ -100,9 +102,11 @@ export default function DeletedPage() {
         when={deletedDocs().length > 0}
         fallback={
           <div class="text-center py-12">
-            <div class="i-carbon-trash-can w-16 h-16 text-muted-body mx-auto mb-4" />
-            <p class="text-muted-body text-lg">No recently deleted documents</p>
-            <p class="text-muted-body text-sm mt-2">
+            <div class="i-carbon-trash-can w-16 h-16 text-[var(--color-text-muted)] mx-auto mb-4" />
+            <p class="text-[var(--color-text-secondary)] text-lg">
+              No recently deleted documents
+            </p>
+            <p class="text-[var(--color-text-muted)] text-sm mt-2">
               Deleted files will appear here and be kept for 30 days
             </p>
           </div>
@@ -113,17 +117,17 @@ export default function DeletedPage() {
             {(doc) => {
               const daysLeft = getDaysUntilPermanentDelete(doc.deleted_at);
               return (
-                <div class="bg-elevated border border-base rounded-lg p-4 hover:bg-neutral-750 transition-colors light:shadow-sm cursor-pointer">
+                <div class="bg-[var(--color-bg-surface)] rounded-lg p-4 hover:bg-[var(--color-bg-elevated)] transition-colors border border-[var(--color-border)] cursor-pointer">
                   <div class="flex items-center justify-between gap-4">
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-3">
-                        <div class="i-carbon-document w-5 h-5 text-secondary-body flex-shrink-0" />
+                        <div class="i-carbon-document w-5 h-5 text-[var(--color-text-muted)] flex-shrink-0" />
                         <div class="flex-1 min-w-0">
-                          <h3 class="text-body font-medium truncate mb-1">
+                          <h3 class="text-[var(--color-text-primary)] font-medium truncate mb-1">
                             {getDisplayName(doc.path)}
                           </h3>
-                          <div class="flex items-center gap-4 text-sm text-muted-body">
-                            <span class="text-xs text-muted-body">
+                          <div class="flex items-center gap-4 text-sm text-[var(--color-text-secondary)]">
+                            <span class="text-xs text-[var(--color-text-muted)]">
                               Deleted {formatDate(doc.deleted_at)}
                             </span>
                             <span class="text-xs text-yellow-400 dark:text-yellow-400 light:text-yellow-600">
@@ -148,10 +152,10 @@ export default function DeletedPage() {
                       </Button>
                       <Button
                         onClick={() => setDeleteConfirm(doc.path)}
-                        variant="secondary"
+                        variant="danger"
                         size="sm"
                       >
-                        <div class="i-carbon-trash-can w-4 h-4 text-red400" />
+                        <div class="i-carbon-trash-can w-4 h-4" />
                       </Button>
                     </div>
                   </div>

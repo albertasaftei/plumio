@@ -55,13 +55,13 @@ const LinkPopup: Component<LinkPopupProps> = (props) => {
     <Show when={props.show}>
       <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-surface rounded-lg shadow-xl border border-base p-6 w-96">
-          <h2 class="text-lg font-semibold text-white mb-4">
+          <h2 class="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
             {props.isEdit ? "Edit Link" : "Add Link"}
           </h2>
 
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-neutral-300 mb-2">
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                 URL
               </label>
               <input
@@ -70,11 +70,11 @@ const LinkPopup: Component<LinkPopupProps> = (props) => {
                 onInput={(e) => setHref(e.currentTarget.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="https://example.com"
-                class="w-full px-3 py-2 bg-neutral-800 border border-neutral-600 rounded text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500"
+                class="w-full px-3 py-2 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
                 autofocus
               />
               <Show when={normalizedHref() && normalizedHref() !== href()}>
-                <p class="mt-2 text-xs text-neutral-400">
+                <p class="mt-2 text-xs text-[var(--color-text-muted)]">
                   Will be saved as:{" "}
                   <span class="text-blue-400">{normalizedHref()}</span>
                 </p>
@@ -82,7 +82,7 @@ const LinkPopup: Component<LinkPopupProps> = (props) => {
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-neutral-300 mb-2">
+              <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                 Title (optional)
               </label>
               <input
@@ -91,7 +91,7 @@ const LinkPopup: Component<LinkPopupProps> = (props) => {
                 onInput={(e) => setTitle(e.currentTarget.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Link title for tooltip"
-                class="w-full px-3 py-2 bg-neutral-800 border border-neutral-600 rounded text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500"
+                class="w-full px-3 py-2 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
               />
             </div>
           </div>

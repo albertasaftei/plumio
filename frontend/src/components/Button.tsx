@@ -36,24 +36,22 @@ export default function Button(props: ButtonProps) {
     const v = variant();
     const classes = {
       primary: local.active
-        ? "bg-primary-dark text-white ring-2 ring-primary/50 ring-offset-2 ring-offset-neutral-900"
+        ? "bg-primary-dark text-white ring-2 ring-primary/50 ring-offset-2 ring-offset-[var(--color-bg-base)]"
         : "bg-primary hover:bg-primary-dark text-white hover:scale-[1.02]",
       secondary: local.active
-        ? "bg-neutral-700 text-body border border-neutral-600"
-        : "bg-elevated hover:bg-neutral-700 text-body border border-base",
+        ? "bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] border border-[var(--color-border)]"
+        : "bg-[var(--color-bg-surface)] hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] border border-[var(--color-border)]",
       ghost: local.active
-        ? "bg-neutral-700 text-body"
-        : "text-secondary-body hover:text-body hover:bg-elevated",
+        ? "bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)]"
+        : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)]",
       danger: local.active
-        ? "bg-red-700 text-white ring-2 ring-red-500/50 ring-offset-2 ring-offset-neutral-900"
+        ? "bg-red-700 text-white ring-2 ring-red-500/50 ring-offset-2 ring-offset-[var(--color-bg-base)]"
         : "bg-red-600 hover:bg-red-500 text-white",
       warning: local.active
-        ? "bg-yellow-700 text-white ring-2 ring-yellow-500/50 ring-offset-2 ring-offset-neutral-900"
+        ? "bg-yellow-700 text-white ring-2 ring-yellow-500/50 ring-offset-2 ring-offset-[var(--color-bg-base)]"
         : "bg-yellow-700 hover:bg-yellow-600 text-white",
 
-      icon: local.active
-        ? "bg-elevated text-primary"
-        : "hover:bg-elevated text-secondary-body",
+      icon: "hover:bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)]",
       none: "",
     };
     return classes[v];

@@ -28,6 +28,125 @@
   --color-text-muted: #a3a3a3;
 }
 
+/* ─── Sepia Theme (light polarity) ─────────────────────────── */
+.light.sepia {
+  --color-bg-base: #f4ecd8;
+  --color-bg-surface: #fdf6e3;
+  --color-bg-elevated: #faf0d0;
+  --color-border: #cbb99a;
+  --color-border-subtle: #ddd0b8;
+  --color-text-primary: #3e2f1c;
+  --color-text-secondary: #7a5c3a;
+  --color-text-muted: #b09870;
+  --color-primary: #b5651d;
+  --color-primary-dark: #9a5016;
+  --color-primary-light: #d4884a;
+}
+
+/* ─── Nord Theme (dark polarity) ───────────────────────────── */
+.dark.nord {
+  --color-bg-base: #2e3440;
+  --color-bg-surface: #3b4252;
+  --color-bg-elevated: #434c5e;
+  --color-border: #4c566a;
+  --color-border-subtle: #3b4252;
+  --color-text-primary: #eceff4;
+  --color-text-secondary: #d8dee9;
+  --color-text-muted: #9199a6;
+  --color-primary: #88c0d0;
+  --color-primary-dark: #81a1c1;
+  --color-primary-light: #8fbcbb;
+}
+
+/* ─── Dracula Theme (dark polarity) ────────────────────────── */
+.dark.dracula {
+  --color-bg-base: #1e1f29;
+  --color-bg-surface: #282a36;
+  --color-bg-elevated: #313342;
+  --color-border: #44475a;
+  --color-border-subtle: #313342;
+  --color-text-primary: #f8f8f2;
+  --color-text-secondary: #cdd6f4;
+  --color-text-muted: #6272a4;
+  --color-primary: #bd93f9;
+  --color-primary-dark: #9f73e6;
+  --color-primary-light: #caa3fc;
+}
+/* ─── Catppuccin Mocha Theme (dark polarity) ────────────────────────────────── */
+.dark.catppuccin {
+  --color-bg-base: #1e1e2e;
+  --color-bg-surface: #313244;
+  --color-bg-elevated: #45475a;
+  --color-border: #585b70;
+  --color-border-subtle: #45475a;
+  --color-text-primary: #cdd6f4;
+  --color-text-secondary: #bac2de;
+  --color-text-muted: #6c7086;
+  --color-primary: #cba6f7;
+  --color-primary-dark: #b389f4;
+  --color-primary-light: #ddc0fb;
+}
+
+/* ─── GitHub Theme (light polarity) ─────────────────────────── */
+.light.github {
+  --color-bg-base: #ffffff;
+  --color-bg-surface: #f6f8fa;
+  --color-bg-elevated: #eaeef2;
+  --color-border: #d0d7de;
+  --color-border-subtle: #eaeef2;
+  --color-text-primary: #1f2328;
+  --color-text-secondary: #656d76;
+  --color-text-muted: #9198a1;
+  --color-primary: #0969da;
+  --color-primary-dark: #0756ba;
+  --color-primary-light: #218bff;
+}
+
+/* ─── GitHub Dark Theme (dark polarity) ─────────────────────── */
+.dark.github-dark {
+  --color-bg-base: #0d1117;
+  --color-bg-surface: #161b22;
+  --color-bg-elevated: #21262d;
+  --color-border: #30363d;
+  --color-border-subtle: #21262d;
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #8b949e;
+  --color-text-muted: #484f58;
+  --color-primary: #58a6ff;
+  --color-primary-dark: #388bfd;
+  --color-primary-light: #79c0ff;
+}
+
+/* ─── Night Owl Theme (dark polarity) ───────────────────────── */
+.dark.nightowl {
+  --color-bg-base: #011627;
+  --color-bg-surface: #01223a;
+  --color-bg-elevated: #0d2a45;
+  --color-border: #1d3b53;
+  --color-border-subtle: #0d2a45;
+  --color-text-primary: #d6deeb;
+  --color-text-secondary: #a8b2ca;
+  --color-text-muted: #637777;
+  --color-primary: #7fdbca;
+  --color-primary-dark: #5fb3a1;
+  --color-primary-light: #9eebd9;
+}
+
+/* ─── Matcha Theme (light polarity) ─────────────────────────── */
+.light.matcha {
+  --color-bg-base: #f4f7f4;
+  --color-bg-surface: #eef4ee;
+  --color-bg-elevated: #e4ede4;
+  --color-border: #c2d4c2;
+  --color-border-subtle: #d8e8d8;
+  --color-text-primary: #1a2e1a;
+  --color-text-secondary: #3d5a3d;
+  --color-text-muted: #7a9e7a;
+  --color-primary: #4a7c59;
+  --color-primary-dark: #3a6347;
+  --color-primary-light: #5e9870;
+}
+
 /* ─── Focus Ring ─────────────────────────────────────────────── */
 .focus-ring:focus-visible {
   outline: none;

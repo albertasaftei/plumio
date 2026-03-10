@@ -495,12 +495,13 @@ export default function MarkdownEditor(props: EditorProps) {
             const rect = link.getBoundingClientRect();
             const tooltip = document.createElement("div");
             tooltip.className =
-              "fixed bg-neutral-800 text-white px-3 py-2 rounded shadow-lg text-sm z-50 border border-neutral-600";
+              "fixed bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] px-3 py-2 rounded shadow-lg text-sm z-50 border border-[var(--color-border)]";
             tooltip.style.left = rect.left + "px";
             tooltip.style.top = rect.bottom + 8 + "px";
 
             const linkText = document.createElement("div");
-            linkText.className = "truncate max-w-xs mb-2 text-neutral-300";
+            linkText.className =
+              "truncate max-w-xs mb-2 text-[var(--color-text-secondary)]";
             linkText.textContent = normalizedHref;
 
             const buttonContainer = document.createElement("div");

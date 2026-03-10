@@ -32,7 +32,7 @@ export default function Editor(props: EditorProps) {
         value={props.content}
         onInput={handleInput}
         onKeyDown={handleKeyDown}
-        class="flex-1 min-h-0 w-full p-3 sm:p-6 bg-base font-mono text-sm sm:text-base resize-none focus:outline-none"
+        class="flex-1 min-h-0 w-full p-3 sm:p-6 bg-base font-mono text-sm text-body sm:text-base resize-none focus:outline-none"
         placeholder="Start writing your markdown..."
         spellcheck={false}
       />

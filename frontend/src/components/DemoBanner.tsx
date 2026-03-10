@@ -27,7 +27,7 @@ export function DemoBanner() {
 
       {/* Info Box */}
       <Show when={isOpen()}>
-        <div class="fixed bottom-20 right-4 z-50 bg-neutral-900 rounded-lg shadow-2xl border border-amber-400 w-80 p-4">
+        <div class="fixed bottom-20 right-4 z-50 bg-[var(--color-bg-surface)] rounded-lg shadow-2xl border border-amber-400 w-80 p-4">
           <div class="flex items-start justify-between mb-3">
             <div class="flex items-center gap-2">
               <div class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></div>
@@ -35,7 +35,7 @@ export function DemoBanner() {
             </div>
           </div>
 
-          <p class="text-sm text-neutral-200 mb-4">
+          <p class="text-sm text-[var(--color-text-primary)] mb-4">
             All data is stored in your browser's localStorage. Changes are not
             persisted to a server.
           </p>

@@ -52,10 +52,10 @@ const ToolbarButton: Component<ToolbarButtonProps> = (props) => {
       disabled={props.disabled}
       class={`toolbar-button p-1.5 rounded transition-colors duration-150 ${
         props.disabled
-          ? "text-muted-body cursor-not-allowed"
+          ? "text-[var(--color-text-muted)] cursor-not-allowed"
           : props.active
-            ? "bg-elevated light:bg-primary/10 text-primary"
-            : "text-secondary-body hover:text-body hover:bg-surface active:bg-[var(--color-border)]"
+            ? "bg-[var(--color-bg-elevated)] text-[var(--color-primary)]"
+            : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)] active:bg-[var(--color-bg-elevated)]"
       } ${props.class || ""}`}
       title={props.title}
       onMouseDown={handleMouseDown}
@@ -77,7 +77,7 @@ export default function EditorToolbar(props: ToolbarProps) {
   const s = () => props.activeState || {};
 
   return (
-    <div class="editor-toolbar flex items-center gap-0.5 px-3 py-1.5 bg-surface border-b border-subtle overflow-x-auto shrink-0 light:shadow-sm">
+    <div class="editor-toolbar flex items-center gap-0.5 px-3 py-1.5 bg-[var(--color-bg-base)] border-b border-[var(--color-border)] overflow-x-auto shrink-0">
       {/* Undo / Redo */}
       <ToolbarButton
         icon="i-carbon-undo"

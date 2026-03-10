@@ -982,3 +982,1177 @@
 .light .milkdown .code-block-wrapper .token.italic {
   font-style: italic !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* ── SEPIA THEME OVERRIDES ──────────────────────────────────────  */
+/* ═══════════════════════════════════════════════════════════════ */
+
+.light.sepia .milkdown-editor-wrapper {
+  background: #fdf6e3 !important;
+  color: #3e2f1c !important;
+}
+
+.light.sepia .milkdown .editor,
+.light.sepia .milkdown .ProseMirror {
+  color: #3e2f1c !important;
+}
+
+.light.sepia .milkdown .editor h1,
+.light.sepia .milkdown .ProseMirror h1,
+.light.sepia .milkdown .editor h2,
+.light.sepia .milkdown .ProseMirror h2,
+.light.sepia .milkdown .editor h3,
+.light.sepia .milkdown .ProseMirror h3,
+.light.sepia .milkdown .editor h4,
+.light.sepia .milkdown .ProseMirror h4,
+.light.sepia .milkdown .editor h5,
+.light.sepia .milkdown .ProseMirror h5,
+.light.sepia .milkdown .editor h6,
+.light.sepia .milkdown .ProseMirror h6 {
+  color: #2c1f0f !important;
+  border-bottom-color: #cbb99a !important;
+}
+
+.light.sepia .milkdown .editor p,
+.light.sepia .milkdown .ProseMirror p,
+.light.sepia .milkdown ul,
+.light.sepia .milkdown ol,
+.light.sepia .milkdown li {
+  color: #3e2f1c !important;
+}
+
+.light.sepia .milkdown .editor a,
+.light.sepia .milkdown .ProseMirror a {
+  color: #b5651d !important;
+}
+
+.light.sepia .milkdown .editor a:hover,
+.light.sepia .milkdown .ProseMirror a:hover {
+  color: #9a5016 !important;
+}
+
+.light.sepia .milkdown .editor code:not(pre code),
+.light.sepia .milkdown .ProseMirror code:not(pre code) {
+  background: #f0e4c8 !important;
+  color: #7a3500 !important;
+  border-color: #cbb99a !important;
+}
+
+.light.sepia .milkdown .editor pre,
+.light.sepia .milkdown .ProseMirror pre {
+  background: #ede0c4 !important;
+  border-color: #cbb99a !important;
+}
+
+.light.sepia .milkdown .editor pre code,
+.light.sepia .milkdown .ProseMirror pre code {
+  color: #3e2f1c !important;
+}
+
+.light.sepia .milkdown blockquote {
+  border-left-color: #b5651d !important;
+  color: #7a5c3a !important;
+  background: #faf0d0 !important;
+}
+
+.light.sepia .milkdown table {
+  border-color: #cbb99a !important;
+}
+
+.light.sepia .milkdown th,
+.light.sepia .milkdown td {
+  border-color: #cbb99a !important;
+  color: #3e2f1c !important;
+}
+
+.light.sepia .milkdown th {
+  background: #f0e4c8 !important;
+}
+
+.light.sepia .milkdown tr:nth-child(even) {
+  background: #faf3e0 !important;
+}
+
+.light.sepia .milkdown hr {
+  border-color: #cbb99a !important;
+}
+
+.light.sepia .milkdown strong {
+  color: #2c1f0f !important;
+}
+
+.light.sepia .milkdown .ProseMirror-placeholder {
+  color: #b09870 !important;
+}
+
+.light.sepia .code-block-header {
+  background: #ede0c4 !important;
+  border-bottom-color: #cbb99a !important;
+}
+
+.light.sepia .code-block-lang-label {
+  color: #7a5c3a !important;
+}
+
+.light.sepia .code-block-copy-btn {
+  color: #7a5c3a !important;
+}
+
+.light.sepia .code-block-copy-btn:hover {
+  color: #3e2f1c !important;
+  background: #f0e4c8 !important;
+  border-color: #cbb99a !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* ── NORD THEME OVERRIDES ───────────────────────────────────────  */
+/* ═══════════════════════════════════════════════════════════════ */
+
+.dark.nord .milkdown-editor-wrapper {
+  background: #3b4252 !important;
+  color: #eceff4 !important;
+}
+
+.dark.nord .milkdown .editor,
+.dark.nord .milkdown .ProseMirror {
+  color: #eceff4 !important;
+}
+
+.dark.nord .milkdown .editor h1,
+.dark.nord .milkdown .ProseMirror h1,
+.dark.nord .milkdown .editor h2,
+.dark.nord .milkdown .ProseMirror h2,
+.dark.nord .milkdown .editor h3,
+.dark.nord .milkdown .ProseMirror h3,
+.dark.nord .milkdown .editor h4,
+.dark.nord .milkdown .ProseMirror h4,
+.dark.nord .milkdown .editor h5,
+.dark.nord .milkdown .ProseMirror h5,
+.dark.nord .milkdown .editor h6,
+.dark.nord .milkdown .ProseMirror h6 {
+  color: #eceff4 !important;
+  border-bottom-color: #4c566a !important;
+}
+
+.dark.nord .milkdown .editor p,
+.dark.nord .milkdown .ProseMirror p,
+.dark.nord .milkdown ul,
+.dark.nord .milkdown ol,
+.dark.nord .milkdown li {
+  color: #d8dee9 !important;
+}
+
+.dark.nord .milkdown .editor a,
+.dark.nord .milkdown .ProseMirror a {
+  color: #88c0d0 !important;
+}
+
+.dark.nord .milkdown .editor a:hover,
+.dark.nord .milkdown .ProseMirror a:hover {
+  color: #8fbcbb !important;
+}
+
+.dark.nord .milkdown .editor code:not(pre code),
+.dark.nord .milkdown .ProseMirror code:not(pre code) {
+  background: #434c5e !important;
+  color: #ebcb8b !important;
+}
+
+.dark.nord .milkdown .editor pre,
+.dark.nord .milkdown .ProseMirror pre {
+  background: #2e3440 !important;
+  border-color: #4c566a !important;
+}
+
+.dark.nord .milkdown .editor pre code,
+.dark.nord .milkdown .ProseMirror pre code {
+  color: #d8dee9 !important;
+}
+
+.dark.nord .milkdown blockquote {
+  border-left-color: #81a1c1 !important;
+  color: #9199a6 !important;
+}
+
+.dark.nord .milkdown table {
+  border-color: #4c566a !important;
+}
+
+.dark.nord .milkdown th,
+.dark.nord .milkdown td {
+  border-color: #4c566a !important;
+  color: #d8dee9 !important;
+}
+
+.dark.nord .milkdown th {
+  background: #434c5e !important;
+}
+
+.dark.nord .milkdown tr:hover {
+  background: #3b4252 !important;
+}
+
+.dark.nord .milkdown hr {
+  border-color: #4c566a !important;
+}
+
+.dark.nord .milkdown strong {
+  color: #eceff4 !important;
+}
+
+.dark.nord .milkdown .ProseMirror-placeholder {
+  color: #9199a6 !important;
+}
+
+.dark.nord .code-block-header {
+  background: #2e3440 !important;
+  border-bottom-color: #4c566a !important;
+}
+
+.dark.nord .code-block-copy-btn:hover {
+  background: #434c5e !important;
+  border-color: #4c566a !important;
+}
+
+/* Nord syntax tokens */
+.dark.nord .milkdown .code-block-wrapper .token.comment {
+  color: #616e88 !important;
+}
+.dark.nord .milkdown .code-block-wrapper .token.property,
+.dark.nord .milkdown .code-block-wrapper .token.number,
+.dark.nord .milkdown .code-block-wrapper .token.boolean {
+  color: #b48ead !important;
+}
+.dark.nord .milkdown .code-block-wrapper .token.string,
+.dark.nord .milkdown .code-block-wrapper .token.inserted {
+  color: #a3be8c !important;
+}
+.dark.nord .milkdown .code-block-wrapper .token.keyword,
+.dark.nord .milkdown .code-block-wrapper .token.attr-value {
+  color: #81a1c1 !important;
+}
+.dark.nord .milkdown .code-block-wrapper .token.function,
+.dark.nord .milkdown .code-block-wrapper .token.class-name {
+  color: #88c0d0 !important;
+}
+.dark.nord .milkdown .code-block-wrapper .token.operator {
+  color: #81a1c1 !important;
+}
+.dark.nord .milkdown .code-block-wrapper .token.variable {
+  color: #d8dee9 !important;
+}
+.dark.nord .milkdown .code-block-wrapper .token.punctuation {
+  color: #eceff4 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* ── DRACULA THEME OVERRIDES ────────────────────────────────────  */
+/* ═══════════════════════════════════════════════════════════════ */
+
+.dark.dracula .milkdown-editor-wrapper {
+  background: #282a36 !important;
+  color: #f8f8f2 !important;
+}
+
+.dark.dracula .milkdown .editor,
+.dark.dracula .milkdown .ProseMirror {
+  color: #f8f8f2 !important;
+}
+
+.dark.dracula .milkdown .editor h1,
+.dark.dracula .milkdown .ProseMirror h1,
+.dark.dracula .milkdown .editor h2,
+.dark.dracula .milkdown .ProseMirror h2,
+.dark.dracula .milkdown .editor h3,
+.dark.dracula .milkdown .ProseMirror h3,
+.dark.dracula .milkdown .editor h4,
+.dark.dracula .milkdown .ProseMirror h4,
+.dark.dracula .milkdown .editor h5,
+.dark.dracula .milkdown .ProseMirror h5,
+.dark.dracula .milkdown .editor h6,
+.dark.dracula .milkdown .ProseMirror h6 {
+  color: #f8f8f2 !important;
+  border-bottom-color: #44475a !important;
+}
+
+.dark.dracula .milkdown .editor p,
+.dark.dracula .milkdown .ProseMirror p,
+.dark.dracula .milkdown ul,
+.dark.dracula .milkdown ol,
+.dark.dracula .milkdown li {
+  color: #f8f8f2 !important;
+}
+
+.dark.dracula .milkdown .editor a,
+.dark.dracula .milkdown .ProseMirror a {
+  color: #8be9fd !important;
+}
+
+.dark.dracula .milkdown .editor a:hover,
+.dark.dracula .milkdown .ProseMirror a:hover {
+  color: #80d9f0 !important;
+}
+
+.dark.dracula .milkdown .editor code:not(pre code),
+.dark.dracula .milkdown .ProseMirror code:not(pre code) {
+  background: #44475a !important;
+  color: #ffb86c !important;
+}
+
+.dark.dracula .milkdown .editor pre,
+.dark.dracula .milkdown .ProseMirror pre {
+  background: #1e1f29 !important;
+  border-color: #44475a !important;
+}
+
+.dark.dracula .milkdown .editor pre code,
+.dark.dracula .milkdown .ProseMirror pre code {
+  color: #f8f8f2 !important;
+}
+
+.dark.dracula .milkdown blockquote {
+  border-left-color: #6272a4 !important;
+  color: #6272a4 !important;
+}
+
+.dark.dracula .milkdown table {
+  border-color: #44475a !important;
+}
+
+.dark.dracula .milkdown th,
+.dark.dracula .milkdown td {
+  border-color: #44475a !important;
+  color: #f8f8f2 !important;
+}
+
+.dark.dracula .milkdown th {
+  background: #44475a !important;
+}
+
+.dark.dracula .milkdown tr:hover {
+  background: #313342 !important;
+}
+
+.dark.dracula .milkdown hr {
+  border-color: #44475a !important;
+}
+
+.dark.dracula .milkdown strong {
+  color: #f8f8f2 !important;
+}
+
+.dark.dracula .milkdown .ProseMirror-placeholder {
+  color: #6272a4 !important;
+}
+
+.dark.dracula .code-block-header {
+  background: #1e1f29 !important;
+  border-bottom-color: #44475a !important;
+}
+
+.dark.dracula .code-block-copy-btn:hover {
+  background: #44475a !important;
+  border-color: #6272a4 !important;
+}
+
+/* Dracula syntax tokens */
+.dark.dracula .milkdown .code-block-wrapper .token.comment {
+  color: #6272a4 !important;
+}
+.dark.dracula .milkdown .code-block-wrapper .token.string,
+.dark.dracula .milkdown .code-block-wrapper .token.inserted {
+  color: #f1fa8c !important;
+}
+.dark.dracula .milkdown .code-block-wrapper .token.number,
+.dark.dracula .milkdown .code-block-wrapper .token.boolean {
+  color: #bd93f9 !important;
+}
+.dark.dracula .milkdown .code-block-wrapper .token.keyword {
+  color: #ff79c6 !important;
+}
+.dark.dracula .milkdown .code-block-wrapper .token.function,
+.dark.dracula .milkdown .code-block-wrapper .token.class-name {
+  color: #50fa7b !important;
+}
+.dark.dracula .milkdown .code-block-wrapper .token.operator {
+  color: #ff79c6 !important;
+}
+.dark.dracula .milkdown .code-block-wrapper .token.variable {
+  color: #f8f8f2 !important;
+}
+.dark.dracula .milkdown .code-block-wrapper .token.property {
+  color: #66d9e8 !important;
+}
+.dark.dracula .milkdown .code-block-wrapper .token.punctuation {
+  color: #f8f8f2 !important;
+}
+.dark.dracula .milkdown .code-block-wrapper .token.attr-name {
+  color: #50fa7b !important;
+}
+.dark.dracula .milkdown .code-block-wrapper .token.attr-value {
+  color: #f1fa8c !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* ── CATPPUCCIN MOCHA THEME OVERRIDES ───────────────────────────  */
+/* ═══════════════════════════════════════════════════════════════ */
+
+.dark.catppuccin .milkdown-editor-wrapper {
+  background: #313244 !important;
+  color: #cdd6f4 !important;
+}
+
+.dark.catppuccin .milkdown .editor,
+.dark.catppuccin .milkdown .ProseMirror {
+  color: #cdd6f4 !important;
+}
+
+.dark.catppuccin .milkdown .editor h1,
+.dark.catppuccin .milkdown .ProseMirror h1,
+.dark.catppuccin .milkdown .editor h2,
+.dark.catppuccin .milkdown .ProseMirror h2,
+.dark.catppuccin .milkdown .editor h3,
+.dark.catppuccin .milkdown .ProseMirror h3,
+.dark.catppuccin .milkdown .editor h4,
+.dark.catppuccin .milkdown .ProseMirror h4,
+.dark.catppuccin .milkdown .editor h5,
+.dark.catppuccin .milkdown .ProseMirror h5,
+.dark.catppuccin .milkdown .editor h6,
+.dark.catppuccin .milkdown .ProseMirror h6 {
+  color: #cdd6f4 !important;
+  border-bottom-color: #585b70 !important;
+}
+
+.dark.catppuccin .milkdown .editor p,
+.dark.catppuccin .milkdown .ProseMirror p,
+.dark.catppuccin .milkdown ul,
+.dark.catppuccin .milkdown ol,
+.dark.catppuccin .milkdown li {
+  color: #cdd6f4 !important;
+}
+
+.dark.catppuccin .milkdown .editor a,
+.dark.catppuccin .milkdown .ProseMirror a {
+  color: #89dceb !important;
+}
+
+.dark.catppuccin .milkdown .editor a:hover,
+.dark.catppuccin .milkdown .ProseMirror a:hover {
+  color: #74c7ec !important;
+}
+
+.dark.catppuccin .milkdown .editor code:not(pre code),
+.dark.catppuccin .milkdown .ProseMirror code:not(pre code) {
+  background: #45475a !important;
+  color: #f9e2af !important;
+}
+
+.dark.catppuccin .milkdown .editor pre,
+.dark.catppuccin .milkdown .ProseMirror pre {
+  background: #1e1e2e !important;
+  border-color: #585b70 !important;
+}
+
+.dark.catppuccin .milkdown .editor pre code,
+.dark.catppuccin .milkdown .ProseMirror pre code {
+  color: #cdd6f4 !important;
+}
+
+.dark.catppuccin .milkdown blockquote {
+  border-left-color: #cba6f7 !important;
+  color: #bac2de !important;
+}
+
+.dark.catppuccin .milkdown table {
+  border-color: #585b70 !important;
+}
+
+.dark.catppuccin .milkdown th,
+.dark.catppuccin .milkdown td {
+  border-color: #585b70 !important;
+  color: #cdd6f4 !important;
+}
+
+.dark.catppuccin .milkdown th {
+  background: #45475a !important;
+}
+
+.dark.catppuccin .milkdown tr:hover {
+  background: #313244 !important;
+}
+
+.dark.catppuccin .milkdown hr {
+  border-color: #585b70 !important;
+}
+
+.dark.catppuccin .milkdown strong {
+  color: #cdd6f4 !important;
+}
+
+.dark.catppuccin .milkdown .ProseMirror-placeholder {
+  color: #6c7086 !important;
+}
+
+.dark.catppuccin .code-block-header {
+  background: #1e1e2e !important;
+  border-bottom-color: #585b70 !important;
+}
+
+.dark.catppuccin .code-block-copy-btn:hover {
+  background: #45475a !important;
+  border-color: #585b70 !important;
+}
+
+/* Catppuccin Mocha syntax tokens */
+.dark.catppuccin .milkdown .code-block-wrapper .token.comment {
+  color: #6c7086 !important;
+}
+.dark.catppuccin .milkdown .code-block-wrapper .token.string,
+.dark.catppuccin .milkdown .code-block-wrapper .token.inserted {
+  color: #a6e3a1 !important;
+}
+.dark.catppuccin .milkdown .code-block-wrapper .token.number,
+.dark.catppuccin .milkdown .code-block-wrapper .token.boolean {
+  color: #fab387 !important;
+}
+.dark.catppuccin .milkdown .code-block-wrapper .token.keyword {
+  color: #cba6f7 !important;
+}
+.dark.catppuccin .milkdown .code-block-wrapper .token.function,
+.dark.catppuccin .milkdown .code-block-wrapper .token.class-name {
+  color: #89b4fa !important;
+}
+.dark.catppuccin .milkdown .code-block-wrapper .token.operator {
+  color: #89dceb !important;
+}
+.dark.catppuccin .milkdown .code-block-wrapper .token.variable {
+  color: #cdd6f4 !important;
+}
+.dark.catppuccin .milkdown .code-block-wrapper .token.property {
+  color: #f38ba8 !important;
+}
+.dark.catppuccin .milkdown .code-block-wrapper .token.punctuation {
+  color: #cdd6f4 !important;
+}
+.dark.catppuccin .milkdown .code-block-wrapper .token.attr-name {
+  color: #a6e3a1 !important;
+}
+.dark.catppuccin .milkdown .code-block-wrapper .token.attr-value {
+  color: #a6e3a1 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* ── GITHUB THEME OVERRIDES ─────────────────────────────────────  */
+/* ═══════════════════════════════════════════════════════════════ */
+
+.light.github .milkdown-editor-wrapper {
+  background: #ffffff !important;
+  color: #1f2328 !important;
+}
+
+.light.github .milkdown .editor,
+.light.github .milkdown .ProseMirror {
+  color: #1f2328 !important;
+}
+
+.light.github .milkdown .editor h1,
+.light.github .milkdown .ProseMirror h1,
+.light.github .milkdown .editor h2,
+.light.github .milkdown .ProseMirror h2,
+.light.github .milkdown .editor h3,
+.light.github .milkdown .ProseMirror h3,
+.light.github .milkdown .editor h4,
+.light.github .milkdown .ProseMirror h4,
+.light.github .milkdown .editor h5,
+.light.github .milkdown .ProseMirror h5,
+.light.github .milkdown .editor h6,
+.light.github .milkdown .ProseMirror h6 {
+  color: #1f2328 !important;
+  border-bottom-color: #d0d7de !important;
+}
+
+.light.github .milkdown .editor p,
+.light.github .milkdown .ProseMirror p,
+.light.github .milkdown ul,
+.light.github .milkdown ol,
+.light.github .milkdown li {
+  color: #1f2328 !important;
+}
+
+.light.github .milkdown .editor a,
+.light.github .milkdown .ProseMirror a {
+  color: #0969da !important;
+}
+
+.light.github .milkdown .editor a:hover,
+.light.github .milkdown .ProseMirror a:hover {
+  color: #0756ba !important;
+}
+
+.light.github .milkdown .editor code:not(pre code),
+.light.github .milkdown .ProseMirror code:not(pre code) {
+  background: #f6f8fa !important;
+  color: #d73a49 !important;
+  border: 1px solid #d0d7de !important;
+}
+
+.light.github .milkdown .editor pre,
+.light.github .milkdown .ProseMirror pre {
+  background: #f6f8fa !important;
+  border-color: #d0d7de !important;
+}
+
+.light.github .milkdown .editor pre code,
+.light.github .milkdown .ProseMirror pre code {
+  color: #1f2328 !important;
+}
+
+.light.github .milkdown blockquote {
+  border-left-color: #d0d7de !important;
+  color: #656d76 !important;
+  background: #f6f8fa !important;
+}
+
+.light.github .milkdown table {
+  border-color: #d0d7de !important;
+}
+
+.light.github .milkdown th,
+.light.github .milkdown td {
+  border-color: #d0d7de !important;
+  color: #1f2328 !important;
+}
+
+.light.github .milkdown th {
+  background: #f6f8fa !important;
+}
+
+.light.github .milkdown tr:nth-child(even) {
+  background: #f6f8fa !important;
+}
+
+.light.github .milkdown hr {
+  border-color: #d0d7de !important;
+}
+
+.light.github .milkdown strong {
+  color: #1f2328 !important;
+}
+
+.light.github .milkdown .ProseMirror-placeholder {
+  color: #9198a1 !important;
+}
+
+.light.github .code-block-header {
+  background: #f6f8fa !important;
+  border-bottom-color: #d0d7de !important;
+}
+
+.light.github .code-block-lang-label {
+  color: #656d76 !important;
+}
+
+.light.github .code-block-copy-btn {
+  color: #656d76 !important;
+}
+
+.light.github .code-block-copy-btn:hover {
+  color: #1f2328 !important;
+  background: #eaeef2 !important;
+  border-color: #d0d7de !important;
+}
+
+/* GitHub syntax tokens (GitHub Light) */
+.light.github .milkdown .code-block-wrapper .token.comment {
+  color: #6e7781 !important;
+  font-style: italic !important;
+}
+.light.github .milkdown .code-block-wrapper .token.punctuation {
+  color: #24292f !important;
+}
+.light.github .milkdown .code-block-wrapper .token.string,
+.light.github .milkdown .code-block-wrapper .token.inserted {
+  color: #0a3069 !important;
+}
+.light.github .milkdown .code-block-wrapper .token.number,
+.light.github .milkdown .code-block-wrapper .token.boolean {
+  color: #0550ae !important;
+}
+.light.github .milkdown .code-block-wrapper .token.keyword {
+  color: #cf222e !important;
+}
+.light.github .milkdown .code-block-wrapper .token.function,
+.light.github .milkdown .code-block-wrapper .token.class-name {
+  color: #8250df !important;
+}
+.light.github .milkdown .code-block-wrapper .token.operator {
+  color: #0550ae !important;
+}
+.light.github .milkdown .code-block-wrapper .token.variable {
+  color: #953800 !important;
+}
+.light.github .milkdown .code-block-wrapper .token.property {
+  color: #0550ae !important;
+}
+.light.github .milkdown .code-block-wrapper .token.attr-name {
+  color: #116329 !important;
+}
+.light.github .milkdown .code-block-wrapper .token.attr-value {
+  color: #0a3069 !important;
+}
+.light.github .milkdown .code-block-wrapper .token.deleted {
+  color: #82071e !important;
+}
+.light.github .milkdown .code-block-wrapper .token.tag {
+  color: #116329 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* ── GITHUB DARK THEME OVERRIDES ────────────────────────────────  */
+/* ═══════════════════════════════════════════════════════════════ */
+
+.dark.github-dark .milkdown-editor-wrapper {
+  background: #161b22 !important;
+  color: #e6edf3 !important;
+}
+
+.dark.github-dark .milkdown .editor,
+.dark.github-dark .milkdown .ProseMirror {
+  color: #e6edf3 !important;
+}
+
+.dark.github-dark .milkdown .editor h1,
+.dark.github-dark .milkdown .ProseMirror h1,
+.dark.github-dark .milkdown .editor h2,
+.dark.github-dark .milkdown .ProseMirror h2,
+.dark.github-dark .milkdown .editor h3,
+.dark.github-dark .milkdown .ProseMirror h3,
+.dark.github-dark .milkdown .editor h4,
+.dark.github-dark .milkdown .ProseMirror h4,
+.dark.github-dark .milkdown .editor h5,
+.dark.github-dark .milkdown .ProseMirror h5,
+.dark.github-dark .milkdown .editor h6,
+.dark.github-dark .milkdown .ProseMirror h6 {
+  color: #e6edf3 !important;
+  border-bottom-color: #30363d !important;
+}
+
+.dark.github-dark .milkdown .editor p,
+.dark.github-dark .milkdown .ProseMirror p,
+.dark.github-dark .milkdown ul,
+.dark.github-dark .milkdown ol,
+.dark.github-dark .milkdown li {
+  color: #e6edf3 !important;
+}
+
+.dark.github-dark .milkdown .editor a,
+.dark.github-dark .milkdown .ProseMirror a {
+  color: #58a6ff !important;
+}
+
+.dark.github-dark .milkdown .editor a:hover,
+.dark.github-dark .milkdown .ProseMirror a:hover {
+  color: #79c0ff !important;
+}
+
+.dark.github-dark .milkdown .editor code:not(pre code),
+.dark.github-dark .milkdown .ProseMirror code:not(pre code) {
+  background: #161b22 !important;
+  color: #ff7b72 !important;
+  border: 1px solid #30363d !important;
+}
+
+.dark.github-dark .milkdown .editor pre,
+.dark.github-dark .milkdown .ProseMirror pre {
+  background: #0d1117 !important;
+  border-color: #30363d !important;
+}
+
+.dark.github-dark .milkdown .editor pre code,
+.dark.github-dark .milkdown .ProseMirror pre code {
+  color: #e6edf3 !important;
+}
+
+.dark.github-dark .milkdown blockquote {
+  border-left-color: #3d444d !important;
+  color: #8b949e !important;
+}
+
+.dark.github-dark .milkdown table {
+  border-color: #30363d !important;
+}
+
+.dark.github-dark .milkdown th,
+.dark.github-dark .milkdown td {
+  border-color: #30363d !important;
+  color: #e6edf3 !important;
+}
+
+.dark.github-dark .milkdown th {
+  background: #21262d !important;
+}
+
+.dark.github-dark .milkdown tr:hover {
+  background: #161b22 !important;
+}
+
+.dark.github-dark .milkdown hr {
+  border-color: #30363d !important;
+}
+
+.dark.github-dark .milkdown strong {
+  color: #e6edf3 !important;
+}
+
+.dark.github-dark .milkdown .ProseMirror-placeholder {
+  color: #484f58 !important;
+}
+
+.dark.github-dark .code-block-header {
+  background: #0d1117 !important;
+  border-bottom-color: #30363d !important;
+}
+
+.dark.github-dark .code-block-copy-btn:hover {
+  background: #21262d !important;
+  border-color: #30363d !important;
+}
+
+/* GitHub Dark syntax tokens */
+.dark.github-dark .milkdown .code-block-wrapper .token.comment { color: #8b949e !important; font-style: italic !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.punctuation { color: #e6edf3 !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.string,
+.dark.github-dark .milkdown .code-block-wrapper .token.inserted { color: #a5d6ff !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.number,
+.dark.github-dark .milkdown .code-block-wrapper .token.boolean { color: #79c0ff !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.keyword { color: #ff7b72 !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.function,
+.dark.github-dark .milkdown .code-block-wrapper .token.class-name { color: #d2a8ff !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.operator { color: #79c0ff !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.variable { color: #ffa657 !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.property { color: #79c0ff !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.attr-name { color: #7ee787 !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.attr-value { color: #a5d6ff !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.deleted { color: #ffa198 !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.tag { color: #7ee787 !important; }
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* ── NIGHT OWL THEME OVERRIDES ──────────────────────────────────  */
+/* ═══════════════════════════════════════════════════════════════ */
+
+.dark.nightowl .milkdown-editor-wrapper {
+  background: #01223a !important;
+  color: #d6deeb !important;
+}
+
+.dark.nightowl .milkdown .editor,
+.dark.nightowl .milkdown .ProseMirror {
+  color: #d6deeb !important;
+}
+
+.dark.nightowl .milkdown .editor h1,
+.dark.nightowl .milkdown .ProseMirror h1,
+.dark.nightowl .milkdown .editor h2,
+.dark.nightowl .milkdown .ProseMirror h2,
+.dark.nightowl .milkdown .editor h3,
+.dark.nightowl .milkdown .ProseMirror h3,
+.dark.nightowl .milkdown .editor h4,
+.dark.nightowl .milkdown .ProseMirror h4,
+.dark.nightowl .milkdown .editor h5,
+.dark.nightowl .milkdown .ProseMirror h5,
+.dark.nightowl .milkdown .editor h6,
+.dark.nightowl .milkdown .ProseMirror h6 {
+  color: #c5e4fd !important;
+  border-bottom-color: #1d3b53 !important;
+}
+
+.dark.nightowl .milkdown .editor p,
+.dark.nightowl .milkdown .ProseMirror p,
+.dark.nightowl .milkdown ul,
+.dark.nightowl .milkdown ol,
+.dark.nightowl .milkdown li {
+  color: #d6deeb !important;
+}
+
+.dark.nightowl .milkdown .editor a,
+.dark.nightowl .milkdown .ProseMirror a {
+  color: #7fdbca !important;
+}
+
+.dark.nightowl .milkdown .editor a:hover,
+.dark.nightowl .milkdown .ProseMirror a:hover {
+  color: #9eebd9 !important;
+}
+
+.dark.nightowl .milkdown .editor code:not(pre code),
+.dark.nightowl .milkdown .ProseMirror code:not(pre code) {
+  background: #0d2a45 !important;
+  color: #f78c6c !important;
+}
+
+.dark.nightowl .milkdown .editor pre,
+.dark.nightowl .milkdown .ProseMirror pre {
+  background: #011627 !important;
+  border-color: #1d3b53 !important;
+}
+
+.dark.nightowl .milkdown .editor pre code,
+.dark.nightowl .milkdown .ProseMirror pre code {
+  color: #d6deeb !important;
+}
+
+.dark.nightowl .milkdown blockquote {
+  border-left-color: #7fdbca !important;
+  color: #a8b2ca !important;
+}
+
+.dark.nightowl .milkdown table {
+  border-color: #1d3b53 !important;
+}
+
+.dark.nightowl .milkdown th,
+.dark.nightowl .milkdown td {
+  border-color: #1d3b53 !important;
+  color: #d6deeb !important;
+}
+
+.dark.nightowl .milkdown th {
+  background: #0d2a45 !important;
+}
+
+.dark.nightowl .milkdown tr:hover {
+  background: #01223a !important;
+}
+
+.dark.nightowl .milkdown hr {
+  border-color: #1d3b53 !important;
+}
+
+.dark.nightowl .milkdown strong {
+  color: #d6deeb !important;
+}
+
+.dark.nightowl .milkdown .ProseMirror-placeholder {
+  color: #637777 !important;
+}
+
+.dark.nightowl .code-block-header {
+  background: #011627 !important;
+  border-bottom-color: #1d3b53 !important;
+}
+
+.dark.nightowl .code-block-copy-btn:hover {
+  background: #0d2a45 !important;
+  border-color: #1d3b53 !important;
+}
+
+/* Night Owl syntax tokens */
+.dark.nightowl .milkdown .code-block-wrapper .token.comment {
+  color: #637777 !important;
+  font-style: italic !important;
+}
+.dark.nightowl .milkdown .code-block-wrapper .token.string,
+.dark.nightowl .milkdown .code-block-wrapper .token.inserted {
+  color: #addb67 !important;
+}
+.dark.nightowl .milkdown .code-block-wrapper .token.number,
+.dark.nightowl .milkdown .code-block-wrapper .token.boolean {
+  color: #f78c6c !important;
+}
+.dark.nightowl .milkdown .code-block-wrapper .token.keyword {
+  color: #c792ea !important;
+}
+.dark.nightowl .milkdown .code-block-wrapper .token.function,
+.dark.nightowl .milkdown .code-block-wrapper .token.class-name {
+  color: #82aaff !important;
+}
+.dark.nightowl .milkdown .code-block-wrapper .token.operator {
+  color: #89ddff !important;
+}
+.dark.nightowl .milkdown .code-block-wrapper .token.variable {
+  color: #d6deeb !important;
+}
+.dark.nightowl .milkdown .code-block-wrapper .token.property {
+  color: #7fdbca !important;
+}
+.dark.nightowl .milkdown .code-block-wrapper .token.punctuation {
+  color: #d6deeb !important;
+}
+.dark.nightowl .milkdown .code-block-wrapper .token.attr-name {
+  color: #addb67 !important;
+}
+.dark.nightowl .milkdown .code-block-wrapper .token.attr-value {
+  color: #addb67 !important;
+}
+.dark.nightowl .milkdown .code-block-wrapper .token.tag {
+  color: #7fdbca !important;
+}
+.dark.nightowl .milkdown .code-block-wrapper .token.regex {
+  color: #f78c6c !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* ── MATCHA THEME OVERRIDES ─────────────────────────────────────  */
+/* ═══════════════════════════════════════════════════════════════ */
+
+.light.matcha .milkdown-editor-wrapper {
+  background: #eef4ee !important;
+  color: #1a2e1a !important;
+}
+
+.light.matcha .milkdown .editor,
+.light.matcha .milkdown .ProseMirror {
+  color: #1a2e1a !important;
+}
+
+.light.matcha .milkdown .editor h1,
+.light.matcha .milkdown .ProseMirror h1,
+.light.matcha .milkdown .editor h2,
+.light.matcha .milkdown .ProseMirror h2,
+.light.matcha .milkdown .editor h3,
+.light.matcha .milkdown .ProseMirror h3,
+.light.matcha .milkdown .editor h4,
+.light.matcha .milkdown .ProseMirror h4,
+.light.matcha .milkdown .editor h5,
+.light.matcha .milkdown .ProseMirror h5,
+.light.matcha .milkdown .editor h6,
+.light.matcha .milkdown .ProseMirror h6 {
+  color: #1a2e1a !important;
+  border-bottom-color: #c2d4c2 !important;
+}
+
+.light.matcha .milkdown .editor p,
+.light.matcha .milkdown .ProseMirror p,
+.light.matcha .milkdown ul,
+.light.matcha .milkdown ol,
+.light.matcha .milkdown li {
+  color: #1a2e1a !important;
+}
+
+.light.matcha .milkdown .editor a,
+.light.matcha .milkdown .ProseMirror a {
+  color: #4a7c59 !important;
+}
+
+.light.matcha .milkdown .editor a:hover,
+.light.matcha .milkdown .ProseMirror a:hover {
+  color: #3a6347 !important;
+}
+
+.light.matcha .milkdown .editor code:not(pre code),
+.light.matcha .milkdown .ProseMirror code:not(pre code) {
+  background: #e4ede4 !important;
+  color: #2d5a27 !important;
+  border: 1px solid #c2d4c2 !important;
+}
+
+.light.matcha .milkdown .editor pre,
+.light.matcha .milkdown .ProseMirror pre {
+  background: #e4ede4 !important;
+  border-color: #c2d4c2 !important;
+}
+
+.light.matcha .milkdown .editor pre code,
+.light.matcha .milkdown .ProseMirror pre code {
+  color: #1a2e1a !important;
+}
+
+.light.matcha .milkdown blockquote {
+  border-left-color: #4a7c59 !important;
+  color: #3d5a3d !important;
+  background: #e4ede4 !important;
+}
+
+.light.matcha .milkdown table {
+  border-color: #c2d4c2 !important;
+}
+
+.light.matcha .milkdown th,
+.light.matcha .milkdown td {
+  border-color: #c2d4c2 !important;
+  color: #1a2e1a !important;
+}
+
+.light.matcha .milkdown th {
+  background: #e4ede4 !important;
+}
+
+.light.matcha .milkdown tr:nth-child(even) {
+  background: #eef4ee !important;
+}
+
+.light.matcha .milkdown hr {
+  border-color: #c2d4c2 !important;
+}
+
+.light.matcha .milkdown strong {
+  color: #1a2e1a !important;
+}
+
+.light.matcha .milkdown .ProseMirror-placeholder {
+  color: #7a9e7a !important;
+}
+
+.light.matcha .code-block-header {
+  background: #e4ede4 !important;
+  border-bottom-color: #c2d4c2 !important;
+}
+
+.light.matcha .code-block-lang-label {
+  color: #3d5a3d !important;
+}
+
+.light.matcha .code-block-copy-btn {
+  color: #3d5a3d !important;
+}
+
+.light.matcha .code-block-copy-btn:hover {
+  color: #1a2e1a !important;
+  background: #d8e8d8 !important;
+  border-color: #c2d4c2 !important;
+}
+
+/* Matcha syntax tokens */
+.light.matcha .milkdown .code-block-wrapper .token.comment {
+  color: #7a9e7a !important;
+  font-style: italic !important;
+}
+.light.matcha .milkdown .code-block-wrapper .token.punctuation {
+  color: #1a2e1a !important;
+}
+.light.matcha .milkdown .code-block-wrapper .token.string,
+.light.matcha .milkdown .code-block-wrapper .token.inserted {
+  color: #2d6a2d !important;
+}
+.light.matcha .milkdown .code-block-wrapper .token.number,
+.light.matcha .milkdown .code-block-wrapper .token.boolean {
+  color: #5a6b00 !important;
+}
+.light.matcha .milkdown .code-block-wrapper .token.keyword {
+  color: #4a7c59 !important;
+}
+.light.matcha .milkdown .code-block-wrapper .token.function,
+.light.matcha .milkdown .code-block-wrapper .token.class-name {
+  color: #3a6347 !important;
+}
+.light.matcha .milkdown .code-block-wrapper .token.operator {
+  color: #5e9870 !important;
+}
+.light.matcha .milkdown .code-block-wrapper .token.variable {
+  color: #1a2e1a !important;
+}
+.light.matcha .milkdown .code-block-wrapper .token.property {
+  color: #4a7c59 !important;
+}
+.light.matcha .milkdown .code-block-wrapper .token.attr-name {
+  color: #2d6a2d !important;
+}
+.light.matcha .milkdown .code-block-wrapper .token.attr-value {
+  color: #2d6a2d !important;
+}
+.light.matcha .milkdown .code-block-wrapper .token.deleted {
+  color: #a63d3d !important;
+}
+.light.matcha .milkdown .code-block-wrapper .token.tag {
+  color: #3a6347 !important;
+}

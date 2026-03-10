@@ -110,12 +110,8 @@ export default function AdminPanel(props: AdminPanelProps) {
       {/* Create User Button */}
       <div class="mb-6 flex justify-between items-center">
         <div>
-          <h3 class="text-lg font-semibold text-body">
-            Users
-          </h3>
-          <p class="text-sm text-muted-body">
-            {users().length} total users
-          </p>
+          <h3 class="text-lg font-semibold text-body">Users</h3>
+          <p class="text-sm text-muted-body">{users().length} total users</p>
         </div>
         <Button
           onClick={() => setShowCreateForm(!showCreateForm())}
@@ -130,9 +126,7 @@ export default function AdminPanel(props: AdminPanelProps) {
       {/* Create User Form */}
       <Show when={showCreateForm()}>
         <div class="mb-6 p-4 bg-elevated/50 border border-base rounded-lg">
-          <h4 class="text-md font-semibold text-body mb-4">
-            Create New User
-          </h4>
+          <h4 class="text-md font-semibold text-body mb-4">Create New User</h4>
           <form onSubmit={handleCreateUser} class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-secondary-body mb-2">
@@ -232,7 +226,7 @@ export default function AdminPanel(props: AdminPanelProps) {
             <tbody class="divide-y divide-neutral-700 dark:divide-neutral-700 light:divide-neutral-300">
               <For each={users()}>
                 {(user) => (
-                  <tr class="hover:bg-neutral-800/30 dark:hover:bg-neutral-800/30 light:hover:bg-neutral-100">
+                  <tr class="hover:bg-[var(--color-bg-elevated)]">
                     <td class="px-4 py-3 whitespace-nowrap">
                       <div class="flex items-center">
                         <div class="i-carbon-user-avatar w-8 h-8 text-muted-body mr-3" />
@@ -248,7 +242,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                       <Show
                         when={user.isAdmin}
                         fallback={
-                          <span class="px-2 py-1 text-xs font-medium bg-neutral-700 text-neutral-300 rounded">
+                          <span class="px-2 py-1 text-xs font-medium bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] rounded">
                             Member
                           </span>
                         }

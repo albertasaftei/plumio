@@ -164,9 +164,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
         <Show when={mounted() && isAdmin()}>
           <div class="mb-6 flex justify-between items-center">
             <div>
-              <h3 class="text-lg font-semibold text-body">
-                Members
-              </h3>
+              <h3 class="text-lg font-semibold text-body">Members</h3>
               <p class="text-sm text-muted-body">
                 {members().length} total members
               </p>
@@ -276,7 +274,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
               <tbody class="divide-y divide-neutral-700 dark:divide-neutral-700 light:divide-neutral-300">
                 <For each={members()}>
                   {(member) => (
-                    <tr class="hover:bg-neutral-800/30 dark:hover:bg-neutral-800/30 light:hover:bg-neutral-100">
+                    <tr class="hover:bg-[var(--color-bg-elevated)]">
                       <td class="px-4 py-3 whitespace-nowrap">
                         <div class="flex items-center">
                           <div class="i-carbon-user-avatar w-8 h-8 text-muted-body mr-3" />
@@ -297,7 +295,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                                 class={`px-2 py-1 text-xs font-medium rounded capitalize ${
                                   member.role === "admin"
                                     ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                                    : "bg-neutral-700 text-neutral-300"
+                                    : "bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)]"
                                 }`}
                               >
                                 {member.role}

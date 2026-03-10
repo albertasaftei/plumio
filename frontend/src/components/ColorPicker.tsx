@@ -13,9 +13,6 @@ export default function ColorPicker(props: ColorPickerProps) {
       onClick={(e) => e.stopPropagation()}
       class="px-3 py-2 border-t border-subtle"
     >
-      <div class="text-xs text-muted-body mb-2">
-        Color
-      </div>
       <div class="flex flex-wrap gap-1">
         <For each={COLOR_PALETTE}>
           {(color) => (

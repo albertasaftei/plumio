@@ -75,7 +75,7 @@ export default function ArchivePage() {
       loading={loading()}
       onBack={() => navigate(routes.homepage)}
       emptyState={
-        <div class="text-center py-12 text-secondary-body">
+        <div class="text-center py-12 text-[var(--color-text-secondary)]">
           <div class="i-carbon-folder-off w-16 h-16 mx-auto mb-4 opacity-50" />
           <p>No archived documents</p>
         </div>
@@ -84,7 +84,7 @@ export default function ArchivePage() {
       <Show
         when={archivedDocs().length > 0}
         fallback={
-          <div class="text-center py-12 text-secondary-body">
+          <div class="text-center py-12 text-[var(--color-text-secondary)]">
             <div class="i-carbon-folder-off w-16 h-16 mx-auto mb-4 opacity-50" />
             <p>No archived documents</p>
           </div>
@@ -93,15 +93,15 @@ export default function ArchivePage() {
         <div class="space-y-2 w-full">
           <For each={archivedDocs()}>
             {(doc) => (
-              <div class="bg-elevated border border-base rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-neutral-750 transition-colors light:shadow-sm cursor-pointer">
+              <div class="bg-[var(--color-bg-surface)] rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-[var(--color-bg-elevated)] transition-colors border border-[var(--color-border)] cursor-pointer">
                 <div class="flex items-center gap-3 flex-1 min-w-0">
-                  <div class="i-carbon-document w-5 h-5 text-secondary-body flex-shrink-0" />
+                  <div class="i-carbon-document w-5 h-5 text-[var(--color-text-muted)] flex-shrink-0" />
                   <div class="min-w-0 flex-1">
-                    <p class="text-body font-medium truncate mb-1">
+                    <p class="text-[var(--color-text-primary)] font-medium truncate mb-1">
                       {getDisplayName(doc.path)}
                     </p>
                     <Show when={doc.archived_at}>
-                      <p class="text-xs text-muted-body">
+                      <p class="text-xs text-[var(--color-text-muted)]">
                         Archived {formatDate(doc.archived_at)}
                       </p>
                     </Show>
@@ -119,11 +119,11 @@ export default function ArchivePage() {
 
                   <Button
                     onClick={() => setDeleteConfirm(doc.path)}
-                    variant="secondary"
+                    variant="danger"
                     size="sm"
                     title="Delete permanently"
                   >
-                    <div class="i-carbon-trash-can w-4 h-4 text-red-400" />
+                    <div class="i-carbon-trash-can w-4 h-4" />
                   </Button>
                 </div>
               </div>
@@ -138,7 +138,7 @@ export default function ArchivePage() {
         onConfirm={() => deleteConfirm() && handleDelete(deleteConfirm()!)}
         onCancel={() => setDeleteConfirm(null)}
       >
-        <p class="text-muted-body">
+        <p class="text-[var(--color-text-secondary)]">
           Are you sure you want to permanently delete "
           {deleteConfirm() && getDisplayName(deleteConfirm()!)}"? This action
           cannot be undone.

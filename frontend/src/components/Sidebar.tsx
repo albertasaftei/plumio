@@ -18,21 +18,15 @@ import {
   formatDate,
 } from "~/utils/sidebar.utils";
 import { getDisplayName } from "~/utils/document.utils";
-import { useNavigate, useLocation } from "@solidjs/router";
+import { useNavigate } from "@solidjs/router";
 import AlertDialog from "./AlertDialog";
 import OrganizationSelector from "./OrganizationSelector";
 import PopoverItem from "./PopoverItem";
 import { routes } from "~/routes";
 import { ResizableContainer } from "./ResizableContainer";
-import { useTheme } from "~/lib/theme";
 
 export default function Sidebar(props: Readonly<SidebarProps>) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [theme] = useTheme();
-
-  const isActiveRoute = (route: string) =>
-    location.pathname === route || location.pathname.startsWith(route + "/");
   const [showNewDocModal, setShowNewDocModal] = createSignal(false);
   const [showNewFolderModal, setShowNewFolderModal] = createSignal(false);
   const [showRenameModal, setShowRenameModal] = createSignal(false);
@@ -128,15 +122,11 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     const isExpanded = () => props.expandedFolders.has(nodeProps.node.path);
     const paddingLeft = () => `${nodeProps.node.depth * 16 + 16}px`;
     const getBackgroundColor = () => {
-      const isLightMode = theme() === "light";
-
       if (nodeProps.node.path === props.currentPath) {
-        return nodeProps.node.color
-          ? COLOR_PALETTE.find((c) => c.value === nodeProps.node.color)?.bg ||
-              (isLightMode ? "#f3f4f6" : "#171717")
-          : isLightMode
-            ? "#f3f4f6"
-            : "#171717";
+        return (
+          COLOR_PALETTE.find((c) => c.value === nodeProps.node.color)?.bg ||
+          "var(--color-bg-elevated)"
+        );
       }
       return nodeProps.node.color
         ? COLOR_PALETTE.find((c) => c.value === nodeProps.node.color)?.bg
@@ -146,7 +136,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     return (
       <>
         <div
-          class={`group relative hover:bg-neutral-900 dark:hover:bg-neutral-900 light:hover:bg-neutral-100 border-l-4 transition-colors rounded-md m-2 ${
+          class={`group relative hover:bg-[var(--color-bg-elevated)] border-l-4 transition-colors rounded-md m-2 ${
             nodeProps.node.path === props.currentPath
               ? "border-l-primary"
               : "border-l-transparent"
@@ -167,7 +157,11 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             class="flex items-center gap-2 py-2 pr-2"
           >
             <Show when={nodeProps.node.type === "folder"}>
-              <Button variant="icon" size="sm" class="text-muted-body">
+              <Button
+                variant="icon"
+                size="sm"
+                class="text-[var(--color-text-muted)]"
+              >
                 <div
                   class={`w-3 h-3 transition-transform ${
                     isExpanded()
@@ -182,11 +176,11 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
               class={`w-4 h-4 flex-shrink-0 ${
                 nodeProps.node.type === "folder"
                   ? "i-carbon-folder text-blue-400"
-                  : "i-carbon-document text-muted-body"
+                  : "i-carbon-document text-[var(--color-text-muted)]"
               }`}
             />
 
-            <button class="flex-1 text-left text-secondary-body truncate hover:text-body cursor-pointer">
+            <button class="flex-1 text-left text-[var(--color-text-primary)] truncate cursor-pointer">
               {nodeProps.node.type === "file"
                 ? getDisplayName(nodeProps.node.name)
                 : nodeProps.node.name}
@@ -220,12 +214,12 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                       size="sm"
                       title="More options"
                     >
-                      <div class="i-carbon-overflow-menu-vertical w-5 h-5 text-muted-body" />
+                      <div class="i-carbon-overflow-menu-vertical w-5 h-5 text-[var(--color-text-muted)]" />
                     </Button>
                   )}
                 />
                 <Popover.Portal>
-                  <Popover.Content class="mt-1 mb-1 max-w-36 bg-elevated border border-base rounded-lg shadow-lg light:shadow-xl z-50 py-1 animate-slide-down">
+                  <Popover.Content class="mt-1 mb-1 max-w-36 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg shadow-lg z-50 py-1 animate-slide-down">
                     {/* Add file/folder actions (folders only) */}
                     <Show when={nodeProps.node.type === "folder"}>
                       <PopoverItem
@@ -335,7 +329,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
 
         <Show when={nodeProps.node.type === "folder" && isExpanded()}>
           <div
-            class={`${nodeProps.node.depth === 0 ? "mb-1" : ""} ml-8 mr-2 pl-2 border-l-2 border-subtle`}
+            class={`${nodeProps.node.depth === 0 ? "mb-1" : ""} ml-8 mr-2 pl-2 border-l-2 border-[var(--color-border-subtle)]`}
           >
             <For each={nodeProps.node.children}>
               {(child) => <TreeNode node={child} />}
@@ -349,13 +343,12 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
   const SidebarContent = () => (
     <div class="flex h-full w-full">
       {/* Small Sidebar */}
-      <div class="w-14 flex-shrink-0 border-r border-subtle bg-base flex flex-col items-center py-4 gap-4">
+      <div class="w-14 flex-shrink-0 border-r border-[var(--color-border)] bg-[var(--color-bg-base)] flex flex-col items-center py-4 gap-4">
         <Button
           onClick={() => props.onViewHome()}
           variant="icon"
           size="md"
           title="Homepage"
-          active={isActiveRoute(routes.homepage)}
         >
           <div class="i-carbon-home w-5 h-5 flex-shrink-0" />
         </Button>
@@ -364,7 +357,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           variant="icon"
           size="md"
           title="Full-text Search"
-          active={isActiveRoute(routes.search)}
         >
           <div class="i-carbon-search w-5 h-5 flex-shrink-0" />
         </Button>
@@ -373,7 +365,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           variant="icon"
           size="md"
           title="View Archive"
-          active={isActiveRoute(routes.archive)}
         >
           <div class="i-carbon-archive w-5 h-5 flex-shrink-0" />
         </Button>
@@ -382,7 +373,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           variant="icon"
           size="md"
           title="Recently Deleted"
-          active={isActiveRoute(routes.deleted)}
         >
           <div class="i-carbon-trash-can w-5 h-5 flex-shrink-0" />
         </Button>
@@ -392,16 +382,15 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           variant="icon"
           size="md"
           title="Settings"
-          active={isActiveRoute(routes.settings)}
         >
           <div class="i-carbon-settings w-5 h-5 flex-shrink-0" />
         </Button>
       </div>
 
       {/* Big Sidebar */}
-      <div class="flex-1 flex flex-col min-w-0 bg-base">
+      <div class="flex-1 flex flex-col min-w-0 bg-[var(--color-bg-base)]">
         {/* Sidebar Header */}
-        <div class="p-4 sm:p-4 border-b border-subtle">
+        <div class="p-4 sm:p-4 border-b border-[var(--color-border)]">
           <div class="w-full flex items-center justify-end pb-4 lg:hidden">
             <Button
               onClick={() => props.setSidebarOpen(false)}
@@ -457,7 +446,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
       {/* Mobile: Simple aside with fixed positioning */}
       <Show when={isMounted() && isMobile()}>
         <aside
-          class="w-80 h-full border-r border-subtle bg-base flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out"
+          class="w-80 h-full border-r border-[var(--color-border)] bg-[var(--color-bg-base)] flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out"
           classList={{
             "-translate-x-full": !props.sidebarOpen,
             "translate-x-0": props.sidebarOpen,
@@ -475,7 +464,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           minSize={300}
           maxSize={600}
           resizeFrom="right"
-          class="h-full border-r border-subtle bg-base flex flex-col relative"
+          class="h-full border-r border-[var(--color-border)] bg-[var(--color-bg-base)] flex flex-col relative"
         >
           <SidebarContent />
         </ResizableContainer>
@@ -488,7 +477,9 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         onConfirm={handleCreateDocument}
         onCancel={() => setShowNewDocModal(false)}
       >
-        <p class=" text-muted-body mb-3">Creating in: {targetFolder()}</p>
+        <p class="text-[var(--color-text-secondary)] mb-3">
+          Creating in: {targetFolder()}
+        </p>
         <input
           ref={newDocInputRef}
           type="text"
@@ -496,7 +487,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           value={newItemName()}
           onInput={(e) => setNewItemName(e.currentTarget.value)}
           onKeyPress={(e) => e.key === "Enter" && handleCreateDocument()}
-          class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-primary mb-4"
+          class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] mb-4"
         />
       </AlertDialog>
 
@@ -507,7 +498,9 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         onConfirm={handleCreateFolder}
         onCancel={() => setShowNewFolderModal(false)}
       >
-        <p class=" text-muted-body mb-3">Creating in: {targetFolder()}</p>
+        <p class="text-[var(--color-text-secondary)] mb-3">
+          Creating in: {targetFolder()}
+        </p>
         <input
           ref={newFolderInputRef}
           type="text"
@@ -515,7 +508,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           value={newItemName()}
           onInput={(e) => setNewItemName(e.currentTarget.value)}
           onKeyPress={(e) => e.key === "Enter" && handleCreateFolder()}
-          class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-primary mb-4"
+          class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] mb-4"
         />
       </AlertDialog>
 
@@ -526,7 +519,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         onConfirm={handleRename}
         onCancel={() => setShowRenameModal(false)}
       >
-        <p class=" text-muted-body mb-3">
+        <p class="text-[var(--color-text-secondary)] mb-3">
           Current: {itemToRename() ? getDisplayName(itemToRename()!) : ""}
         </p>
         <input
@@ -536,7 +529,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           value={newItemName()}
           onInput={(e) => setNewItemName(e.currentTarget.value)}
           onKeyPress={(e) => e.key === "Enter" && handleRename()}
-          class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-primary mb-4"
+          class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] mb-4"
         />
       </AlertDialog>
     </>

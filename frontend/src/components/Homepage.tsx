@@ -82,66 +82,74 @@ export default function Homepage(props: HomepageProps) {
   };
 
   return (
-    <div class="flex-1 overflow-auto p-8 bg-surface">
+    <div class="flex-1 overflow-auto p-8 bg-[var(--color-bg-base)]">
       <div class="max-w-4xl mx-auto">
         {/* Header */}
         <div class="mb-8">
-          <h1 class="text-3xl font-bold text-body mb-2">
+          <h1 class="text-3xl font-bold text-[var(--color-text-primary)] mb-2">
             {currentOrg() ? currentOrg()!.name : "My Workspace"}
           </h1>
-          <p class="text-secondary-body">
+          <p class="text-[var(--color-text-secondary)]">
             Welcome back! Here are your recently edited documents.
           </p>
         </div>
 
         {/* Stats Cards */}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div class="bg-elevated border border-base rounded-lg p-4 light:shadow-sm">
+          <div class="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg p-4">
             <div class="flex items-center gap-3">
-              <div class="i-carbon-document w-8 h-8 dark:text-blue-500 light:text-blue-600" />
+              <div class="i-carbon-document w-8 h-8 text-blue-500" />
               <div>
-                <div class="text-2xl font-bold text-body">
+                <div class="text-2xl font-bold text-[var(--color-text-primary)]">
                   {props.documents.filter((d) => d.type === "file").length}
                 </div>
-                <div class="text-sm text-secondary-body">Documents</div>
+                <div class="text-sm text-[var(--color-text-secondary)]">
+                  Documents
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="bg-elevated border border-base rounded-lg p-4 light:shadow-sm">
+          <div class="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg p-4">
             <div class="flex items-center gap-3">
-              <div class="i-carbon-folder w-8 h-8 dark:text-amber-500 light:text-amber-500" />
+              <div class="i-carbon-folder w-8 h-8 text-amber-500" />
               <div>
-                <div class="text-2xl font-bold text-body">
+                <div class="text-2xl font-bold text-[var(--color-text-primary)]">
                   {props.documents.filter((d) => d.type === "folder").length}
                 </div>
-                <div class="text-sm text-secondary-body">Folders</div>
+                <div class="text-sm text-[var(--color-text-secondary)]">
+                  Folders
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="bg-elevated border border-base rounded-lg p-4 light:shadow-sm">
+          <div class="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg p-4">
             <div class="flex items-center gap-3">
-              <div class="i-carbon-star-filled w-8 h-8 dark:text-yellow-400 light:text-yellow-500" />
+              <div class="i-carbon-star-filled w-8 h-8 text-yellow-400" />
               <div>
-                <div class="text-2xl font-bold text-body">
+                <div class="text-2xl font-bold text-[var(--color-text-primary)]">
                   {favoriteDocuments().length}
                 </div>
-                <div class="text-sm text-secondary-body">Favorites</div>
+                <div class="text-sm text-[var(--color-text-secondary)]">
+                  Favorites
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="bg-elevated border border-base rounded-lg p-4 light:shadow-sm">
+          <div class="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg p-4">
             <div class="flex items-center gap-3">
-              <div class="i-carbon-time w-8 h-8 dark:text-green-500 light:text-green-600" />
+              <div class="i-carbon-time w-8 h-8 text-green-500" />
               <div>
-                <div class="text-2xl font-bold text-body">
+                <div class="text-2xl font-bold text-[var(--color-text-primary)]">
                   {recentDocuments().length > 0
                     ? formatDate(recentDocuments()[0].modified)
                     : "N/A"}
                 </div>
-                <div class="text-sm text-secondary-body">Last edited</div>
+                <div class="text-sm text-[var(--color-text-secondary)]">
+                  Last edited
+                </div>
               </div>
             </div>
           </div>
@@ -149,10 +157,10 @@ export default function Homepage(props: HomepageProps) {
 
         {/* Favorite Documents */}
         <Show when={favoriteDocuments().length > 0}>
-          <div class="bg-primary/5 dark:bg-primary/5 light:bg-primary/5 border border-primary/20 dark:border-primary/20 light:border-primary/20 rounded-lg overflow-hidden mb-8 light:shadow-md">
+          <div class="bg-primary/5 border border-primary/20 rounded-lg overflow-hidden mb-8">
             <div class="px-6 py-4 border-b border-[var(--color-border)] flex items-center gap-2">
               <div class="i-carbon-star-filled w-5 h-5 text-yellow-400" />
-              <h2 class="text-lg font-semibold text-body">
+              <h2 class="text-lg font-semibold text-[var(--color-text-primary)]">
                 Favorite Documents
               </h2>
             </div>
@@ -161,25 +169,25 @@ export default function Homepage(props: HomepageProps) {
                 {(doc) => (
                   <button
                     onClick={() => props.onSelectDocument(doc.path)}
-                    class={`w-full px-6 py-4 flex items-center cursor-pointer gap-4 hover:bg-elevated transition-colors text-left border-l-4 ${
+                    class={`w-full px-6 py-4 flex items-center cursor-pointer gap-4 hover:bg-[var(--color-bg-elevated)] transition-colors text-left border-l-4 ${
                       doc.color
                         ? colorClasses[doc.color] || "border-l-transparent"
                         : "border-l-transparent"
                     }`}
                   >
                     <div
-                      class={`${getFileIcon(doc.name)} w-6 h-6 text-secondary-body flex-shrink-0`}
+                      class={`${getFileIcon(doc.name)} w-6 h-6 text-[var(--color-text-muted)]`}
                     />
                     <div class="flex-1 min-w-0">
-                      <div class="text-body font-medium truncate flex items-center gap-2">
+                      <div class="text-[var(--color-text-primary)] font-medium truncate flex items-center gap-2">
                         {getDisplayName(doc.name)}
                         <div class="i-carbon-star-filled w-4 h-4 text-yellow-400" />
                       </div>
-                      <div class="text-sm text-secondary-body truncate">
+                      <div class="text-sm text-[var(--color-text-secondary)] truncate">
                         {getDisplayName(doc.path)}
                       </div>
                     </div>
-                    <div class="flex items-center gap-4 text-sm text-muted-body">
+                    <div class="flex items-center gap-4 text-sm text-[var(--color-text-muted)]">
                       <span>{formatSize(doc.size)}</span>
                       <span class="min-w-20 text-right">
                         {formatDate(doc.modified)}
@@ -193,15 +201,17 @@ export default function Homepage(props: HomepageProps) {
         </Show>
 
         {/* Recent Documents */}
-        <div class="bg-elevated border border-base rounded-lg overflow-hidden light:shadow-md">
+        <div class="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg overflow-hidden">
           <div class="px-6 py-4 border-b border-[var(--color-border)]">
-            <h2 class="text-lg font-semibold text-body">Recent Documents</h2>
+            <h2 class="text-lg font-semibold text-[var(--color-text-primary)]">
+              Recent Documents
+            </h2>
           </div>
 
           <Show
             when={recentDocuments().length > 0}
             fallback={
-              <div class="px-6 py-12 text-center text-muted-body">
+              <div class="px-6 py-12 text-center text-[var(--color-text-muted)]">
                 <div class="i-carbon-document-blank w-12 h-12 mx-auto mb-3 opacity-20" />
                 <p>No documents yet. Create one to get started!</p>
               </div>
@@ -212,20 +222,20 @@ export default function Homepage(props: HomepageProps) {
                 {(doc) => (
                   <button
                     onClick={() => props.onSelectDocument(doc.path)}
-                    class={`w-full px-6 py-4 flex items-center cursor-pointer gap-4 hover:bg-neutral-700 transition-colors text-left`}
+                    class="w-full px-6 py-4 flex items-center cursor-pointer gap-4 hover:bg-[var(--color-bg-elevated)] transition-colors text-left"
                   >
                     <div
-                      class={`${getFileIcon(doc.name)} w-6 h-6 text-secondary-body flex-shrink-0`}
+                      class={`${getFileIcon(doc.name)} w-6 h-6 text-[var(--color-text-muted)]`}
                     />
                     <div class="flex-1 min-w-0">
-                      <div class="text-body font-medium truncate">
+                      <div class="text-[var(--color-text-primary)] font-medium truncate">
                         {getDisplayName(doc.name)}
                       </div>
-                      <div class="text-sm text-secondary-body truncate">
+                      <div class="text-sm text-[var(--color-text-secondary)] truncate">
                         {getDisplayName(doc.path)}
                       </div>
                     </div>
-                    <div class="flex items-center gap-4 text-sm text-muted-body">
+                    <div class="flex items-center gap-4 text-sm text-[var(--color-text-muted)]">
                       <span>{formatSize(doc.size)}</span>
                       <span class="min-w-20 text-right">
                         {formatDate(doc.modified)}

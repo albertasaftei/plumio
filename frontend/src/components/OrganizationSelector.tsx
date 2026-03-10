@@ -107,9 +107,7 @@ export default function OrganizationSelector(props: OrganizationSelectorProps) {
                   onClick={() => handleSwitch(org.id)}
                   disabled={loading() || currentOrg()?.id === org.id}
                   class={`w-full text-left px-3 py-2 hover:bg-elevated transition-colors flex items-center justify-between ${
-                    currentOrg()?.id === org.id
-                      ? "bg-elevated"
-                      : ""
+                    currentOrg()?.id === org.id ? "bg-elevated" : ""
                   }`}
                 >
                   <div class="flex-1 min-w-0">
@@ -122,7 +120,7 @@ export default function OrganizationSelector(props: OrganizationSelectorProps) {
                         class={`px-1.5 py-0.5 rounded text-xs ${
                           org.role === "admin"
                             ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                            : "bg-neutral-700 text-neutral-300"
+                            : "bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)]"
                         }`}
                       >
                         {org.role}
