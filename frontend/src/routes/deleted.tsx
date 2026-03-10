@@ -6,9 +6,11 @@ import AlertDialog from "~/components/AlertDialog";
 import DocumentListPage from "~/components/DocumentListPage";
 import { routes } from "~/routes";
 import { getDisplayName } from "~/utils/document.utils";
+import { useAppLayout } from "~/components/AppLayout";
 
 export default function DeletedPage() {
   const navigate = useNavigate();
+  const { loadAllDocuments } = useAppLayout();
   const [deletedDocs, setDeletedDocs] = createSignal<Document[]>([]);
   const [loading, setLoading] = createSignal(true);
   const [deleteConfirm, setDeleteConfirm] = createSignal<string | null>(null);
@@ -39,7 +41,7 @@ export default function DeletedPage() {
   const handleRestore = async (path: string) => {
     try {
       await api.restoreDeletedDocument(path);
-      await loadDeleted();
+      await Promise.all([loadDeleted(), loadAllDocuments()]);
     } catch (error) {
       console.error("Failed to restore document:", error);
     }

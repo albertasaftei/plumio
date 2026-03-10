@@ -142,6 +142,31 @@ function hasAllowedExtension(fileName: string): boolean {
   return ALLOWED_EXTENSIONS.includes(ext);
 }
 
+// Recursively collect all active .md files under a directory (ignores archived/deleted/hidden)
+async function collectMdFilesRecursively(dir: string): Promise<string[]> {
+  const files: string[] = [];
+  try {
+    const items = await fs.readdir(dir, { withFileTypes: true });
+    for (const item of items) {
+      if (item.name.startsWith(".") || item.name.endsWith(".meta.json"))
+        continue;
+      const fullItemPath = path.join(dir, item.name);
+      if (item.isDirectory()) {
+        files.push(...(await collectMdFilesRecursively(fullItemPath)));
+      } else if (
+        item.name.endsWith(".md") &&
+        !item.name.includes(".archived-") &&
+        !item.name.includes(".deleted-")
+      ) {
+        files.push(fullItemPath);
+      }
+    }
+  } catch {
+    // ignore read errors
+  }
+  return files;
+}
+
 // Recursively remove hidden files, folders, and files with invalid extensions
 async function cleanupInvalidFiles(dirPath: string): Promise<void> {
   try {
@@ -439,7 +464,58 @@ documentsRouter.delete("/delete", async (c) => {
     const stats = await fs.stat(fullPath);
 
     if (stats.isDirectory()) {
-      // For folders, still do immediate deletion (or we could recursively soft delete all files)
+      const timestamp = Date.now();
+      const orgPath = getOrgDocumentsPath(organizationId);
+      const mdFiles = await collectMdFilesRecursively(fullPath);
+
+      for (const absFilePath of mdFiles) {
+        const relFilePath = path
+          .relative(orgPath, absFilePath)
+          .replace(/\\/g, "/");
+        const parts = relFilePath.split("/");
+        const fileName = parts.pop() || "";
+        const baseName = fileName.replace(/\.md$/, "");
+        const deletedFileName = `${baseName}.deleted-${timestamp}.md`;
+        const deletedRelPath = [...parts, deletedFileName].join("/");
+        const absDeletedPath = path.join(orgPath, deletedRelPath);
+
+        try {
+          await fs.rename(absFilePath, absDeletedPath);
+        } catch {
+          // file may not be on disk
+        }
+
+        const existing = documentQueries.findByOrgAndPathIncludingArchived.get(
+          organizationId,
+          relFilePath,
+        );
+        if (existing) {
+          db.prepare(
+            `UPDATE documents
+             SET path = ?, deleted = 1, deleted_at = CURRENT_TIMESTAMP, deleted_by = ?
+             WHERE organization_id = ? AND path = ?`,
+          ).run(deletedRelPath, user.userId, organizationId, relFilePath);
+        } else {
+          const fileStats = await fs
+            .stat(absDeletedPath)
+            .catch(() => ({ size: 0 }));
+          documentQueries.upsert.run(
+            organizationId,
+            user.userId,
+            deletedRelPath,
+            baseName,
+            null,
+            fileStats.size,
+          );
+          documentQueries.softDelete.run(
+            user.userId,
+            organizationId,
+            deletedRelPath,
+          );
+        }
+      }
+
+      // Hard-delete the now-empty (or fully renamed) folder
       await fs.rm(fullPath, { recursive: true });
     } else {
       // Soft delete: rename file with .deleted-{timestamp} suffix
@@ -1132,11 +1208,19 @@ documentsRouter.post("/deleted/restore", async (c) => {
     const deletedFilePath = path.join(orgPath, docPath);
     const restoredFilePath = path.join(orgPath, restoredPath);
 
+    // Ensure parent directory exists (folder may have been deleted along with the file)
+    await fs.mkdir(path.dirname(restoredFilePath), { recursive: true });
+
     try {
       await fs.rename(deletedFilePath, restoredFilePath);
     } catch (err) {
       console.error("Error renaming file:", err);
-      // Continue anyway - file might not exist on disk
+      // Physical file is gone (swept when the folder was hard-deleted) — restore as empty document
+      try {
+        await fs.writeFile(restoredFilePath, "", "utf-8");
+      } catch (writeErr) {
+        console.error("Error creating empty restored file:", writeErr);
+      }
     }
 
     // Update database - restore original path and mark as not deleted

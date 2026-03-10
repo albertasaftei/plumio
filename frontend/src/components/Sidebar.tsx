@@ -270,17 +270,19 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                       <div class="h-px bg-[var(--color-border)] my-1" />
                     </Show>
 
-                    {/* Archive and rename actions */}
-                    <PopoverItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        props.onArchiveItem(nodeProps.node.path);
-                        setOpenMenuPath(null);
-                      }}
-                    >
-                      <div class="i-carbon-archive w-4 h-4" />
-                      Archive
-                    </PopoverItem>
+                    {/* Archive action (files only) */}
+                    <Show when={nodeProps.node.type === "file"}>
+                      <PopoverItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          props.onArchiveItem(nodeProps.node.path);
+                          setOpenMenuPath(null);
+                        }}
+                      >
+                        <div class="i-carbon-archive w-4 h-4" />
+                        Archive
+                      </PopoverItem>
+                    </Show>
 
                     <PopoverItem
                       onClick={(e) => {
