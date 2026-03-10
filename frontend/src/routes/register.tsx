@@ -1,6 +1,7 @@
-import { createSignal, Show } from "solid-js";
+import { createEffect, createSignal, Show } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { api } from "~/lib/api";
+import { config } from "~/lib/config";
 import Logo from "~/components/Logo";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
@@ -14,6 +15,12 @@ export default function Register() {
   const [error, setError] = createSignal("");
   const [success, setSuccess] = createSignal(false);
   const [loading, setLoading] = createSignal(false);
+
+  createEffect(() => {
+    if (!config().registration_enabled) {
+      navigate(routes.login);
+    }
+  });
 
   const handleRegister = async (e: Event) => {
     e.preventDefault();
@@ -53,15 +60,11 @@ export default function Register() {
       <div class="w-full max-w-md">
         <div class="flex gap-4 items-center justify-center mb-8">
           <Logo color="#2a9d8f" size="48" />
-          <span class="text-4xl font-bold text-body mb-2">
-            plumio
-          </span>
+          <span class="text-4xl font-bold text-body mb-2">plumio</span>
         </div>
 
         <div class="bg-surface rounded-lg p-8 border border-subtle light:shadow-xl">
-          <h2 class="text-2xl font-semibold text-body mb-6">
-            Create Account
-          </h2>
+          <h2 class="text-2xl font-semibold text-body mb-6">Create Account</h2>
 
           <Show when={success()}>
             <div class="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400">
@@ -152,9 +155,7 @@ export default function Register() {
           </form>
 
           <div class="mt-6 text-center">
-            <span class="text-muted-body">
-              Already have an account?
-            </span>
+            <span class="text-muted-body">Already have an account?</span>
             <button
               onClick={() => navigate(routes.login)}
               class="ml-2 text-primary hover:underline cursor-pointer"

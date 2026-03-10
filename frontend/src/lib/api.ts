@@ -353,6 +353,24 @@ export class ApiClient {
     });
   }
 
+  // App Config
+  async getConfig() {
+    return this.request<Record<string, boolean | string>>("/api/config");
+  }
+
+  async getAdminSettings() {
+    return this.request<{ settings: Record<string, string> }>(
+      "/api/auth/admin/settings",
+    );
+  }
+
+  async updateAdminSetting(key: string, value: string) {
+    return this.request("/api/auth/admin/settings", {
+      method: "PUT",
+      body: JSON.stringify({ key, value }),
+    });
+  }
+
   // Documents
   async listDocuments(path = "/") {
     return this.request<{ items: Document[] }>(

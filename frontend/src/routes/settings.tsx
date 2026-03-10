@@ -9,6 +9,7 @@ import Account from "~/components/SettingsView/Account";
 import ImportExport from "~/components/SettingsView/ImportExport";
 import OrganizationPanel from "~/components/SettingsView/OrganizationPanel";
 import AdminPanel from "~/components/SettingsView/AdminPanel";
+import AppConfiguration from "~/components/SettingsView/AppConfiguration";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
 import BuildInformation from "~/components/SettingsView/BuildInformation";
@@ -116,9 +117,7 @@ export default function SettingsPage() {
                 >
                   <div class="i-carbon-arrow-left w-5 h-5" />
                 </Button>
-                <h2 class="text-2xl font-bold text-body">
-                  Account
-                </h2>
+                <h2 class="text-2xl font-bold text-body">Account</h2>
               </div>
               <Account />
             </SectionsWrapper>
@@ -135,9 +134,7 @@ export default function SettingsPage() {
                 >
                   <div class="i-carbon-arrow-left w-5 h-5" />
                 </Button>
-                <h2 class="text-2xl font-bold text-body">
-                  Import / Export
-                </h2>
+                <h2 class="text-2xl font-bold text-body">Import / Export</h2>
               </div>
               <ImportExport />
             </SectionsWrapper>
@@ -154,9 +151,7 @@ export default function SettingsPage() {
                 >
                   <div class="i-carbon-arrow-left w-5 h-5" />
                 </Button>
-                <h2 class="text-2xl font-bold text-body">
-                  Organization
-                </h2>
+                <h2 class="text-2xl font-bold text-body">Organization</h2>
               </div>
               <OrganizationPanel
                 isOpen
@@ -177,15 +172,30 @@ export default function SettingsPage() {
                 >
                   <div class="i-carbon-arrow-left w-5 h-5" />
                 </Button>
-                <h2 class="text-2xl font-bold text-body">
-                  Admin Panel
-                </h2>
+                <h2 class="text-2xl font-bold text-body">Admin Panel</h2>
               </div>
               <AdminPanel
                 isOpen={true}
                 inline={true}
                 onClose={() => setActiveSection(null)}
               />
+            </SectionsWrapper>
+          </Show>
+
+          <Show when={activeSection() === "app-configuration"}>
+            <SectionsWrapper>
+              <div class="flex items-center gap-3 mb-6">
+                <Button
+                  onClick={handleClose}
+                  variant="ghost"
+                  size="md"
+                  title="Back to editor"
+                >
+                  <div class="i-carbon-arrow-left w-5 h-5" />
+                </Button>
+                <h2 class="text-2xl font-bold text-body">App Configuration</h2>
+              </div>
+              <AppConfiguration />
             </SectionsWrapper>
           </Show>
 
@@ -200,9 +210,7 @@ export default function SettingsPage() {
                 >
                   <div class="i-carbon-arrow-left w-5 h-5" />
                 </Button>
-                <h2 class="text-2xl font-bold text-body">
-                  Build Information
-                </h2>
+                <h2 class="text-2xl font-bold text-body">Build Information</h2>
               </div>
               <BuildInformation />
             </SectionsWrapper>

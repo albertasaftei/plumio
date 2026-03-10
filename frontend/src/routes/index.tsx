@@ -5,6 +5,7 @@ import Logo from "~/components/Logo";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
 import "~/styles/globals.css";
+import { config } from "~/lib/config";
 
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 
@@ -237,7 +238,7 @@ export default function Home() {
               </Button>
             </form>
 
-            <Show when={!isSetup()}>
+            <Show when={!isSetup() && config().registration_enabled}>
               <div class="mt-6 text-center">
                 <span class="text-muted-body">Don't have an account?</span>
                 <button

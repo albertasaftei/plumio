@@ -6,6 +6,7 @@ export type SettingsSection =
   | "import-export"
   | "organization"
   | "admin"
+  | "app-configuration"
   | "build-information"
   | null;
 
@@ -88,6 +89,20 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
             >
               <div class="i-carbon-user-admin w-4 h-4" />
               <span class="ml-2">Admin Panel</span>
+            </Button>
+
+            <Button
+              onClick={() => props.onSectionChange("app-configuration")}
+              variant={
+                props.activeSection === "app-configuration"
+                  ? "secondary"
+                  : "ghost"
+              }
+              size="md"
+              fullWidth
+            >
+              <div class="i-carbon-settings-adjust w-4 h-4" />
+              <span class="ml-2">App Configuration</span>
             </Button>
           </Show>
 

@@ -291,6 +291,19 @@ export const documentQueries = {
   },
 };
 
+// === Settings Queries ===
+export const settingsQueries = {
+  get: db.prepare<[string], { key: string; value: string }>(
+    "SELECT key, value FROM settings WHERE key = ?",
+  ),
+  set: db.prepare<[string, string]>(
+    "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP",
+  ),
+  getAll: db.prepare<[], { key: string; value: string }>(
+    "SELECT key, value FROM settings ORDER BY key ASC",
+  ),
+};
+
 // Cleanup expired sessions periodically
 setInterval(
   () => {

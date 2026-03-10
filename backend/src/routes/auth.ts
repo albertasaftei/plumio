@@ -7,6 +7,7 @@ import {
   sessionQueries,
   organizationQueries,
   memberQueries,
+  settingsQueries,
 } from "../db/index.js";
 import crypto from "crypto";
 import { UserJWTPayload } from "../middlewares/auth.types.js";
@@ -190,6 +191,12 @@ authRouter.post("/register", async (c) => {
         { error: "System setup not completed. Please complete setup first." },
         400,
       );
+    }
+
+    // Check runtime setting — registration may be disabled by admin
+    const registrationSetting = settingsQueries.get.get("registration_enabled");
+    if (registrationSetting?.value === "false") {
+      return c.json({ error: "Registration is currently disabled." }, 403);
     }
 
     const parsed = registerSchema.safeParse(await c.req.json());

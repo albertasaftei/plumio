@@ -4,6 +4,7 @@ import {
   userQueries,
   organizationQueries,
   memberQueries,
+  settingsQueries,
 } from "../db/index.js";
 import { adminMiddleware } from "../middlewares/auth.js";
 import { UserJWTPayload } from "../middlewares/auth.types.js";
@@ -110,6 +111,29 @@ adminRouter.delete("/users/:id", async (c) => {
     console.error("Error deleting user:", error);
     return c.json({ error: "Failed to delete user" }, 500);
   }
+});
+
+// GET /settings — return all app config settings
+adminRouter.get("/settings", (c) => {
+  const rows = settingsQueries.getAll.all();
+  const settings: Record<string, string> = {};
+  for (const row of rows) settings[row.key] = row.value;
+  return c.json({ settings });
+});
+
+const updateSettingSchema = z.object({
+  key: z.string().min(1),
+  value: z.string(),
+});
+
+// PUT /settings — update a single app config setting
+adminRouter.put("/settings", async (c) => {
+  const parsed = updateSettingSchema.safeParse(await c.req.json());
+  if (!parsed.success)
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
+  const { key, value } = parsed.data;
+  settingsQueries.set.run(key, value);
+  return c.json({ message: "Setting updated" });
 });
 
 export { adminRouter };

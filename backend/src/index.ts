@@ -5,6 +5,7 @@ import { logger } from "hono/logger";
 import fs, { readFileSync } from "fs";
 import "./config.js";
 import "./db/index.js";
+import { settingsQueries } from "./db/index.js";
 import { documentsRouter } from "./routes/documents.js";
 import { authRouter } from "./routes/auth.js";
 import { adminRouter } from "./routes/admin.js";
@@ -67,6 +68,20 @@ app.get("/api/health", (c) => {
     timestamp: new Date().toISOString(),
     appVersion: packageJson.version,
   });
+});
+
+// Public config endpoint (no auth required — only exposes non-sensitive flags)
+app.get("/api/config", (c) => {
+  const rows = settingsQueries.getAll.all();
+  const config: Record<string, boolean | string> = {};
+  for (const row of rows) {
+    if (row.value === "true" || row.value === "false") {
+      config[row.key] = row.value === "true";
+    } else {
+      config[row.key] = row.value;
+    }
+  }
+  return c.json(config);
 });
 
 // Routes
