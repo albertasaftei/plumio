@@ -1819,22 +1819,49 @@
 }
 
 /* GitHub Dark syntax tokens */
-.dark.github-dark .milkdown .code-block-wrapper .token.comment { color: #8b949e !important; font-style: italic !important; }
-.dark.github-dark .milkdown .code-block-wrapper .token.punctuation { color: #e6edf3 !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.comment {
+  color: #8b949e !important;
+  font-style: italic !important;
+}
+.dark.github-dark .milkdown .code-block-wrapper .token.punctuation {
+  color: #e6edf3 !important;
+}
 .dark.github-dark .milkdown .code-block-wrapper .token.string,
-.dark.github-dark .milkdown .code-block-wrapper .token.inserted { color: #a5d6ff !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.inserted {
+  color: #a5d6ff !important;
+}
 .dark.github-dark .milkdown .code-block-wrapper .token.number,
-.dark.github-dark .milkdown .code-block-wrapper .token.boolean { color: #79c0ff !important; }
-.dark.github-dark .milkdown .code-block-wrapper .token.keyword { color: #ff7b72 !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.boolean {
+  color: #79c0ff !important;
+}
+.dark.github-dark .milkdown .code-block-wrapper .token.keyword {
+  color: #ff7b72 !important;
+}
 .dark.github-dark .milkdown .code-block-wrapper .token.function,
-.dark.github-dark .milkdown .code-block-wrapper .token.class-name { color: #d2a8ff !important; }
-.dark.github-dark .milkdown .code-block-wrapper .token.operator { color: #79c0ff !important; }
-.dark.github-dark .milkdown .code-block-wrapper .token.variable { color: #ffa657 !important; }
-.dark.github-dark .milkdown .code-block-wrapper .token.property { color: #79c0ff !important; }
-.dark.github-dark .milkdown .code-block-wrapper .token.attr-name { color: #7ee787 !important; }
-.dark.github-dark .milkdown .code-block-wrapper .token.attr-value { color: #a5d6ff !important; }
-.dark.github-dark .milkdown .code-block-wrapper .token.deleted { color: #ffa198 !important; }
-.dark.github-dark .milkdown .code-block-wrapper .token.tag { color: #7ee787 !important; }
+.dark.github-dark .milkdown .code-block-wrapper .token.class-name {
+  color: #d2a8ff !important;
+}
+.dark.github-dark .milkdown .code-block-wrapper .token.operator {
+  color: #79c0ff !important;
+}
+.dark.github-dark .milkdown .code-block-wrapper .token.variable {
+  color: #ffa657 !important;
+}
+.dark.github-dark .milkdown .code-block-wrapper .token.property {
+  color: #79c0ff !important;
+}
+.dark.github-dark .milkdown .code-block-wrapper .token.attr-name {
+  color: #7ee787 !important;
+}
+.dark.github-dark .milkdown .code-block-wrapper .token.attr-value {
+  color: #a5d6ff !important;
+}
+.dark.github-dark .milkdown .code-block-wrapper .token.deleted {
+  color: #ffa198 !important;
+}
+.dark.github-dark .milkdown .code-block-wrapper .token.tag {
+  color: #7ee787 !important;
+}
 
 /* ═══════════════════════════════════════════════════════════════ */
 /* ── NIGHT OWL THEME OVERRIDES ──────────────────────────────────  */
