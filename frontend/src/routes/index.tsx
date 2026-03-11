@@ -4,7 +4,6 @@ import { api } from "~/lib/api";
 import Logo from "~/components/Logo";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
-import "~/styles/globals.css";
 
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 
