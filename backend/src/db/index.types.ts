@@ -3,6 +3,7 @@ export interface User {
   username: string;
   email: string;
   password_hash: string;
+  is_admin: number; // 1 = admin, 0 = regular user
   created_at: string;
   updated_at: string;
 }

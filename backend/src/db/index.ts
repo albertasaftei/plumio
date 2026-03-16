@@ -63,6 +63,9 @@ export const userQueries = {
   updatePassword: db.prepare<[string, number]>(
     "UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
   ),
+  setAdmin: db.prepare<[number, number]>(
+    "UPDATE users SET is_admin = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+  ),
 };
 
 // === Organization Queries ===

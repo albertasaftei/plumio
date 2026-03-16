@@ -2,6 +2,7 @@ import { createSignal, For, Show, onMount, createEffect } from "solid-js";
 import { api } from "~/lib/api";
 import Button from "../Button";
 import AlertDialog from "../AlertDialog";
+import Toast from "../Toast";
 
 interface User {
   id: number;
@@ -20,6 +21,7 @@ interface AdminPanelProps {
 export default function AdminPanel(props: AdminPanelProps) {
   const [users, setUsers] = createSignal<User[]>([]);
   const [loading, setLoading] = createSignal(false);
+  const [isOwner, setIsOwner] = createSignal(false);
   const [showCreateForm, setShowCreateForm] = createSignal(false);
   const [deleteDialog, setDeleteDialog] = createSignal<{
     isOpen: boolean;
@@ -30,7 +32,12 @@ export default function AdminPanel(props: AdminPanelProps) {
   const [username, setUsername] = createSignal("");
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
+  const [newUserIsAdmin, setNewUserIsAdmin] = createSignal(false);
   const [error, setError] = createSignal("");
+  const [toast, setToast] = createSignal<{
+    message: string;
+    type: "success" | "error" | "info" | "warning";
+  } | null>(null);
 
   const loadUsers = async () => {
     setLoading(true);
@@ -47,7 +54,11 @@ export default function AdminPanel(props: AdminPanelProps) {
 
   createEffect(() => {
     if (props.isOpen) {
-      loadUsers();
+      (async () => {
+        const currentUserId = await api.getCurrentUserId();
+        setIsOwner(currentUserId === 1);
+        await loadUsers();
+      })();
     }
   });
 
@@ -61,14 +72,28 @@ export default function AdminPanel(props: AdminPanelProps) {
     }
 
     try {
-      await api.createUser(username(), email(), password());
+      await api.createUser(username(), email(), password(), newUserIsAdmin());
       setUsername("");
       setEmail("");
       setPassword("");
+      setNewUserIsAdmin(false);
       setShowCreateForm(false);
       await loadUsers();
     } catch (err: any) {
       setError(err.message || "Failed to create user");
+    }
+  };
+
+  const handleRoleChange = async (user: User, newIsAdmin: boolean) => {
+    try {
+      await api.updateUserAdminStatus(user.id, newIsAdmin);
+      setToast({
+        message: `Role updated to ${newIsAdmin ? "Admin" : "Member"}`,
+        type: "success",
+      });
+      await loadUsers();
+    } catch (err: any) {
+      setError(err.message || "Failed to update role");
     }
   };
 
@@ -171,6 +196,22 @@ export default function AdminPanel(props: AdminPanelProps) {
               />
             </div>
 
+            <div class="flex items-center gap-3">
+              <input
+                id="new-user-admin"
+                type="checkbox"
+                checked={newUserIsAdmin()}
+                onChange={(e) => setNewUserIsAdmin(e.currentTarget.checked)}
+                class="w-4 h-4 rounded accent-[var(--color-primary)] cursor-pointer"
+              />
+              <label
+                for="new-user-admin"
+                class="text-sm font-medium text-secondary-body cursor-pointer select-none"
+              >
+                Grant app admin role
+              </label>
+            </div>
+
             <div class="flex gap-2">
               <Button type="submit" variant="primary" size="md">
                 Create User
@@ -181,6 +222,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                   setUsername("");
                   setEmail("");
                   setPassword("");
+                  setNewUserIsAdmin(false);
                   setError("");
                 }}
                 variant="secondary"
@@ -240,23 +282,35 @@ export default function AdminPanel(props: AdminPanelProps) {
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap">
                       <Show
-                        when={user.isAdmin}
+                        when={user.id !== 1 && (isOwner() || !user.isAdmin)}
                         fallback={
-                          <span class="px-2 py-1 text-xs font-medium bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] rounded">
-                            Member
+                          <span class="px-2 py-1 text-xs font-medium bg-blue-500/20 text-blue-400 rounded border border-blue-500/30">
+                            Admin
                           </span>
                         }
                       >
-                        <span class="px-2 py-1 text-xs font-medium bg-blue-500/20 text-blue-400 rounded">
-                          Admin
-                        </span>
+                        <select
+                          value={user.isAdmin ? "admin" : "member"}
+                          onChange={(e) =>
+                            handleRoleChange(
+                              user,
+                              e.currentTarget.value === "admin",
+                            )
+                          }
+                          class="px-2 py-1 text-xs font-medium bg-elevated border border-base rounded text-body focus:outline-none focus:border-neutral-600 dark:focus:border-neutral-600 light:focus:border-neutral-500"
+                        >
+                          <option value="member">Member</option>
+                          <option value="admin">Admin</option>
+                        </select>
                       </Show>
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-muted-body">
                       {formatDate(user.createdAt)}
                     </td>
                     <td class="flex items-center justify-end px-4 py-3 whitespace-nowrap text-right text-sm">
-                      <Show when={!user.isAdmin}>
+                      <Show
+                        when={user.id !== 1 && (isOwner() || !user.isAdmin)}
+                      >
                         <Button
                           onClick={() => handleDeleteUser(user)}
                           variant="icon"
@@ -338,6 +392,14 @@ export default function AdminPanel(props: AdminPanelProps) {
           </div>
         </Show>
       </div>
+
+      <Show when={toast()}>
+        <Toast
+          message={toast()!.message}
+          type={toast()!.type}
+          onClose={() => setToast(null)}
+        />
+      </Show>
     </>
   );
 }

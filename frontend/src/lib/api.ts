@@ -232,6 +232,11 @@ export class ApiClient {
     return decoded?.username ?? null;
   }
 
+  getCurrentUserId(): number | null {
+    const decoded = this.decodeToken();
+    return decoded?.userId ?? null;
+  }
+
   // Organizations
   async listOrganizations() {
     return this.request<{
@@ -338,10 +343,22 @@ export class ApiClient {
     }>("/api/auth/admin/users");
   }
 
-  async createUser(username: string, email: string, password: string) {
+  async createUser(
+    username: string,
+    email: string,
+    password: string,
+    isAdmin: boolean = false,
+  ) {
     return this.request("/api/auth/admin/users", {
       method: "POST",
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password, isAdmin }),
+    });
+  }
+
+  async updateUserAdminStatus(userId: number, isAdmin: boolean) {
+    return this.request(`/api/auth/admin/users/${userId}`, {
+      method: "PUT",
+      body: JSON.stringify({ isAdmin }),
     });
   }
 

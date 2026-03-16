@@ -24,7 +24,7 @@ adminRouter.get("/users", async (c) => {
       username: user.username,
       email: user.email,
       createdAt: user.created_at,
-      isAdmin: user.id === 1,
+      isAdmin: user.is_admin === 1,
     }));
     return c.json({ users: userList });
   } catch (error) {
@@ -37,6 +37,7 @@ const registerSchema = z.object({
   username: z.string().min(1, "Username is required"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
+  isAdmin: z.boolean().optional().default(false),
 });
 // Create new user
 adminRouter.post("/users", async (c) => {
@@ -47,13 +48,18 @@ adminRouter.post("/users", async (c) => {
       return c.json({ error: z.treeifyError(parsed.error) }, 400);
     }
 
-    const { username, email, password } = parsed.data;
+    const { username, email, password, isAdmin } = parsed.data;
     const passwordHash = await bcrypt.hash(password, 10);
 
     try {
       // Create user
       const result = userQueries.create.run(username, email, passwordHash);
       const userId = result.lastInsertRowid as number;
+
+      // Set admin flag if requested
+      if (isAdmin) {
+        userQueries.setAdmin.run(1, userId);
+      }
 
       // Create personal organization for the new user
       const orgSlug = `${username}-personal`;
@@ -77,6 +83,50 @@ adminRouter.post("/users", async (c) => {
   } catch (error) {
     console.error("Error creating user:", error);
     return c.json({ error: "Failed to create user" }, 500);
+  }
+});
+
+const updateUserParamsSchema = z.object({
+  id: z.string().transform((val) => parseInt(val)),
+});
+
+const updateUserSchema = z.object({
+  isAdmin: z.boolean(),
+});
+
+// Update user admin status
+adminRouter.put("/users/:id", async (c) => {
+  try {
+    const parsedParams = updateUserParamsSchema.safeParse({
+      id: c.req.param("id"),
+    });
+
+    if (!parsedParams.success) {
+      return c.json({ error: z.treeifyError(parsedParams.error) }, 400);
+    }
+
+    const { id: userId } = parsedParams.data;
+
+    if (userId === 1) {
+      return c.json({ error: "Cannot change role of the primary admin" }, 400);
+    }
+
+    const currentUser = c.get("user");
+    if (currentUser.userId === userId) {
+      return c.json({ error: "Cannot change your own role" }, 400);
+    }
+
+    const parsed = updateUserSchema.safeParse(await c.req.json());
+    if (!parsed.success) {
+      return c.json({ error: z.treeifyError(parsed.error) }, 400);
+    }
+
+    userQueries.setAdmin.run(parsed.data.isAdmin ? 1 : 0, userId);
+
+    return c.json({ message: "User role updated successfully" });
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    return c.json({ error: "Failed to update user role" }, 500);
   }
 });
 

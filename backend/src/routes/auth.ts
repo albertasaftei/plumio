@@ -119,8 +119,8 @@ authRouter.post("/login", async (c) => {
     const currentOrg = organizations[0];
     const membership = memberQueries.findMembership.get(currentOrg.id, user.id);
 
-    // Check if user is global admin (first user)
-    const isGlobalAdmin = user.id === 1;
+    // Check if user is global admin
+    const isGlobalAdmin = user.is_admin === 1;
 
     // Create session with organization context
     const sessionId = crypto.randomUUID();
