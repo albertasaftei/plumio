@@ -15,6 +15,7 @@ export default function Home() {
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
   const [confirmPassword, setConfirmPassword] = createSignal("");
+  const [organizationName, setOrganizationName] = createSignal("");
   const [error, setError] = createSignal("");
   const [loading, setLoading] = createSignal(true);
   const [showPassword, setShowPassword] = createSignal(false);
@@ -66,12 +67,13 @@ export default function Home() {
     }
 
     try {
-      await api.setup(username(), email(), password());
+      await api.setup(username(), email(), password(), organizationName());
       setNeedsSetup(false);
       setIsSetup(false);
       setEmail("");
       setPassword("");
       setConfirmPassword("");
+      setOrganizationName("");
     } catch (err: any) {
       setError(err.message || "Setup failed");
     }
@@ -156,6 +158,18 @@ export default function Home() {
                     required
                     class="focus-ring w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
                     placeholder="Enter email"
+                  />
+                </div>
+                <div class="mb-4">
+                  <label class="block font-medium text-[var(--color-text-secondary)] mb-2">
+                    Organization Name
+                  </label>
+                  <input
+                    type="text"
+                    value={organizationName()}
+                    onInput={(e) => setOrganizationName(e.currentTarget.value)}
+                    class="focus-ring w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                    placeholder={`${username() || "Your"}'s Organization`}
                   />
                 </div>
               </Show>

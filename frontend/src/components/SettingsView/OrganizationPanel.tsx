@@ -39,6 +39,9 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
   const [currentOrg, setCurrentOrg] = createSignal(
     null as null | { id: number; name: string },
   );
+  const [editingOrgName, setEditingOrgName] = createSignal(false);
+  const [newOrgName, setNewOrgName] = createSignal("");
+  const [savingOrgName, setSavingOrgName] = createSignal(false);
 
   onMount(async () => {
     setMounted(true);
@@ -48,6 +51,42 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
     const adminStatus = await api.isOrgAdmin();
     setIsAdmin(adminStatus);
   });
+
+  const handleRenameOrg = async (e: Event) => {
+    e.preventDefault();
+    const org = currentOrg();
+    if (!org || !newOrgName().trim()) return;
+
+    setSavingOrgName(true);
+    try {
+      // Derive slug from name
+      const slug = newOrgName()
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "");
+      await api.updateOrganization(org.id, newOrgName().trim(), slug);
+      setCurrentOrg({ ...org, name: newOrgName().trim() });
+      // Update localStorage
+      const stored = localStorage.getItem("plumio_current_org");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        localStorage.setItem(
+          "plumio_current_org",
+          JSON.stringify({ ...parsed, name: newOrgName().trim() }),
+        );
+      }
+      setEditingOrgName(false);
+      setToast({ message: "Organization name updated", type: "success" });
+    } catch (err: any) {
+      setToast({
+        message: err.message || "Failed to update name",
+        type: "error",
+      });
+    } finally {
+      setSavingOrgName(false);
+    }
+  };
 
   const loadMembers = async () => {
     const org = currentOrg();
@@ -150,6 +189,68 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
       <p class="text-sm text-muted-body mb-6">
         Manage organization members and access
       </p>
+
+      {/* Organization Name */}
+      <div class="mb-6 p-4 bg-elevated/50 border border-base rounded-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-muted-body uppercase tracking-wider mb-1">
+              Organization Name
+            </p>
+            <Show
+              when={!editingOrgName()}
+              fallback={
+                <form
+                  onSubmit={handleRenameOrg}
+                  class="flex items-center gap-2 mt-1"
+                >
+                  <input
+                    type="text"
+                    value={newOrgName()}
+                    onInput={(e) => setNewOrgName(e.currentTarget.value)}
+                    required
+                    autofocus
+                    class="px-3 py-1.5 bg-base border border-subtle rounded-lg text-body text-sm focus:outline-none focus:border-neutral-500"
+                  />
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    disabled={savingOrgName()}
+                  >
+                    {savingOrgName() ? "Saving…" : "Save"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setEditingOrgName(false)}
+                  >
+                    Cancel
+                  </Button>
+                </form>
+              }
+            >
+              <p class="text-base font-semibold text-body">
+                {currentOrg()?.name}
+              </p>
+            </Show>
+          </div>
+          <Show when={mounted() && isAdmin() && !editingOrgName()}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setNewOrgName(currentOrg()?.name || "");
+                setEditingOrgName(true);
+              }}
+            >
+              <div class="i-carbon-edit w-4 h-4 mr-1.5" />
+              Rename
+            </Button>
+          </Show>
+        </div>
+      </div>
 
       <div
         class={props.inline ? "overflow-auto" : "max-h-[60vh] overflow-auto"}

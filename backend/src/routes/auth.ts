@@ -45,7 +45,7 @@ authRouter.post("/setup", async (c) => {
       return c.json({ error: "Setup already completed" }, 400);
     }
 
-    const { username, email, password } = await c.req.json();
+    const { username, email, password, organizationName } = await c.req.json();
 
     if (!username || !email || !password || password.length < 8) {
       return c.json(
@@ -63,8 +63,10 @@ authRouter.post("/setup", async (c) => {
 
       // Create personal organization
       const orgSlug = `${username}-personal`;
+      const resolvedOrgName =
+        organizationName?.trim() || `${username}'s Organization`;
       const orgResult = organizationQueries.create.run(
-        `${username}'s Organization`,
+        resolvedOrgName,
         orgSlug,
         userId,
       );

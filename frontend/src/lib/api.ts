@@ -128,10 +128,15 @@ export class ApiClient {
     }
   }
 
-  async setup(username: string, email: string, password: string) {
+  async setup(
+    username: string,
+    email: string,
+    password: string,
+    organizationName?: string,
+  ) {
     return this.request("/api/auth/setup", {
       method: "POST",
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password, organizationName }),
     });
   }
 
