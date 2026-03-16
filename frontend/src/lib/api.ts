@@ -5,8 +5,8 @@ const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 // Dynamically construct API URL for separate frontend/backend ports
 const getApiUrl = () => {
   if (typeof window === "undefined") {
-    // Server-side: use localhost
-    return "http://localhost:3001";
+    // Server-side (SSR): talk directly to the backend
+    return process.env.BACKEND_INTERNAL_URL || "http://localhost:3001";
   }
 
   // Check for build-time env var first
@@ -14,19 +14,12 @@ const getApiUrl = () => {
     return import.meta.env.VITE_API_URL;
   }
 
-  // Client-side: detect backend port
-  const protocol = window.location.protocol;
-  const hostname = window.location.hostname;
-  const port = window.location.port;
-
-  // If frontend is on a custom port, assume backend is on next port
-  if (port && port !== "80" && port !== "443") {
-    const backendPort = parseInt(port) + 1;
-    return `${protocol}//${hostname}:${backendPort}`;
-  }
-
-  // Default: assume backend on port 3001
-  return `${protocol}//${hostname}:3001`;
+  // Client-side: use the same origin so the request goes through the frontend
+  // server, which proxies /api/* to the backend internally.
+  // This works whether the app is accessed directly on port 3000 or behind a
+  // reverse proxy (e.g. Nginx Proxy Manager) on port 80/443 with no backend
+  // port exposed.
+  return window.location.origin;
 };
 
 const API_URL = getApiUrl();

@@ -33,11 +33,15 @@ app.use(
 
       // Check ALLOWED_ORIGINS env variable
       const allowedOrigins = process.env.ALLOWED_ORIGINS
-        ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+        ? process.env.ALLOWED_ORIGINS.split(",").map((o) =>
+            o.trim().replace(/\/$/, ""),
+          )
         : [];
 
       if (allowedOrigins.length > 0) {
-        return allowedOrigins.includes(origin) ? origin : null;
+        return allowedOrigins.includes(origin.replace(/\/$/, ""))
+          ? origin
+          : null;
       }
 
       // If no ALLOWED_ORIGINS set, allow all in development
