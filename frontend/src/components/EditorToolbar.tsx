@@ -50,7 +50,7 @@ const ToolbarButton: Component<ToolbarButtonProps> = (props) => {
     <button
       type="button"
       disabled={props.disabled}
-      class={`toolbar-button p-1.5 rounded transition-colors duration-150 ${
+      class={`toolbar-button p-1.5 rounded transition-colors duration-150 cursor-pointer ${
         props.disabled
           ? "text-[var(--color-text-muted)] cursor-not-allowed"
           : props.active
