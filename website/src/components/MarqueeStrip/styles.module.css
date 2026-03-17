@@ -1,0 +1,80 @@
+/* ─── Marquee Strip ──────────────────────────────────────────── */
+
+.marquee-container {
+  position: relative;
+  overflow: hidden;
+  margin-top: 3rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--ifm-border-color);
+  border-bottom: 1px solid var(--ifm-border-color);
+  background: var(--ifm-background-surface-color);
+  animation: fadeSlideUp 0.5s ease 0.4s both;
+}
+
+.marquee-container::before,
+.marquee-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.marquee-container::before {
+  left: 0;
+  background: linear-gradient(to right, var(--ifm-background-surface-color), transparent);
+}
+
+.marquee-container::after {
+  right: 0;
+  background: linear-gradient(to left, var(--ifm-background-surface-color), transparent);
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 35s linear infinite;
+}
+
+.marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ifm-text-secondary);
+  padding: 0 1.2rem;
+  white-space: nowrap;
+}
+
+.marquee-dot {
+  font-size: 0.45rem;
+  color: var(--ifm-color-primary);
+  opacity: 0.7;
+}
+
+/* ─── Animations ─────────────────────────────────────────────── */
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes marqueeScroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}

@@ -2,6 +2,9 @@
  * plumio Documentation - Custom Styles
  */
 
+/* Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap");
+
 /* Custom Variables */
 :root {
   /* Brand Colors */
@@ -14,10 +17,9 @@
   --ifm-color-primary-lightest: #52cdc0;
 
   /* Typography */
-  --ifm-font-family-base: "Roboto", "Helvetica Neue", Arial, sans-serif;
+  --ifm-font-family-base: "DM Sans", "Helvetica Neue", sans-serif;
   --ifm-font-family-monospace:
-    "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New",
-    monospace;
+    "DM Mono", "SF Mono", Monaco, "Cascadia Code", Consolas, monospace;
   --ifm-code-font-size: 90%;
   --ifm-font-size-base: 16px;
 
@@ -57,6 +59,7 @@
 
   /* Colors */
   --ifm-background-color: #09090b;
+  --ifm-background-surface-color: #1c1c1f;
   --ifm-code-background: #27272a;
   --ifm-border-color: #3f3f46;
   --ifm-text-secondary: #a1a1aa;

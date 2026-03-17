@@ -1,0 +1,135 @@
+/* ─── Screenshot Carousel ────────────────────────────────────── */
+
+.carousel-outer {
+  animation: fadeSlideUp 0.6s ease 0.5s both;
+  margin-top: 3rem;
+}
+
+.carousel-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 1.25rem;
+  padding: 0 3rem 2.5rem;
+  width: max-content;
+  animation: carouselScroll 36s linear infinite;
+}
+
+.carousel-track:hover {
+  animation-play-state: paused;
+}
+
+.carousel-slide {
+  flex-shrink: 0;
+  width: min(780px, 85vw);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--ifm-border-color);
+  background: var(--ifm-background-surface-color);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.06),
+    0 1px 4px rgba(0, 0, 0, 0.04);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.carousel-slide:hover {
+  border-color: rgba(42, 157, 143, 0.3);
+}
+
+.slide-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid var(--ifm-border-color);
+  background: var(--ifm-background-color);
+}
+
+.slide-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ifm-color-primary);
+}
+
+.slide-title {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ifm-text-secondary);
+}
+
+.slide-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.carousel-fade-left,
+.carousel-fade-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 140px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.carousel-fade-left {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    var(--ifm-background-color) 5%,
+    transparent
+  );
+}
+
+.carousel-fade-right {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    var(--ifm-background-color) 5%,
+    transparent
+  );
+}
+
+/* ─── Animations ─────────────────────────────────────────────── */
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes carouselScroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ─── Responsive ─────────────────────────────────────────────── */
+
+@media screen and (max-width: 996px) {
+  .carousel-fade-left,
+  .carousel-fade-right {
+    width: 50px;
+  }
+
+  .carousel-track {
+    padding: 0 1.25rem 2rem;
+  }
+}
