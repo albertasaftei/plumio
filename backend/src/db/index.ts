@@ -66,6 +66,9 @@ export const userQueries = {
   setAdmin: db.prepare<[number, number]>(
     "UPDATE users SET is_admin = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
   ),
+  updateUsername: db.prepare<[string, number]>(
+    "UPDATE users SET username = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+  ),
 };
 
 // === Organization Queries ===

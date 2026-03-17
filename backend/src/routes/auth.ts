@@ -240,6 +240,67 @@ authRouter.post("/register", async (c) => {
   }
 });
 
+const updateProfileSchema = z.object({
+  username: z.string().min(1).max(50),
+});
+
+// Update own profile
+authRouter.put("/profile", authMiddleware, async (c) => {
+  try {
+    const user = c.get("user");
+    const parsed = updateProfileSchema.safeParse(await c.req.json());
+
+    if (!parsed.success) {
+      return c.json({ error: z.treeifyError(parsed.error) }, 400);
+    }
+
+    const { username } = parsed.data;
+
+    // Check if username is already taken by another user
+    const existing = userQueries.findByUsername.get(username);
+    if (existing && existing.id !== user.userId) {
+      return c.json({ error: "Username is already taken" }, 400);
+    }
+
+    userQueries.updateUsername.run(username, user.userId);
+
+    // Issue a fresh JWT with the updated username
+    const authHeader = c.req.header("Authorization");
+    const oldToken = authHeader!.substring(7);
+    const session = sessionQueries.findByToken.get(oldToken);
+
+    const newToken = await new SignJWT({
+      userId: user.userId,
+      username,
+      isAdmin: user.isAdmin,
+      currentOrgId: user.currentOrgId,
+      orgRole: user.orgRole,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("7d")
+      .sign(jwtSecretKey);
+
+    if (session) {
+      const expiresAt = new Date(
+        Date.now() + 7 * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      sessionQueries.deleteByToken.run(oldToken);
+      sessionQueries.create.run(
+        session.id,
+        user.userId,
+        newToken,
+        user.currentOrgId ?? null,
+        expiresAt,
+      );
+    }
+
+    return c.json({ message: "Profile updated successfully", token: newToken });
+  } catch (error) {
+    console.error("Profile update error:", error);
+    return c.json({ error: "Failed to update profile" }, 500);
+  }
+});
+
 // Check if setup is needed
 authRouter.get("/check-setup", async (c) => {
   try {

@@ -232,6 +232,19 @@ export class ApiClient {
     return decoded?.username ?? null;
   }
 
+  async updateUsername(username: string) {
+    const result = await this.request<{ message: string; token: string }>(
+      "/api/auth/profile",
+      {
+        method: "PUT",
+        body: JSON.stringify({ username }),
+      },
+    );
+    // Store the new token so the updated username is reflected immediately
+    this.setToken(result.token);
+    return result;
+  }
+
   getCurrentUserId(): number | null {
     const decoded = this.decodeToken();
     return decoded?.userId ?? null;
