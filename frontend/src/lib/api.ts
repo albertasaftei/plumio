@@ -140,10 +140,15 @@ export class ApiClient {
     });
   }
 
-  async register(username: string, email: string, password: string) {
+  async register(
+    username: string,
+    email: string,
+    password: string,
+    organizationName?: string,
+  ) {
     return this.request("/api/auth/register", {
       method: "POST",
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password, organizationName }),
     });
   }
 

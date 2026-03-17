@@ -12,6 +12,7 @@ export default function Register() {
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
   const [confirmPassword, setConfirmPassword] = createSignal("");
+  const [organizationName, setOrganizationName] = createSignal("");
   const [error, setError] = createSignal("");
   const [success, setSuccess] = createSignal(false);
   const [loading, setLoading] = createSignal(false);
@@ -43,7 +44,7 @@ export default function Register() {
 
     setLoading(true);
     try {
-      await api.register(username(), email(), password());
+      await api.register(username(), email(), password(), organizationName());
       setSuccess(true);
       setTimeout(() => {
         navigate(routes.login);
@@ -106,6 +107,20 @@ export default function Register() {
                 disabled={loading() || success()}
                 class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-base disabled:opacity-50"
                 placeholder="your@email.com"
+              />
+            </div>
+
+            <div class="mb-4">
+              <label class="block font-medium text-secondary-body mb-2">
+                Organization Name
+              </label>
+              <input
+                type="text"
+                value={organizationName()}
+                onInput={(e) => setOrganizationName(e.currentTarget.value)}
+                disabled={loading() || success()}
+                class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-base disabled:opacity-50"
+                placeholder={`${username() || "Your"}'s Organization`}
               />
             </div>
 

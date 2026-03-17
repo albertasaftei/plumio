@@ -182,6 +182,7 @@ const registerSchema = z.object({
   username: z.string().min(1),
   email: z.email(),
   password: z.string().min(8),
+  organizationName: z.string().optional(),
 });
 // Register - Create new user account
 authRouter.post("/register", async (c) => {
@@ -207,7 +208,7 @@ authRouter.post("/register", async (c) => {
       return c.json({ error: z.treeifyError(parsed.error) }, 400);
     }
 
-    const { username, email, password } = parsed.data;
+    const { username, email, password, organizationName } = parsed.data;
     const passwordHash = await bcrypt.hash(password, 10);
 
     try {
@@ -217,8 +218,10 @@ authRouter.post("/register", async (c) => {
 
       // Create personal organization for the new user
       const orgSlug = `${username}-personal`;
+      const resolvedOrgName =
+        organizationName?.trim() || `${username}'s Organization`;
       const orgResult = organizationQueries.create.run(
-        `${username}'s Organization`,
+        resolvedOrgName,
         orgSlug,
         userId,
       );
