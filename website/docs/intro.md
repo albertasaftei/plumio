@@ -30,7 +30,7 @@ Deploy in minutes using Docker. Single container, zero configuration complexity.
 
 - Real-time markdown editing with live preview
 - Organization and folder support
-- Full-text search across all notes (_**work in progress**_)
+- Full-text search across all notes
 - Optional end-to-end encryption
 - Document archive and soft delete
 - Export and import capabilities
