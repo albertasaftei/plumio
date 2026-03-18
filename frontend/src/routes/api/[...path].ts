@@ -3,7 +3,6 @@ import type { APIEvent } from "@solidjs/start/server";
 // Read the backend port at runtime, not at build time.
 // This respects the BACKEND_INTERNAL_PORT env var configured by the user.
 const getBackendUrl = () =>
-  process.env.BACKEND_INTERNAL_URL ||
   `http://localhost:${process.env.BACKEND_INTERNAL_PORT || 3001}`;
 
 async function proxyToBackend(event: APIEvent): Promise<Response> {

@@ -5,8 +5,8 @@ const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 // Dynamically construct API URL for separate frontend/backend ports
 const getApiUrl = () => {
   if (typeof window === "undefined") {
-    // Server-side (SSR): talk directly to the backend
-    return process.env.BACKEND_INTERNAL_URL || "http://localhost:3001";
+    // Server-side (SSR): talk directly to the backend on localhost
+    return `http://localhost:${process.env.BACKEND_INTERNAL_PORT || 3001}`;
   }
 
   // Check for build-time env var first
