@@ -6,6 +6,8 @@ import { exitMarkKeymap } from "~/utils/milkdown/highlight/exitMarkKeymap";
 import { markInputRule } from "~/utils/milkdown/highlight/inputRule";
 import { markSchema } from "~/utils/milkdown/highlight/markSchema";
 import { remarkMarkColor } from "~/utils/milkdown/highlight/remarkMarkColor";
+import { textColorSchema } from "~/utils/milkdown/textColor/textColorSchema";
+import { remarkTextColor } from "~/utils/milkdown/textColor/remarkTextColor";
 import { taskListInputPlugin } from "~/utils/milkdown/taskListInputPlugin";
 import { codeBlockViewPlugin } from "~/utils/milkdown/codeBlockView";
 import { mermaidPreviewPlugin } from "~/utils/milkdown/mermaidPlugin";
@@ -16,6 +18,7 @@ import LinkPopup from "./LinkPopup";
 // } from "~/utils/milkdown/highlight/colorPicker";
 
 const milkdownMarkColorPlugin = $remark("markColor", () => remarkMarkColor);
+const milkdownTextColorPlugin = $remark("textColor", () => remarkTextColor);
 
 // Normalize href: add https:// if no protocol is provided
 const normalizeUrl = (url: string): string => {
@@ -43,6 +46,7 @@ export default function MarkdownEditor(props: EditorProps) {
     inlineCode: false,
     highlight: false,
     link: false,
+    textColor: null as string | null,
     headingLevel: null as number | null,
     bulletList: false,
     orderedList: false,
@@ -90,6 +94,24 @@ export default function MarkdownEditor(props: EditorProps) {
         if (name === "code_block") codeBlock = true;
       }
 
+      // Detect active text color
+      let textColor: string | null = null;
+      if (empty) {
+        const tcMark = (state.storedMarks || $from.marks()).find(
+          (m: any) => m.type.name === "textColor",
+        );
+        textColor = tcMark?.attrs.color ?? null;
+      } else {
+        state.doc.nodesBetween(from, to, (node: any) => {
+          if (!textColor && node.marks) {
+            const tcMark = node.marks.find(
+              (m: any) => m.type.name === "textColor",
+            );
+            if (tcMark) textColor = tcMark.attrs.color ?? null;
+          }
+        });
+      }
+
       const linkActive = hasMark("link");
       setActiveState({
         bold: hasMark("strong"),
@@ -98,6 +120,7 @@ export default function MarkdownEditor(props: EditorProps) {
         inlineCode: hasMark("inlineCode") || hasMark("code_inline"),
         highlight: hasMark("mark"),
         link: linkActive,
+        textColor,
         headingLevel,
         bulletList,
         orderedList,
@@ -237,6 +260,21 @@ export default function MarkdownEditor(props: EditorProps) {
               d(s.tr.removeMark(from, to, highlightMarkType));
             } else {
               d(s.tr.addMark(from, to, highlightMarkType.create()));
+            }
+            break;
+          }
+          case "setTextColor": {
+            const tcMarkType = textColorSchema.type(ctx);
+            const { state: s, dispatch: d } = view;
+            const { from, to } = s.selection;
+            if (!payload) {
+              d(s.tr.removeMark(from, to, tcMarkType));
+            } else {
+              d(
+                s.tr
+                  .removeMark(from, to, tcMarkType)
+                  .addMark(from, to, tcMarkType.create({ color: payload })),
+              );
             }
             break;
           }
@@ -423,7 +461,9 @@ export default function MarkdownEditor(props: EditorProps) {
         .use(upload)
         .use(math)
         .use(milkdownMarkColorPlugin)
+        .use(milkdownTextColorPlugin)
         .use(markSchema)
+        .use(textColorSchema)
         .use(markInputRule)
         .use(exitMarkKeymap)
         .use(taskListInputPlugin)

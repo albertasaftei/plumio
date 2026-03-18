@@ -548,6 +548,13 @@
   box-shadow: 0 0 0 1px rgba(255, 255, 0, 0.2) !important;
 }
 
+/* Text color spans */
+.milkdown .editor span[data-text-color],
+.milkdown .ProseMirror span[data-text-color] {
+  /* color is driven by the inline style; just ensure no unwanted overrides */
+  font-weight: inherit;
+}
+
 /* Color Picker Tooltip */
 .milkdown-color-picker {
   position: absolute;
