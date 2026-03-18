@@ -2183,3 +2183,84 @@
 .light.matcha .milkdown .code-block-wrapper .token.tag {
   color: #3a6347 !important;
 }
+
+/* ── Math block styling ── */
+.milkdown [data-type="math_inline"] {
+  display: inline !important;
+  padding: 0 2px;
+  vertical-align: baseline;
+}
+
+.milkdown [data-type="math_block"] {
+  display: block !important;
+  text-align: center;
+  margin: 1.5rem 0 !important;
+  padding: 1rem 0;
+  overflow-x: auto;
+}
+
+.dark .milkdown .katex {
+  color: #e5e5e5 !important;
+}
+
+.light .milkdown .katex {
+  color: #1a1a1a !important;
+}
+
+/* ── Mermaid preview (decoration widget below code block) ── */
+.mermaid-preview {
+  display: block;
+  overflow-x: auto;
+  text-align: center;
+  min-height: 60px;
+  padding: 1.5rem 1rem;
+  margin: 0 0 1rem 0;
+  background: #0d0d0d;
+  border: 1px solid #262626;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  margin-top: -1rem;
+  cursor: pointer;
+}
+
+.mermaid-preview:hover {
+  border-color: #404040;
+}
+
+.mermaid-preview svg {
+  overflow: visible;
+  max-width: 100%;
+  height: auto;
+  display: inline-block;
+}
+
+.mermaid-placeholder {
+  color: #525252;
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+.mermaid-error-message {
+  color: #f87171;
+  font-size: 0.8rem;
+  padding: 0.5rem;
+  text-align: center;
+}
+
+/* ── Mermaid light theme ── */
+.light .mermaid-preview {
+  background: #fafafa;
+  border-color: #e5e5e5;
+}
+
+.light .mermaid-preview:hover {
+  border-color: #d4d4d4;
+}
+
+.light .mermaid-placeholder {
+  color: #a3a3a3;
+}
+
+.light .mermaid-error-message {
+  color: #dc2626;
+}

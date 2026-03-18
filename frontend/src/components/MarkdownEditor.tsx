@@ -8,6 +8,7 @@ import { markSchema } from "~/utils/milkdown/highlight/markSchema";
 import { remarkMarkColor } from "~/utils/milkdown/highlight/remarkMarkColor";
 import { taskListInputPlugin } from "~/utils/milkdown/taskListInputPlugin";
 import { codeBlockViewPlugin } from "~/utils/milkdown/codeBlockView";
+import { mermaidPreviewPlugin } from "~/utils/milkdown/mermaidPlugin";
 import LinkPopup from "./LinkPopup";
 // import {
 //   colorPickerTooltip,
@@ -427,6 +428,7 @@ export default function MarkdownEditor(props: EditorProps) {
         .use(exitMarkKeymap)
         .use(taskListInputPlugin)
         .use(codeBlockViewPlugin)
+        .use(mermaidPreviewPlugin)
         .create();
 
       if (editorRef) {

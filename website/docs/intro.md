@@ -43,6 +43,7 @@ Write in markdown with a powerful editor powered by Milkdown. Supports:
 
 - GitHub Flavored Markdown (GFM)
 - Code blocks with syntax highlighting
+- Mermaid diagrams with live preview
 - Math equations (KaTeX) (_**still has some issues**_)
 - Tables, task lists, and more
 

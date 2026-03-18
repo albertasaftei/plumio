@@ -34,6 +34,7 @@ const LANGUAGES = [
   { value: "elixir", label: "Elixir" },
   { value: "scala", label: "Scala" },
   { value: "haskell", label: "Haskell" },
+  { value: "mermaid", label: "Mermaid" },
 ];
 
 /**
@@ -184,6 +185,13 @@ export const codeBlockViewPlugin = $prose(() => {
           wrapper.appendChild(header);
           wrapper.appendChild(pre);
 
+          // Hide the code area when language is mermaid
+          const updateMermaidVisibility = (lang: string) => {
+            pre.style.display = lang === "mermaid" ? "none" : "";
+          };
+
+          updateMermaidVisibility(initLang);
+
           return {
             dom: wrapper,
             contentDOM: code,
@@ -197,6 +205,8 @@ export const codeBlockViewPlugin = $prose(() => {
                 LANGUAGES.find((l) => l.value === lang)?.label ||
                 lang ||
                 "Plain Text";
+
+              updateMermaidVisibility(lang);
 
               if (lang) {
                 pre.dataset.language = lang;
