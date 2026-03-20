@@ -1040,17 +1040,16 @@ documentsRouter.get("/search", async (c) => {
       ftsQuery,
     );
 
-    // Return results with relevant info
-    const searchResults = results.map((doc) => ({
-      path: doc.path,
-      title: doc.title,
-      color: doc.color,
-      modified: doc.updated_at,
-      size: doc.size,
-      snippet: doc.snippet || "",
-    }));
-
-    return c.json({ results: searchResults });
+    return c.json({
+      results: results.map((doc) => ({
+        path: doc.path,
+        title: doc.title,
+        color: doc.color,
+        modified: doc.updated_at,
+        size: doc.size,
+        snippet: doc.snippet || "",
+      })),
+    });
   } catch (error) {
     console.error("Error searching documents:", error);
     return c.json({ error: "Search failed" }, 500);

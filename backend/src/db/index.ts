@@ -281,39 +281,23 @@ export const documentQueries = {
       return { changes: 0 };
     }
 
-    // Use a transaction and disable triggers temporarily
+    // Use a transaction: delete from FTS first, then from documents.
+    // The documents_ad trigger would also fire on delete, but since we've
+    // already removed the FTS row it becomes a no-op (rowid won't be found).
+    // We intentionally do NOT drop/recreate the trigger — that pattern is
+    // fragile and can permanently lose the trigger on any mid-transaction error.
     const transaction = db.transaction(() => {
-      // Delete from FTS table first (ignore errors if it doesn't exist)
+      // Delete from FTS table first (ignore errors if row doesn't exist)
       try {
         db.prepare("DELETE FROM documents_fts WHERE rowid = ?").run(doc.id);
       } catch (e) {
         console.log("FTS cleanup warning:", e);
       }
 
-      // Drop the trigger temporarily
-      try {
-        db.prepare("DROP TRIGGER IF EXISTS documents_ad").run();
-      } catch (e) {
-        console.log("Trigger drop warning:", e);
-      }
-
-      // Delete from documents table
+      // Delete from documents table (trigger fires but FTS row is already gone)
       const result = db
         .prepare("DELETE FROM documents WHERE organization_id = ? AND path = ?")
         .run(organizationId, docPath);
-
-      // Recreate the trigger
-      try {
-        db.prepare(
-          `
-          CREATE TRIGGER documents_ad AFTER DELETE ON documents BEGIN
-            DELETE FROM documents_fts WHERE rowid = old.id;
-          END;
-        `,
-        ).run();
-      } catch (e) {
-        console.log("Trigger recreate warning:", e);
-      }
 
       return result;
     });
