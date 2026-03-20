@@ -116,6 +116,40 @@ async function getUniqueFilePath(
   }
 }
 
+// Generate unique folder path by appending (1), (2), etc. if folder already exists
+async function getUniqueFolderPath(
+  basePath: string,
+  organizationId: number,
+): Promise<string> {
+  const orgPath = getOrgDocumentsPath(organizationId);
+  const fullPath = path.join(orgPath, basePath);
+
+  try {
+    await fs.access(fullPath);
+    // Folder exists, need to generate unique name
+  } catch {
+    return basePath;
+  }
+
+  const dir = path.dirname(basePath);
+  const folderName = path.basename(basePath);
+
+  let counter = 1;
+  while (true) {
+    const newName = `${folderName} (${counter})`;
+    const newPath =
+      dir === "." || dir === "/" ? `/${newName}` : `${dir}/${newName}`;
+    const newFullPath = path.join(orgPath, newPath);
+
+    try {
+      await fs.access(newFullPath);
+      counter++;
+    } catch {
+      return newPath;
+    }
+  }
+}
+
 async function ensureOrgDirectoryExists(organizationId: number): Promise<void> {
   const orgPath = getOrgDocumentsPath(organizationId);
   try {
@@ -1395,6 +1429,172 @@ documentsRouter.post("/deleted/permanent", async (c) => {
   } catch (error) {
     console.error("Error permanently deleting document:", error);
     return c.json({ error: "Failed to delete document" }, 500);
+  }
+});
+
+const duplicateItemSchema = z.object({
+  path: z.string().min(1),
+});
+
+// Duplicate a file or folder
+documentsRouter.post("/duplicate", async (c) => {
+  const parsed = duplicateItemSchema.safeParse(await c.req.json());
+  const user = c.get("user");
+  const organizationId = user.currentOrgId;
+
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
+  }
+
+  if (!organizationId) {
+    return c.json({ error: "No organization context" }, 400);
+  }
+
+  const { path: itemPath } = parsed.data;
+  const fullSourcePath = sanitizePath(itemPath, organizationId);
+  const orgPath = getOrgDocumentsPath(organizationId);
+
+  try {
+    const stats = await fs.stat(fullSourcePath);
+
+    if (stats.isDirectory()) {
+      // Folder duplication: find unique dest path, copy tree, index all .md files
+      const uniquePath = await getUniqueFolderPath(itemPath, organizationId);
+      const fullDestPath = sanitizePath(uniquePath, organizationId);
+
+      await fs.cp(fullSourcePath, fullDestPath, { recursive: true });
+
+      const copiedFiles = await collectMdFilesRecursively(fullDestPath);
+      for (const absFilePath of copiedFiles) {
+        const relPath =
+          "/" + path.relative(orgPath, absFilePath).replace(/\\/g, "/");
+
+        let fileContent = "";
+        try {
+          const raw = await fs.readFile(absFilePath, "utf-8");
+          if (ENABLE_ENCRYPTION) {
+            try {
+              fileContent = decrypt(raw);
+            } catch {
+              fileContent = raw;
+            }
+          } else {
+            fileContent = raw;
+          }
+        } catch {
+          // skip unreadable files
+        }
+
+        const fileStats = await fs.stat(absFilePath).catch(() => ({ size: 0 }));
+        const title =
+          fileContent
+            .split("\n")[0]
+            .replace(/^#+\s*/, "")
+            .trim() || path.basename(relPath, ".md");
+
+        documentQueries.upsert.run(
+          organizationId,
+          user.userId,
+          relPath,
+          title,
+          null,
+          fileStats.size,
+        );
+        try {
+          documentQueries.updateContent.run(organizationId, relPath);
+        } catch {
+          // row may not exist yet in FTS
+        }
+        documentQueries.insertContent.run(
+          organizationId,
+          relPath,
+          relPath,
+          organizationId,
+          relPath,
+          escapeHtmlForFts(fileContent),
+        );
+      }
+
+      return c.json({
+        message: "Duplicated successfully",
+        newPath: uniquePath,
+      });
+    } else {
+      // File duplication: find unique dest path, copy file + metadata
+      const uniquePath = await getUniqueFilePath(
+        itemPath,
+        organizationId,
+        true,
+      );
+      const fullDestPath = sanitizePath(uniquePath, organizationId);
+
+      await fs.copyFile(fullSourcePath, fullDestPath);
+
+      // Copy metadata sidecar if it exists
+      try {
+        await fs.access(fullSourcePath + ".meta.json");
+        await fs.copyFile(
+          fullSourcePath + ".meta.json",
+          fullDestPath + ".meta.json",
+        );
+      } catch {
+        // No metadata file, that's fine
+      }
+
+      // Read content for DB/FTS indexing
+      let fileContent = "";
+      try {
+        const raw = await fs.readFile(fullDestPath, "utf-8");
+        if (ENABLE_ENCRYPTION) {
+          try {
+            fileContent = decrypt(raw);
+          } catch {
+            fileContent = raw;
+          }
+        } else {
+          fileContent = raw;
+        }
+      } catch {
+        // skip if unreadable
+      }
+
+      const fileStats = await fs.stat(fullDestPath);
+      const title =
+        fileContent
+          .split("\n")[0]
+          .replace(/^#+\s*/, "")
+          .trim() || path.basename(uniquePath, ".md");
+
+      documentQueries.upsert.run(
+        organizationId,
+        user.userId,
+        uniquePath,
+        title,
+        null,
+        fileStats.size,
+      );
+      try {
+        documentQueries.updateContent.run(organizationId, uniquePath);
+      } catch {
+        // row may not exist yet in FTS
+      }
+      documentQueries.insertContent.run(
+        organizationId,
+        uniquePath,
+        uniquePath,
+        organizationId,
+        uniquePath,
+        escapeHtmlForFts(fileContent),
+      );
+
+      return c.json({
+        message: "Duplicated successfully",
+        newPath: uniquePath,
+      });
+    }
+  } catch (error) {
+    console.error("Error duplicating:", error);
+    return c.json({ error: "Failed to duplicate" }, 500);
   }
 });
 

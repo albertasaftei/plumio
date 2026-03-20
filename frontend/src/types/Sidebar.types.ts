@@ -18,6 +18,7 @@ export interface SidebarProps {
   onToggleFavorite?: (path: string, favorite: boolean) => void;
   onOrgSwitch: () => void;
   onArchiveItem: (path: string) => void;
+  onDuplicateItem?: (path: string) => void;
   onViewHome: () => void;
   onViewArchive: () => void;
   onViewDeleted: () => void;

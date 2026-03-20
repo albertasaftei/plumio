@@ -560,6 +560,16 @@ export class ApiClient {
     });
   }
 
+  async duplicateItem(path: string) {
+    return this.request<{ message: string; newPath: string }>(
+      "/api/documents/duplicate",
+      {
+        method: "POST",
+        body: JSON.stringify({ path }),
+      },
+    );
+  }
+
   async searchDocuments(query: string) {
     return this.request<{
       results: Array<{

@@ -1,6 +1,7 @@
 import {
   createSignal,
   onMount,
+  Show,
   ParentComponent,
   createContext,
   useContext,
@@ -10,6 +11,7 @@ import { useNavigate, useLocation } from "@solidjs/router";
 import Sidebar from "~/components/Sidebar";
 import Button from "~/components/Button";
 import AlertDialog from "~/components/AlertDialog";
+import Toast from "~/components/Toast";
 import { api, type Document } from "~/lib/api";
 import { isMobile } from "~/utils/device.utils";
 import { routes } from "~/routes";
@@ -51,6 +53,10 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     isOpen: boolean;
     path: string | null;
   }>({ isOpen: false, path: null });
+  const [toast, setToast] = createSignal<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
   // Load all documents recursively
   const loadAllDocuments = async () => {
@@ -258,6 +264,17 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     }
   };
 
+  const duplicateItem = async (path: string) => {
+    try {
+      await api.duplicateItem(path);
+      await loadAllDocuments();
+      setToast({ message: "Duplicated successfully", type: "success" });
+    } catch (error) {
+      console.error("Failed to duplicate item:", error);
+      setToast({ message: "Failed to duplicate", type: "error" });
+    }
+  };
+
   const contextValue: AppLayoutContext = {
     allDocuments,
     loadAllDocuments,
@@ -322,6 +339,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
               onToggleFavorite={toggleFavorite}
               onOrgSwitch={() => loadAllDocuments()}
               onArchiveItem={archiveItem}
+              onDuplicateItem={duplicateItem}
               onViewHome={() => {
                 navigate(routes.homepage);
                 if (window.innerWidth < 1024) {
@@ -367,6 +385,13 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
           </div>
         </div>
       </div>
+      <Show when={toast()}>
+        <Toast
+          message={toast()!.message}
+          type={toast()!.type}
+          onClose={() => setToast(null)}
+        />
+      </Show>
     </AppLayoutContext.Provider>
   );
 };

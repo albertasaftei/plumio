@@ -321,6 +321,18 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                         Move
                       </PopoverItem>
                     </Show>
+                    <Show when={props.onDuplicateItem}>
+                      <PopoverItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          props.onDuplicateItem?.(nodeProps.node.path);
+                          setOpenMenuPath(null);
+                        }}
+                      >
+                        <div class="i-carbon-copy w-4 h-4" />
+                        Duplicate
+                      </PopoverItem>
+                    </Show>
                     <div class="h-px bg-[var(--color-border)] my-1" />
 
                     {/* Delete action */}
