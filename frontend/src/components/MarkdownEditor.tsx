@@ -256,10 +256,22 @@ export default function MarkdownEditor(props: EditorProps) {
             const highlightMarkType = markSchema.type(ctx);
             const { state: s, dispatch: d } = view;
             const { from, to } = s.selection;
-            if (s.doc.rangeHasMark(from, to, highlightMarkType)) {
-              d(s.tr.removeMark(from, to, highlightMarkType));
+            if (from === to) {
+              // Cursor — toggle via storedMarks
+              const hasStored = (
+                s.storedMarks ?? s.selection.$from.marks()
+              ).some((m: any) => m.type === highlightMarkType);
+              if (hasStored) {
+                d(s.tr.removeStoredMark(highlightMarkType));
+              } else {
+                d(s.tr.addStoredMark(highlightMarkType.create()));
+              }
             } else {
-              d(s.tr.addMark(from, to, highlightMarkType.create()));
+              if (s.doc.rangeHasMark(from, to, highlightMarkType)) {
+                d(s.tr.removeMark(from, to, highlightMarkType));
+              } else {
+                d(s.tr.addMark(from, to, highlightMarkType.create()));
+              }
             }
             break;
           }
@@ -267,14 +279,29 @@ export default function MarkdownEditor(props: EditorProps) {
             const tcMarkType = textColorSchema.type(ctx);
             const { state: s, dispatch: d } = view;
             const { from, to } = s.selection;
-            if (!payload) {
-              d(s.tr.removeMark(from, to, tcMarkType));
+            if (from === to) {
+              // Cursor (no selection) — manipulate storedMarks so the
+              // next typed character picks up the change immediately.
+              if (!payload) {
+                d(s.tr.removeStoredMark(tcMarkType));
+              } else {
+                d(
+                  s.tr
+                    .removeStoredMark(tcMarkType)
+                    .addStoredMark(tcMarkType.create({ color: payload })),
+                );
+              }
             } else {
-              d(
-                s.tr
-                  .removeMark(from, to, tcMarkType)
-                  .addMark(from, to, tcMarkType.create({ color: payload })),
-              );
+              // Range selection — patch the mark on existing text.
+              if (!payload) {
+                d(s.tr.removeMark(from, to, tcMarkType));
+              } else {
+                d(
+                  s.tr
+                    .removeMark(from, to, tcMarkType)
+                    .addMark(from, to, tcMarkType.create({ color: payload })),
+                );
+              }
             }
             break;
           }
