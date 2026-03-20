@@ -450,6 +450,16 @@ export class ApiClient {
     });
   }
 
+  async moveItem(sourcePath: string, destinationFolder: string) {
+    return this.request<{ message: string; newPath: string }>(
+      "/api/documents/move",
+      {
+        method: "POST",
+        body: JSON.stringify({ sourcePath, destinationFolder }),
+      },
+    );
+  }
+
   async setItemColor(path: string, color: string | null) {
     return this.request("/api/documents/color", {
       method: "POST",

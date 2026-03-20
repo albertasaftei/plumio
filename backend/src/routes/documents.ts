@@ -610,10 +610,124 @@ documentsRouter.post("/rename", async (c) => {
     await fs.mkdir(path.dirname(fullNewPath), { recursive: true });
     await fs.rename(fullOldPath, fullNewPath);
 
+    // Move metadata sidecar file if it exists
+    try {
+      await fs.access(fullOldPath + ".meta.json");
+      await fs.rename(fullOldPath + ".meta.json", fullNewPath + ".meta.json");
+    } catch {
+      // No metadata file, that's fine
+    }
+
+    // Update database paths (triggers keep FTS in sync automatically)
+    const stats = await fs.stat(fullNewPath);
+    if (stats.isDirectory()) {
+      documentQueries.updatePathPrefix(organizationId, oldPath, newPath);
+    } else {
+      documentQueries.updatePath.run(newPath, organizationId, oldPath);
+    }
+
     return c.json({ message: "Renamed successfully", newPath });
   } catch (error) {
     console.error("Error renaming:", error);
     return c.json({ error: "Failed to rename" }, 500);
+  }
+});
+
+const moveDocumentSchema = z.object({
+  sourcePath: z.string().min(1),
+  destinationFolder: z.string(),
+});
+
+// Move document or folder to a different parent
+documentsRouter.post("/move", async (c) => {
+  const parsed = moveDocumentSchema.safeParse(await c.req.json());
+  const user = c.get("user");
+  const organizationId = user.currentOrgId;
+
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
+  }
+
+  if (!organizationId) {
+    return c.json({ error: "No organization context" }, 400);
+  }
+
+  const { sourcePath, destinationFolder } = parsed.data;
+
+  // Prevent moving into itself or its own descendants
+  if (
+    destinationFolder === sourcePath ||
+    destinationFolder.startsWith(sourcePath + "/")
+  ) {
+    return c.json(
+      { error: "Cannot move an item into itself or its own descendant" },
+      400,
+    );
+  }
+
+  const fullSourcePath = sanitizePath(sourcePath, organizationId);
+  const itemName = path.basename(sourcePath);
+  const newPath =
+    destinationFolder === "/"
+      ? `/${itemName}`
+      : `${destinationFolder}/${itemName}`;
+
+  // If source and destination are the same, no-op
+  if (newPath === sourcePath) {
+    return c.json({
+      message: "Item is already in the target location",
+      newPath,
+    });
+  }
+
+  const fullNewPath = sanitizePath(newPath, organizationId);
+
+  try {
+    // Check source exists
+    await fs.access(fullSourcePath);
+
+    // Check destination would not conflict
+    try {
+      await fs.access(fullNewPath);
+      return c.json(
+        {
+          error: "An item with the same name already exists at the destination",
+        },
+        409,
+      );
+    } catch {
+      // Good — target doesn't exist yet
+    }
+
+    // Ensure destination directory exists
+    await fs.mkdir(path.dirname(fullNewPath), { recursive: true });
+
+    // Move on disk
+    await fs.rename(fullSourcePath, fullNewPath);
+
+    // Move metadata sidecar file if it exists
+    try {
+      await fs.access(fullSourcePath + ".meta.json");
+      await fs.rename(
+        fullSourcePath + ".meta.json",
+        fullNewPath + ".meta.json",
+      );
+    } catch {
+      // No metadata file, that's fine
+    }
+
+    // Update database paths (triggers keep FTS in sync automatically)
+    const stats = await fs.stat(fullNewPath);
+    if (stats.isDirectory()) {
+      documentQueries.updatePathPrefix(organizationId, sourcePath, newPath);
+    } else {
+      documentQueries.updatePath.run(newPath, organizationId, sourcePath);
+    }
+
+    return c.json({ message: "Moved successfully", newPath });
+  } catch (error) {
+    console.error("Error moving:", error);
+    return c.json({ error: "Failed to move item" }, 500);
   }
 });
 

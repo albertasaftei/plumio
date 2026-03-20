@@ -218,6 +218,28 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     }
   };
 
+  const moveItem = async (sourcePath: string, destinationFolder: string) => {
+    try {
+      const result = await api.moveItem(sourcePath, destinationFolder);
+      await loadAllDocuments();
+
+      // If we're viewing the moved item, navigate to its new path
+      const oldEncodedPath = sourcePath
+        .split("/")
+        .map(encodeURIComponent)
+        .join("/");
+      if (window.location.pathname === `/file${oldEncodedPath}`) {
+        const newEncodedPath = result.newPath
+          .split("/")
+          .map(encodeURIComponent)
+          .join("/");
+        navigate(`/file${newEncodedPath}`);
+      }
+    } catch (error) {
+      console.error("Failed to move item:", error);
+    }
+  };
+
   const setItemColor = async (path: string, color: string | null) => {
     try {
       await api.setItemColor(path, color);
@@ -294,6 +316,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
               onCreateFolder={createNewFolder}
               onDeleteItem={deleteItem}
               onRenameItem={renameItem}
+              onMoveItem={moveItem}
               onExpandFolder={toggleExpandFolder}
               onSetColor={setItemColor}
               onToggleFavorite={toggleFavorite}

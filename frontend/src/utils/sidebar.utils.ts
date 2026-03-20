@@ -109,3 +109,28 @@ export function formatDate(dateStr: string): string {
     minute: "2-digit",
   }).format(date);
 }
+
+/**
+ * Gets the parent path from a given path
+ */
+export function getParentPath(itemPath: string): string {
+  const lastSlash = itemPath.lastIndexOf("/");
+  if (lastSlash <= 0) return "/";
+  return itemPath.substring(0, lastSlash);
+}
+
+/**
+ * Checks whether `candidate` is a descendant of `ancestor`
+ */
+export function isDescendantOf(candidate: string, ancestor: string): boolean {
+  return candidate.startsWith(ancestor + "/");
+}
+
+/**
+ * Builds a folder-only tree from a flat array of documents.
+ * Reuses the same tree-building logic but filters to folders only.
+ */
+export function buildFolderTree(documents: Document[]): TreeNode[] {
+  const folders = documents.filter((d) => d.type === "folder");
+  return buildDocumentTree(folders);
+}

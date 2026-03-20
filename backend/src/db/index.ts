@@ -242,6 +242,31 @@ export const documentQueries = {
   permanentlyDelete: db.prepare<[number, string]>(
     "DELETE FROM documents WHERE organization_id = ? AND path = ?",
   ),
+  updatePath: db.prepare<[string, number, string]>(
+    "UPDATE documents SET path = ?, updated_at = CURRENT_TIMESTAMP WHERE organization_id = ? AND path = ?",
+  ),
+  updatePathPrefix: (
+    organizationId: number,
+    oldPrefix: string,
+    newPrefix: string,
+  ) => {
+    // Update the item itself and all descendants in a single statement
+    return db
+      .prepare(
+        `UPDATE documents
+         SET path = ? || substr(path, ?),
+             updated_at = CURRENT_TIMESTAMP
+         WHERE organization_id = ?
+           AND (path = ? OR path LIKE ?)`,
+      )
+      .run(
+        newPrefix,
+        oldPrefix.length + 1,
+        organizationId,
+        oldPrefix,
+        oldPrefix + "/%",
+      );
+  },
   permanentlyDeleteWithFtsCleanup: (
     organizationId: number,
     docPath: string,
