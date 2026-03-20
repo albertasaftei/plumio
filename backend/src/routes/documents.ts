@@ -601,11 +601,12 @@ documentsRouter.delete("/delete", async (c) => {
         );
       }
 
-      // Delete the metadata file if it exists
+      // Rename the metadata sidecar file alongside the document
       const metaPath = `${fullPath}.meta.json`;
+      const newMetaPath = `${newFullPath}.meta.json`;
       try {
-        await fs.unlink(metaPath);
-      } catch (metaError) {
+        await fs.rename(metaPath, newMetaPath);
+      } catch {
         // Metadata file might not exist, which is fine
       }
     }
@@ -1369,6 +1370,15 @@ documentsRouter.post("/deleted/restore", async (c) => {
       } catch (writeErr) {
         console.error("Error creating empty restored file:", writeErr);
       }
+    }
+
+    // Restore the metadata sidecar file if it was preserved during deletion
+    const deletedMetaPath = path.join(orgPath, `${docPath}.meta.json`);
+    const restoredMetaPath = path.join(orgPath, `${restoredPath}.meta.json`);
+    try {
+      await fs.rename(deletedMetaPath, restoredMetaPath);
+    } catch {
+      // Metadata file might not exist, which is fine
     }
 
     // Update database - restore original path and mark as not deleted
