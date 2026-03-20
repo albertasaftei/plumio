@@ -6,25 +6,52 @@ import { Decoration, DecorationSet } from "@milkdown/prose/view";
 let mermaidModule: any = null;
 let mermaidIdCounter = 0;
 
+const getMermaidTheme = () =>
+  document.documentElement.classList.contains("light") ? "default" : "dark";
+
+const initializeMermaid = (mod: any) => {
+  mod.initialize({
+    startOnLoad: false,
+    theme: getMermaidTheme(),
+    suppressErrorRendering: true,
+    flowchart: { htmlLabels: false, useMaxWidth: false },
+    er: { htmlLabels: false, useMaxWidth: false },
+    sequence: { useMaxWidth: false },
+  });
+};
+
 const getMermaid = async () => {
   if (!mermaidModule) {
     const m = await import("mermaid");
     mermaidModule = m.default;
-    // Re-initialize every time the module is first loaded in this session
-    // so that our config is guaranteed to be applied.
-    mermaidModule.initialize({
-      startOnLoad: false,
-      theme: document.documentElement.classList.contains("light")
-        ? "default"
-        : "dark",
-      suppressErrorRendering: true,
-      flowchart: { htmlLabels: false, useMaxWidth: false },
-      er: { htmlLabels: false, useMaxWidth: false },
-      sequence: { useMaxWidth: false },
-    });
+    initializeMermaid(mermaidModule);
   }
   return mermaidModule;
 };
+
+// ── Watch for theme changes and re-render all active previews ──
+let lastPolarity = getMermaidTheme();
+if (typeof window !== "undefined") {
+  new MutationObserver(() => {
+    const polarity = getMermaidTheme();
+    if (polarity === lastPolarity) return;
+    lastPolarity = polarity;
+
+    // Reset the singleton so the next getMermaid() call re-initializes
+    // with the correct theme before rendering.
+    if (mermaidModule) {
+      initializeMermaid(mermaidModule);
+    }
+
+    // Re-render every cached preview with the new theme
+    for (const [pos, entry] of previewCache.entries()) {
+      renderMermaidPreview(entry.dom, entry.text, pos);
+    }
+  }).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+}
 
 /**
  * Tracks active mermaid preview widgets so we can update them
