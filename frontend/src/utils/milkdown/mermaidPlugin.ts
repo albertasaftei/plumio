@@ -6,9 +6,12 @@ import { Decoration, DecorationSet } from "@milkdown/prose/view";
 let mermaidModule: any = null;
 let mermaidIdCounter = 0;
 
-const getMermaidTheme = () =>
-  document.documentElement.classList.contains("light") ? "default" : "dark";
-
+const getMermaidTheme = () => {
+  if (typeof window === "undefined") return "default";
+  return document.documentElement.classList.contains("light")
+    ? "default"
+    : "dark";
+};
 const initializeMermaid = (mod: any) => {
   mod.initialize({
     startOnLoad: false,
