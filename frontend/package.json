@@ -58,7 +58,8 @@
       "glob": "^10.5.0",
       "mdast-util-to-hast": "^13.2.0",
       "lodash": "^4.17.23",
-      "diff": "^8.0.3"
+      "diff": "^8.0.3",
+      "serialize-javascript": "^6.0.2"
     }
   }
 }
