@@ -309,6 +309,52 @@ export const demoClient = {
     return { message: "Item renamed", path: newPath };
   },
 
+  async moveItem(sourcePath: string, destinationFolder: string) {
+    await ensureReady();
+    const docs = getDemoDocuments();
+    const itemName = sourcePath.split("/").pop() || sourcePath;
+    const newPath =
+      destinationFolder === "/"
+        ? `/${itemName}`
+        : `${destinationFolder}/${itemName}`;
+
+    if (newPath === sourcePath) {
+      return { message: "Item is already in the target location", newPath };
+    }
+
+    const isFile = docs.some((d) => d.path === sourcePath && !d.deleted);
+
+    if (isFile) {
+      const doc = docs.find((d) => d.path === sourcePath && !d.deleted);
+      if (!doc) throw new Error("Document not found");
+      doc.path = newPath;
+      doc.modified = new Date().toISOString();
+    } else {
+      // It's a folder — update all documents inside it
+      docs.forEach((d) => {
+        if (
+          !d.deleted &&
+          (d.path === sourcePath || d.path.startsWith(sourcePath + "/"))
+        ) {
+          d.path = newPath + d.path.slice(sourcePath.length);
+          d.modified = new Date().toISOString();
+        }
+      });
+
+      // Update created folders list: rename the folder itself and any sub-folders
+      const createdFolders = getCreatedFolders();
+      createdFolders.forEach((fp) => {
+        if (fp === sourcePath || fp.startsWith(sourcePath + "/")) {
+          removeCreatedFolder(fp);
+          addCreatedFolder(newPath + fp.slice(sourcePath.length));
+        }
+      });
+    }
+
+    saveDemoDocuments(docs);
+    return { message: "Item moved", newPath };
+  },
+
   async setItemColor(path: string, color: string | null) {
     await ensureReady();
     const docs = getDemoDocuments();
