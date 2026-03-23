@@ -7,6 +7,7 @@ import "./config.js";
 import "./db/index.js";
 import { settingsQueries } from "./db/index.js";
 import { documentsRouter } from "./routes/documents.js";
+import { attachmentsRouter } from "./routes/attachments.js";
 import { authRouter } from "./routes/auth.js";
 import { adminRouter } from "./routes/admin.js";
 import { organizationsRouter } from "./routes/organizations.js";
@@ -93,6 +94,7 @@ app.route("/api/auth", authRouter);
 app.route("/api/auth/admin", adminRouter);
 app.route("/api/organizations", organizationsRouter);
 app.route("/api/documents", documentsRouter);
+app.route("/api/attachments", attachmentsRouter);
 
 // Initialize documents directory
 const documentsPath = process.env.DOCUMENTS_PATH || "./documents";

@@ -3,7 +3,7 @@ import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import { ENCRYPTION_KEY, ENABLE_ENCRYPTION } from "../config.js";
-import db, { documentQueries } from "../db/index.js";
+import db, { documentQueries, attachmentQueries } from "../db/index.js";
 import { authMiddleware } from "../middlewares/auth.js";
 import { UserJWTPayload } from "../middlewares/auth.types.js";
 import * as z from "zod";
@@ -160,6 +160,30 @@ async function ensureOrgDirectoryExists(organizationId: number): Promise<void> {
   }
 }
 
+// Delete all attachment files and DB records for a given document path
+async function deleteDocumentAttachments(
+  organizationId: number,
+  documentPath: string,
+): Promise<void> {
+  const attachmentsDir = path.join(
+    DOCUMENTS_PATH,
+    `org-${organizationId}`,
+    "attachments",
+  );
+  const rows = attachmentQueries.listByDocument.all(
+    organizationId,
+    documentPath,
+  );
+  for (const row of rows) {
+    try {
+      await fs.unlink(path.join(attachmentsDir, row.filename));
+    } catch {
+      // File already gone — still remove DB record
+    }
+  }
+  attachmentQueries.deleteByDocumentPath.run(organizationId, documentPath);
+}
+
 // Allowed file extensions for import
 const ALLOWED_EXTENSIONS = [".md"];
 const ALLOWED_METADATA_EXTENSIONS = [".meta.json"];
@@ -219,6 +243,9 @@ async function cleanupInvalidFiles(dirPath: string): Promise<void> {
         }
         console.log(`Removed hidden item: ${item.name}`);
       } else if (item.isDirectory()) {
+        // Never touch the attachments directory created by the attachments feature
+        if (item.name === "attachments") continue;
+
         // Recursively clean subdirectories first
         await cleanupInvalidFiles(itemPath);
 
@@ -271,6 +298,7 @@ documentsRouter.get("/list", async (c) => {
         .filter((item) => !item.name.endsWith(".meta.json")) // Filter out metadata files
         .filter((item) => !item.name.includes(".archived-")) // Filter out archived files
         .filter((item) => !item.name.includes(".deleted-")) // Filter out deleted files
+        .filter((item) => item.name !== "attachments") // Filter out the attachments directory
         .filter((item) => item.isDirectory() || hasAllowedExtension(item.name)) // Only show folders or allowed file types
         .map(async (item) => {
           const itemPath = path.join(fullPath, item.name);
@@ -1277,6 +1305,9 @@ documentsRouter.post("/archive/delete", async (c) => {
       console.log("File not found on filesystem (already deleted):", filePath);
     }
 
+    // Delete all attachments linked to this document
+    await deleteDocumentAttachments(user.currentOrgId, docPath);
+
     return c.json({ success: true });
   } catch (error) {
     console.error("Error deleting archived document:", error);
@@ -1433,6 +1464,9 @@ documentsRouter.post("/deleted/permanent", async (c) => {
       // File doesn't exist or already deleted, which is fine
       console.log("File not found on filesystem (already deleted):", filePath);
     }
+
+    // Delete all attachments linked to this document
+    await deleteDocumentAttachments(user.currentOrgId, docPath);
 
     return c.json({ success: true });
   } catch (error) {

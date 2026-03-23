@@ -582,6 +582,73 @@ export class ApiClient {
       }>;
     }>(`/api/documents/search?q=${encodeURIComponent(query)}`);
   }
+
+  // Attachments
+  async uploadAttachment(documentPath: string, file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("documentPath", documentPath);
+
+    const response = await fetch(`${API_URL}/api/attachments/upload`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const err = await response
+        .json()
+        .catch(() => ({ error: "Upload failed" }));
+      throw new Error(err.error || "Upload failed");
+    }
+
+    return response.json() as Promise<{
+      message: string;
+      filename: string;
+      originalName: string;
+      path: string;
+      mimeType: string;
+      size: number;
+    }>;
+  }
+
+  async listAttachments(documentPath: string) {
+    return this.request<{
+      attachments: Array<{
+        id: number;
+        organization_id: number;
+        document_path: string;
+        filename: string;
+        original_name: string;
+        mime_type: string;
+        size: number;
+        uploaded_at: string;
+        path: string;
+      }>;
+    }>(
+      `/api/attachments/list?documentPath=${encodeURIComponent(documentPath)}`,
+    );
+  }
+
+  async deleteAttachment(attachmentPath: string) {
+    const response = await fetch(
+      `${API_URL}/api/attachments/delete?path=${encodeURIComponent(attachmentPath)}`,
+      {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${this.token}` },
+      },
+    );
+    if (!response.ok) {
+      throw new Error("Failed to delete attachment");
+    }
+    return response.json();
+  }
+
+  getAttachmentUrl(attachmentPath: string): string {
+    return `${API_URL}/api/attachments/file?path=${encodeURIComponent(attachmentPath)}&token=${this.token}`;
+  }
 }
 
 // Conditional API client - uses demo client in demo mode, otherwise real API client

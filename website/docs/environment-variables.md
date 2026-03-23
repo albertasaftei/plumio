@@ -217,6 +217,52 @@ NODE_ENV=production
 
 ---
 
+### MAX_ATTACHMENT_SIZE_MB
+
+**Type:** `number`  
+**Required:** No  
+**Default:** `25`
+
+Maximum allowed file size for a single attachment upload, in megabytes.
+
+**Example:**
+
+```env
+MAX_ATTACHMENT_SIZE_MB=50
+```
+
+:::tip
+Set this lower if you want to limit disk usage, or higher if your users regularly attach large files (e.g. videos, large PDFs).
+:::
+
+---
+
+### ALLOWED_ATTACHMENT_TYPES
+
+**Type:** `string` (comma-separated MIME type prefixes)  
+**Required:** No  
+**Default:** `image/,application/pdf,text/,application/msword,application/vnd.openxmlformats,application/vnd.ms-,video/,audio/`
+
+Comma-separated list of allowed MIME type prefixes for file attachments. Any uploaded file whose MIME type does not start with one of these prefixes will be rejected with a `400` error.
+
+**Example — images and PDFs only:**
+
+```env
+ALLOWED_ATTACHMENT_TYPES=image/,application/pdf
+```
+
+**Example — add zip files:**
+
+```env
+ALLOWED_ATTACHMENT_TYPES=image/,application/pdf,text/,application/zip,application/x-zip-compressed
+```
+
+:::info
+Matching is prefix-based, so `image/` allows `image/png`, `image/jpeg`, `image/webp`, etc. The default set covers images, PDFs, plain text, Microsoft Office formats (Word, Excel, PowerPoint), and common audio/video types.
+:::
+
+---
+
 ## Frontend Configuration
 
 ### VITE_API_URL
@@ -319,6 +365,8 @@ JWT_SECRET=dev-secret-change-in-production
 ENCRYPTION_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
 ENABLE_ENCRYPTION=false
 ALLOWED_ORIGINS=http://localhost:3000
+MAX_ATTACHMENT_SIZE_MB=25
+ALLOWED_ATTACHMENT_TYPES=image/,application/pdf,text/,application/msword,application/vnd.openxmlformats,application/vnd.ms-,video/,audio/
 ```
 
 Frontend `.env`:

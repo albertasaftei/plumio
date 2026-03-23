@@ -97,9 +97,7 @@ export default function ImportExport() {
     <>
       <div class="space-y-4">
         <div class="bg-elevated rounded-lg p-6 border border-transparent light:border-base light:shadow-sm">
-          <h3 class="text-lg font-semibold text-body mb-2">
-            Export Documents
-          </h3>
+          <h3 class="text-lg font-semibold text-body mb-2">Export Documents</h3>
           <p class="text-muted-body mb-4">
             Download all your documents as a compressed archive.
           </p>
@@ -125,9 +123,7 @@ export default function ImportExport() {
         </div>
 
         <div class="bg-elevated rounded-lg p-6 border border-transparent light:border-base light:shadow-sm">
-          <h3 class="text-lg font-semibold text-body mb-2">
-            Import Documents
-          </h3>
+          <h3 class="text-lg font-semibold text-body mb-2">Import Documents</h3>
           <p class="text-muted-body mb-4">
             Upload a previously exported archive to restore your documents.
           </p>
@@ -180,7 +176,7 @@ export default function ImportExport() {
         onConfirm={confirmImport}
         onCancel={cancelImport}
       >
-        <p class="text-muted-body">
+        <p class="text-muted-body mb-2">
           Importing will merge with existing documents. Any files with the same
           name will be overwritten. Continue?
         </p>

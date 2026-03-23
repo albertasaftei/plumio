@@ -29,7 +29,7 @@ export default function AlertDialog(props: AlertDialogProps) {
       >
         {/* Dialog */}
         <div
-          class="bg-surface border border-base rounded-lg shadow-xl light:shadow-2xl max-w-4xl w-full p-6 animate-dialog-scale-in relative"
+          class="bg-surface border border-base rounded-lg shadow-xl light:shadow-2xl max-w-xl w-full p-6 animate-dialog-scale-in relative"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close Icon */}
@@ -46,9 +46,7 @@ export default function AlertDialog(props: AlertDialogProps) {
           </Show>
 
           {/* Title */}
-          <h2 class="text-xl font-semibold text-body mb-3">
-            {props.title}
-          </h2>
+          <h2 class="text-xl font-semibold text-body mb-3">{props.title}</h2>
 
           {/* Message or Custom Content */}
           <Show

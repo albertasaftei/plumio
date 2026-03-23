@@ -306,6 +306,44 @@ export const documentQueries = {
   },
 };
 
+// === Attachment Queries ===
+export interface Attachment {
+  id: number;
+  organization_id: number;
+  document_path: string;
+  filename: string;
+  original_name: string;
+  mime_type: string;
+  size: number;
+  uploaded_at: string;
+  uploaded_by: number;
+}
+
+export const attachmentQueries = {
+  insert: db.prepare<[number, string, string, string, string, number, number]>(`
+    INSERT INTO attachments (organization_id, document_path, filename, original_name, mime_type, size, uploaded_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `),
+  listByDocument: db.prepare<[number, string], Attachment>(`
+    SELECT * FROM attachments
+    WHERE organization_id = ? AND document_path = ?
+    ORDER BY uploaded_at DESC
+  `),
+  findByFilename: db.prepare<[number, string], Attachment>(`
+    SELECT * FROM attachments
+    WHERE organization_id = ? AND filename = ?
+  `),
+  deleteByFilename: db.prepare<[number, string]>(`
+    DELETE FROM attachments WHERE organization_id = ? AND filename = ?
+  `),
+  deleteByDocumentPath: db.prepare<[number, string]>(`
+    DELETE FROM attachments WHERE organization_id = ? AND document_path = ?
+  `),
+  listFilenamesByOrg: db.prepare<[number], { filename: string }>(`
+    SELECT filename FROM attachments WHERE organization_id = ?
+  `),
+};
+
 // === Settings Queries ===
 export const settingsQueries = {
   get: db.prepare<[string], { key: string; value: string }>(

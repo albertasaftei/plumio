@@ -89,9 +89,7 @@ export default function DocumentPage() {
       <div class="px-4 py-2 border-b border-subtle bg-base">
         <div class="flex items-center gap-2">
           <div class="i-carbon-document w-4 h-4 text-muted-body" />
-          <span class="text-xs text-muted-body">
-            Current file:
-          </span>
+          <span class="text-xs text-muted-body">Current file:</span>
           <span class="text-sm text-secondary-body truncate">
             {getDisplayName(getDocumentPath())}
           </span>
@@ -129,9 +127,7 @@ export default function DocumentPage() {
         {/* Save Status */}
         <div class="flex items-center">
           <Show when={saveStatus() === "saving"}>
-            <span class="text-xs text-muted-body">
-              Saving...
-            </span>
+            <span class="text-xs text-muted-body">Saving...</span>
           </Show>
           <Show when={saveStatus() === "saved"}>
             <div class="flex items-center gap-1">
@@ -165,6 +161,7 @@ export default function DocumentPage() {
             <MarkdownEditor
               content={currentContent()}
               onChange={handleContentChange}
+              documentPath={getDocumentPath()}
             />
           </Suspense>
         ) : (

@@ -80,28 +80,9 @@ const LinkPopup: Component<LinkPopupProps> = (props) => {
                 </p>
               </Show>
             </div>
-
-            <div>
-              <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
-                Title (optional)
-              </label>
-              <input
-                type="text"
-                value={title()}
-                onInput={(e) => setTitle(e.currentTarget.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Link title for tooltip"
-                class="w-full px-3 py-2 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
-              />
-            </div>
           </div>
 
           <div class="flex gap-3 mt-6">
-            <Show when={props.isEdit}>
-              <Button variant="danger" onClick={props.onRemove}>
-                Remove
-              </Button>
-            </Show>
             <div class="flex-1 flex gap-3">
               <Button
                 variant="secondary"

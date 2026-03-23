@@ -773,4 +773,110 @@ export const demoClient = {
       reader.readAsText(file);
     });
   },
+
+  // Attachments (demo: stored as data URLs in localStorage)
+  async uploadAttachment(documentPath: string, file: File) {
+    await ensureReady();
+
+    return new Promise<{
+      message: string;
+      filename: string;
+      originalName: string;
+      path: string;
+      mimeType: string;
+      size: number;
+    }>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const dataUrl = e.target?.result as string;
+          const stored: any[] = JSON.parse(
+            localStorage.getItem("plumio_demo_attachments") || "[]",
+          );
+
+          // Generate unique filename
+          const ext =
+            file.name.lastIndexOf(".") > 0
+              ? file.name.substring(file.name.lastIndexOf("."))
+              : "";
+          const base =
+            file.name.lastIndexOf(".") > 0
+              ? file.name.substring(0, file.name.lastIndexOf("."))
+              : file.name;
+          let candidate = file.name;
+          let counter = 1;
+          const existingNames = stored.map((a: any) => a.filename);
+          while (existingNames.includes(candidate)) {
+            candidate = `${base} (${counter})${ext}`;
+            counter++;
+          }
+
+          const id = Date.now();
+          const orgId = 1;
+          const relPath = `org-${orgId}/attachments/${candidate}`;
+
+          stored.push({
+            id,
+            documentPath,
+            filename: candidate,
+            original_name: file.name,
+            mime_type: file.type || "application/octet-stream",
+            size: file.size,
+            uploaded_at: new Date().toISOString(),
+            path: relPath,
+            dataUrl,
+          });
+
+          localStorage.setItem(
+            "plumio_demo_attachments",
+            JSON.stringify(stored),
+          );
+
+          resolve({
+            message: "Attachment uploaded",
+            filename: candidate,
+            originalName: file.name,
+            path: relPath,
+            mimeType: file.type || "application/octet-stream",
+            size: file.size,
+          });
+        } catch (err) {
+          reject(err);
+        }
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+  },
+
+  async listAttachments(documentPath: string) {
+    await ensureReady();
+    const stored: any[] = JSON.parse(
+      localStorage.getItem("plumio_demo_attachments") || "[]",
+    );
+    const attachments = stored
+      .filter((a) => a.documentPath === documentPath)
+      .map(({ dataUrl, ...rest }) => rest); // strip data URL from list response
+    return { attachments };
+  },
+
+  async deleteAttachment(attachmentPath: string) {
+    await ensureReady();
+    const filename = attachmentPath.split("/").pop() || attachmentPath;
+    const stored: any[] = JSON.parse(
+      localStorage.getItem("plumio_demo_attachments") || "[]",
+    );
+    const filtered = stored.filter((a) => a.filename !== filename);
+    localStorage.setItem("plumio_demo_attachments", JSON.stringify(filtered));
+    return { message: "Attachment deleted" };
+  },
+
+  getAttachmentUrl(attachmentPath: string): string {
+    const filename = attachmentPath.split("/").pop() || attachmentPath;
+    const stored: any[] = JSON.parse(
+      localStorage.getItem("plumio_demo_attachments") || "[]",
+    );
+    const entry = stored.find((a) => a.filename === filename);
+    return entry?.dataUrl || "";
+  },
 };

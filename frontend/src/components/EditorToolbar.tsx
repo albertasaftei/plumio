@@ -36,6 +36,7 @@ interface ToolbarProps {
   onCommand: (command: string, payload?: any) => void;
   hasSelection?: boolean;
   activeState?: ActiveState;
+  showAttachments?: boolean;
 }
 
 interface ToolbarButtonProps {
@@ -215,6 +216,16 @@ export default function EditorToolbar(props: ToolbarProps) {
         icon="i-carbon-subtract"
         title="Horizontal Rule"
         onClick={() => props.onCommand("insertHorizontalRule")}
+      />
+
+      <ToolbarDivider />
+
+      {/* Attachments */}
+      <ToolbarButton
+        icon="i-carbon-attachment"
+        title="Attachments"
+        active={props.showAttachments}
+        onClick={() => props.onCommand("toggleAttachments")}
       />
 
       <ToolbarDivider />

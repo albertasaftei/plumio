@@ -11,7 +11,10 @@ import { remarkTextColor } from "~/utils/milkdown/textColor/remarkTextColor";
 import { taskListInputPlugin } from "~/utils/milkdown/taskListInputPlugin";
 import { codeBlockViewPlugin } from "~/utils/milkdown/codeBlockView";
 import { mermaidPreviewPlugin } from "~/utils/milkdown/mermaidPlugin";
+import { pdfImagePlugin } from "~/utils/milkdown/pdfImagePlugin";
 import LinkPopup from "./LinkPopup";
+import { api } from "~/lib/api";
+import AttachmentPanel from "./AttachmentPanel";
 // import {
 //   colorPickerTooltip,
 //   colorPickerTooltipConfig,
@@ -35,6 +38,7 @@ export default function MarkdownEditor(props: EditorProps) {
   let isUpdatingFromProps = false;
   const [hasSelection, setHasSelection] = createSignal(false);
   const [showLinkPopup, setShowLinkPopup] = createSignal(false);
+  const [showAttachments, setShowAttachments] = createSignal(false);
   const [currentLinkData, setCurrentLinkData] = createSignal<{
     href: string;
     title?: string;
@@ -206,6 +210,61 @@ export default function MarkdownEditor(props: EditorProps) {
     // Link button opens popup (for both add and edit)
     if (command === "toggleLink") {
       setShowLinkPopup(true);
+      return;
+    }
+
+    // Attachment panel toggle
+    if (command === "toggleAttachments") {
+      setShowAttachments((v) => !v);
+      return;
+    }
+
+    // Insert attachment (image or file link) at cursor
+    if (command === "insertAttachment") {
+      const {
+        url,
+        filename,
+        isImage: isImg,
+      } = payload as {
+        url: string;
+        filename: string;
+        isImage: boolean;
+      };
+      try {
+        const { editorViewCtx } = await import("@milkdown/core");
+        await editorInstance.action((ctx: any) => {
+          const view = ctx.get(editorViewCtx);
+          view.focus();
+          const { state, dispatch } = view;
+
+          if (isImg) {
+            // Insert as a proper image node — the pdfImagePlugin NodeView
+            // will render PDFs as <embed> and regular images as <img>.
+            const imageNode = state.schema.nodes.image?.create({
+              src: url,
+              alt: filename,
+              title: null,
+            });
+            if (imageNode) {
+              dispatch(state.tr.replaceSelectionWith(imageNode));
+            }
+          } else {
+            // Insert as linked text — use replaceWith(from, to) so the
+            // link mark is preserved on the inline text node.
+            const linkMark = state.schema.marks.link?.create({
+              href: url,
+              title: null,
+            });
+            if (linkMark) {
+              const textNode = state.schema.text(filename, [linkMark]);
+              const { from, to } = state.selection;
+              dispatch(state.tr.replaceWith(from, to, textNode));
+            }
+          }
+        });
+      } catch (err) {
+        console.error("Failed to insert attachment:", err);
+      }
       return;
     }
 
@@ -496,6 +555,7 @@ export default function MarkdownEditor(props: EditorProps) {
         .use(taskListInputPlugin)
         .use(codeBlockViewPlugin)
         .use(mermaidPreviewPlugin)
+        .use(pdfImagePlugin)
         .create();
 
       if (editorRef) {
@@ -575,11 +635,12 @@ export default function MarkdownEditor(props: EditorProps) {
 
             const buttonContainer = document.createElement("div");
             buttonContainer.className = "flex gap-2";
-
             const openBtn = document.createElement("button");
             openBtn.className =
-              "px-2 py-1 bg-blue-600 hover:bg-blue-700 rounded text-xs cursor-pointer transition-colors";
-            openBtn.textContent = "Open";
+              "px-3 py-1.5 bg-elevated border border-[var(--color-border)] hover:bg-surface rounded text-xs cursor-pointer transition-colors font-medium flex items-center gap-1.5";
+            openBtn.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32"><path fill="currentColor" d="M26 28H6a2.003 2.003 0 0 1-2-2V6a2.003 2.003 0 0 1 2-2h10v2H6v20h20V16h2v10a2.003 2.003 0 0 1-2 2"/><path fill="currentColor" d="M20 2v2h6.586L18 12.586L19.414 14L28 5.414V12h2V2z"/></svg>
+            `;
             openBtn.onmousedown = (e: any) => {
               e.preventDefault();
               e.stopPropagation();
@@ -593,8 +654,10 @@ export default function MarkdownEditor(props: EditorProps) {
 
             const editBtn = document.createElement("button");
             editBtn.className =
-              "px-2 py-1 bg-green-600 hover:bg-green-700 rounded text-xs cursor-pointer transition-colors";
-            editBtn.textContent = "Edit";
+              "px-3 py-1.5 bg-elevated border border-[var(--color-border)] hover:bg-surface rounded text-xs cursor-pointer transition-colors font-medium flex items-center gap-1.5";
+            editBtn.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32"><path fill="currentColor" d="M2 26h28v2H2zM25.4 9c.8-.8.8-2 0-2.8l-3.6-3.6c-.8-.8-2-.8-2.8 0l-15 15V24h6.4zm-5-5L24 7.6l-3 3L17.4 7zM6 22v-3.6l10-10l3.6 3.6l-10 10z"/></svg>
+            `;
             editBtn.onmousedown = (e: any) => {
               e.preventDefault();
               e.stopPropagation();
@@ -626,8 +689,10 @@ export default function MarkdownEditor(props: EditorProps) {
 
             const removeBtn = document.createElement("button");
             removeBtn.className =
-              "px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-xs cursor-pointer transition-colors";
-            removeBtn.textContent = "Remove";
+              "px-3 py-1.5 bg-elevated border border-[var(--color-border)] hover:bg-surface rounded text-xs cursor-pointer transition-colors font-medium flex items-center gap-1.5";
+            removeBtn.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32"><path fill="currentColor" d="M12 12h2v12h-2zm6 0h2v12h-2z"/><path fill="currentColor" d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6Zm4 22V8h16v20Zm4-26h8v2h-8z"/></svg>
+            `;
             removeBtn.onmousedown = (e: any) => {
               e.preventDefault();
               e.stopPropagation();
@@ -811,6 +876,24 @@ export default function MarkdownEditor(props: EditorProps) {
     updateContent();
   });
 
+  // Auto-open the attachment panel when the document has attachments,
+  // and close it when navigating to a document that has none.
+  createEffect(() => {
+    const docPath = props.documentPath;
+    if (!docPath) return;
+    setShowAttachments(false);
+    api
+      .listAttachments(docPath)
+      .then((result: any) => {
+        if ((result.attachments || []).length > 0) {
+          setShowAttachments(true);
+        }
+      })
+      .catch(() => {
+        /* ignore */
+      });
+  });
+
   onCleanup(() => {
     if (editorInstance) {
       editorInstance.destroy();
@@ -824,6 +907,7 @@ export default function MarkdownEditor(props: EditorProps) {
         onCommand={handleCommand}
         hasSelection={hasSelection()}
         activeState={activeState()}
+        showAttachments={showAttachments()}
       />
       <LinkPopup
         show={showLinkPopup()}
@@ -832,6 +916,14 @@ export default function MarkdownEditor(props: EditorProps) {
         onSubmit={handleLinkSubmit}
         onRemove={handleRemoveLink}
         onClose={() => setShowLinkPopup(false)}
+      />
+      <AttachmentPanel
+        show={showAttachments()}
+        documentPath={props.documentPath || ""}
+        onInsert={(url, filename, isImage) =>
+          handleCommand("insertAttachment", { url, filename, isImage })
+        }
+        onClose={() => setShowAttachments(false)}
       />
       <div class="flex-1 min-h-0 overflow-auto">
         <div
