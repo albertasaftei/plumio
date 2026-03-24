@@ -143,6 +143,90 @@ export default function EditorToolbar(props: ToolbarProps) {
         onClick={() => props.onCommand("toggleHighlight")}
       />
 
+      {/* Text Color */}
+      <Popover
+        open={showColorPicker()}
+        onOpenChange={(isOpen) => {
+          if (!props.hasSelection && !s().textColor) return;
+          setShowColorPicker(isOpen);
+        }}
+      >
+        <Popover.Trigger
+          as={(triggerProps: any) => (
+            <button
+              {...triggerProps}
+              type="button"
+              disabled={!props.hasSelection && !s().textColor}
+              onMouseDown={(e: MouseEvent) => {
+                e.preventDefault();
+                triggerProps.onClick?.(e);
+              }}
+              title="Text Color"
+              class={`toolbar-button p-1.5 rounded transition-colors duration-150 cursor-pointer flex flex-col items-center gap-0.5 ${
+                !props.hasSelection && !s().textColor
+                  ? "text-[var(--color-text-muted)] cursor-not-allowed opacity-50"
+                  : s().textColor
+                    ? "bg-[var(--color-bg-elevated)] text-[var(--color-primary)]"
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)]"
+              }`}
+            >
+              <span
+                class="text-xs font-bold leading-none"
+                style={{ color: s().textColor || "currentColor" }}
+              >
+                A
+              </span>
+              <span
+                class="w-3 h-0.5 rounded-full transition-colors"
+                style={{
+                  "background-color": s().textColor || "currentColor",
+                  opacity: s().textColor ? "1" : "0.4",
+                }}
+              />
+            </button>
+          )}
+        />
+        <Popover.Portal>
+          <Popover.Content class="mt-1 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg shadow-lg p-2 z-50 animate-slide-down">
+            <p class="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide mb-1.5 px-0.5">
+              Text Color
+            </p>
+            <div class="grid grid-cols-6 gap-1 mb-1.5">
+              {TEXT_COLORS.map((c) => (
+                <button
+                  type="button"
+                  title={c.name}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    props.onCommand("setTextColor", c.value);
+                    setShowColorPicker(false);
+                  }}
+                  class={`w-5 h-5 rounded-sm border-2 transition-transform hover:scale-110 cursor-pointer ${
+                    s().textColor === c.value
+                      ? "border-white"
+                      : "border-transparent"
+                  }`}
+                  style={{ "background-color": c.value }}
+                />
+              ))}
+            </div>
+            <Show when={!!s().textColor}>
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  props.onCommand("setTextColor", null);
+                  setShowColorPicker(false);
+                }}
+                class="w-full text-[11px] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)] rounded px-2 py-1 text-left transition-colors cursor-pointer"
+              >
+                Remove color
+              </button>
+            </Show>
+          </Popover.Content>
+        </Popover.Portal>
+      </Popover>
+
       <ToolbarDivider />
 
       {/* Headings */}
@@ -227,92 +311,6 @@ export default function EditorToolbar(props: ToolbarProps) {
         active={props.showAttachments}
         onClick={() => props.onCommand("toggleAttachments")}
       />
-
-      <ToolbarDivider />
-
-      {/* Text Color */}
-      <Popover
-        open={showColorPicker()}
-        onOpenChange={(isOpen) => {
-          if (!props.hasSelection && !s().textColor) return;
-          setShowColorPicker(isOpen);
-        }}
-      >
-        <Popover.Trigger
-          as={(triggerProps: any) => (
-            <button
-              {...triggerProps}
-              type="button"
-              disabled={!props.hasSelection && !s().textColor}
-              onMouseDown={(e: MouseEvent) => {
-                e.preventDefault();
-                triggerProps.onClick?.(e);
-              }}
-              title="Text Color"
-              class={`toolbar-button p-1.5 rounded transition-colors duration-150 cursor-pointer flex flex-col items-center gap-0.5 ${
-                !props.hasSelection && !s().textColor
-                  ? "text-[var(--color-text-muted)] cursor-not-allowed opacity-50"
-                  : s().textColor
-                    ? "bg-[var(--color-bg-elevated)] text-[var(--color-primary)]"
-                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)]"
-              }`}
-            >
-              <span
-                class="text-xs font-bold leading-none"
-                style={{ color: s().textColor || "currentColor" }}
-              >
-                A
-              </span>
-              <span
-                class="w-3 h-0.5 rounded-full transition-colors"
-                style={{
-                  "background-color": s().textColor || "currentColor",
-                  opacity: s().textColor ? "1" : "0.4",
-                }}
-              />
-            </button>
-          )}
-        />
-        <Popover.Portal>
-          <Popover.Content class="mt-1 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg shadow-lg p-2 z-50 animate-slide-down">
-            <p class="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide mb-1.5 px-0.5">
-              Text Color
-            </p>
-            <div class="grid grid-cols-6 gap-1 mb-1.5">
-              {TEXT_COLORS.map((c) => (
-                <button
-                  type="button"
-                  title={c.name}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    props.onCommand("setTextColor", c.value);
-                    setShowColorPicker(false);
-                  }}
-                  class={`w-5 h-5 rounded-sm border-2 transition-transform hover:scale-110 cursor-pointer ${
-                    s().textColor === c.value
-                      ? "border-white"
-                      : "border-transparent"
-                  }`}
-                  style={{ "background-color": c.value }}
-                />
-              ))}
-            </div>
-            <Show when={!!s().textColor}>
-              <button
-                type="button"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  props.onCommand("setTextColor", null);
-                  setShowColorPicker(false);
-                }}
-                class="w-full text-[11px] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)] rounded px-2 py-1 text-left transition-colors cursor-pointer"
-              >
-                Remove color
-              </button>
-            </Show>
-          </Popover.Content>
-        </Popover.Portal>
-      </Popover>
     </div>
   );
 }
