@@ -31,11 +31,11 @@ export default defineConfig({
   darkMode: "class", // Enable class-based dark mode
   theme: {
     colors: {
-      // Brand colors
+      // Brand colors — driven by CSS custom properties so themes can override
       primary: {
-        DEFAULT: "#2a9d8f",
-        dark: "#21867a",
-        light: "#3dbaa8",
+        DEFAULT: "var(--color-primary)",
+        dark: "var(--color-primary-dark)",
+        light: "var(--color-primary-light)",
       },
 
       // Neutral/Gray scale (dark theme)
