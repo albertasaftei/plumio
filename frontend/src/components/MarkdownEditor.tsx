@@ -15,10 +15,6 @@ import { pdfImagePlugin } from "~/utils/milkdown/pdfImagePlugin";
 import LinkPopup from "./LinkPopup";
 import { api } from "~/lib/api";
 import AttachmentPanel from "./AttachmentPanel";
-// import {
-//   colorPickerTooltip,
-//   colorPickerTooltipConfig,
-// } from "~/utils/milkdown/highlight/colorPicker";
 
 const milkdownMarkColorPlugin = $remark("markColor", () => remarkMarkColor);
 const milkdownTextColorPlugin = $remark("textColor", () => remarkTextColor);
@@ -537,8 +533,6 @@ export default function MarkdownEditor(props: EditorProps) {
             updateSelectionState();
           });
         })
-        // .config(colorPickerTooltipConfig)
-        // .use(colorPickerTooltip)
         .use(commonmark)
         .use(gfm)
         .use(listener)
