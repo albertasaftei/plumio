@@ -127,7 +127,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
   // Recursive tree node component
   const TreeNode = (nodeProps: { node: TreeNode }) => {
     const isExpanded = () => props.expandedFolders.has(nodeProps.node.path);
-    const paddingLeft = () => `${nodeProps.node.depth * 16 + 16}px`;
+    const paddingLeft = () => `${nodeProps.node.depth * 8}px`;
     const getBackgroundColor = () => {
       if (nodeProps.node.path === props.currentPath) {
         return (
@@ -149,7 +149,10 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
               : "border-l-transparent"
           } ${nodeProps.node.depth === 0 ? "mb-0" : ""}`}
           style={{
-            "padding-left": paddingLeft(),
+            "padding-left":
+              nodeProps.node.depth === 0
+                ? `${parseInt(paddingLeft()) + 16}px`
+                : paddingLeft(),
             "background-color": getBackgroundColor(),
           }}
         >
@@ -161,24 +164,8 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                 toggleFolder(nodeProps.node.path);
               }
             }}
-            class="flex items-center gap-2 py-2 pr-2"
+            class="flex items-center gap-2 py-1 pr-2"
           >
-            <Show when={nodeProps.node.type === "folder"}>
-              <Button
-                variant="icon"
-                size="sm"
-                class="text-[var(--color-text-muted)]"
-              >
-                <div
-                  class={`w-3 h-3 transition-transform ${
-                    isExpanded()
-                      ? "i-carbon-chevron-down"
-                      : "i-carbon-chevron-right"
-                  }`}
-                />
-              </Button>
-            </Show>
-
             <div
               class={`w-4 h-4 flex-shrink-0 ${
                 nodeProps.node.type === "folder"
@@ -367,7 +354,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
 
         <Show when={nodeProps.node.type === "folder" && isExpanded()}>
           <div
-            class={`${nodeProps.node.depth === 0 ? "mb-1" : ""} ml-8 mr-2 pl-2 border-l-2 border-[var(--color-border-subtle)]`}
+            class={`${nodeProps.node.depth === 0 ? "mb-1" : ""} ml-8 mr-2 border-l-2 border-[var(--color-border-subtle)]`}
           >
             <For each={nodeProps.node.children}>
               {(child) => <TreeNode node={child} />}
