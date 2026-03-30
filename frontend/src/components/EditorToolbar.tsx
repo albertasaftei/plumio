@@ -9,6 +9,7 @@ interface ActiveState {
   highlight?: boolean;
   link?: boolean;
   textColor?: string | null;
+  fontFamily?: string | null;
   headingLevel?: number | null;
   bulletList?: boolean;
   orderedList?: boolean;
@@ -30,6 +31,15 @@ const TEXT_COLORS = [
   { name: "Pink", value: "#ec4899" },
   { name: "White", value: "#f9fafb" },
   { name: "Light Gray", value: "#9ca3af" },
+];
+
+const FONT_FAMILIES = [
+  { label: "Arial", value: "Arial, Helvetica, sans-serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Times New Roman", value: "'Times New Roman', serif" },
+  { label: "Verdana", value: "Verdana, Geneva, sans-serif" },
+  { label: "Trebuchet MS", value: "'Trebuchet MS', sans-serif" },
+  { label: "Courier New", value: "'Courier New', Courier, monospace" },
 ];
 
 interface ToolbarProps {
@@ -94,6 +104,14 @@ const ToolbarDivider: Component = () => (
 export default function EditorToolbar(props: ToolbarProps) {
   const s = () => props.activeState || {};
   const [showColorPicker, setShowColorPicker] = createSignal(false);
+  const [showFontPicker, setShowFontPicker] = createSignal(false);
+
+  // Derive a short display label for the active font
+  const activeFontLabel = () => {
+    const ff = s().fontFamily;
+    if (!ff) return null;
+    return FONT_FAMILIES.find((f) => f.value === ff)?.label ?? "Custom";
+  };
 
   return (
     <div class="editor-toolbar flex items-center gap-0.5 px-3 py-1.5 bg-[var(--color-bg-base)] border-b border-[var(--color-border)] overflow-x-auto shrink-0">
@@ -108,6 +126,87 @@ export default function EditorToolbar(props: ToolbarProps) {
         title={`Redo (${mod}${isMac ? "⇧Z" : "Shift+Z"})`}
         onClick={() => props.onCommand("redo")}
       />
+
+      <ToolbarDivider />
+
+      {/* Font Family */}
+      <Popover
+        open={showFontPicker()}
+        onOpenChange={(isOpen) => {
+          if (!props.hasSelection && !s().fontFamily) return;
+          setShowFontPicker(isOpen);
+        }}
+      >
+        <Popover.Trigger
+          as={(triggerProps: any) => (
+            <button
+              {...triggerProps}
+              type="button"
+              disabled={!props.hasSelection && !s().fontFamily}
+              onMouseDown={(e: MouseEvent) => {
+                e.preventDefault();
+                triggerProps.onClick?.(e);
+              }}
+              title="Font Family"
+              class={`toolbar-button px-1.5 py-1 rounded transition-colors duration-150 cursor-pointer flex items-center gap-1 max-w-[80px] ${
+                !props.hasSelection && !s().fontFamily
+                  ? "text-[var(--color-text-muted)] cursor-not-allowed opacity-50"
+                  : s().fontFamily
+                    ? "bg-[var(--color-bg-elevated)] text-[var(--color-primary)]"
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)]"
+              }`}
+            >
+              <span
+                class="text-[11px] font-medium leading-none truncate"
+                style={{ "font-family": s().fontFamily || "inherit" }}
+              >
+                {activeFontLabel() ?? "Font"}
+              </span>
+              <div class="i-carbon-chevron-down w-2.5 h-2.5 shrink-0 opacity-60" />
+            </button>
+          )}
+        />
+        <Popover.Portal>
+          <Popover.Content class="mt-1 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg shadow-lg p-1.5 z-50 animate-slide-down min-w-[160px]">
+            <p class="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide mb-1 px-1.5">
+              Font Family
+            </p>
+            {FONT_FAMILIES.map((f) => (
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  props.onCommand("setFontFamily", f.value);
+                  setShowFontPicker(false);
+                }}
+                class={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors cursor-pointer hover:bg-[var(--color-bg-elevated)] ${
+                  s().fontFamily === f.value
+                    ? "text-[var(--color-primary)] bg-[var(--color-bg-elevated)]"
+                    : "text-[var(--color-text-primary)]"
+                }`}
+                style={{ "font-family": f.value }}
+              >
+                {f.label}
+              </button>
+            ))}
+            <Show when={!!s().fontFamily}>
+              <div class="border-t border-[var(--color-border)] mt-1 pt-1">
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    props.onCommand("setFontFamily", null);
+                    setShowFontPicker(false);
+                  }}
+                  class="w-full text-[11px] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)] rounded px-2 py-1 text-left transition-colors cursor-pointer"
+                >
+                  Reset to default
+                </button>
+              </div>
+            </Show>
+          </Popover.Content>
+        </Popover.Portal>
+      </Popover>
 
       <ToolbarDivider />
 

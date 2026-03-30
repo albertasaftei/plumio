@@ -7,31 +7,29 @@ import type {
 import type { Parent, Root } from "mdast";
 
 declare module "mdast" {
-  export interface TextColor extends Parent {
-    type: "textColor";
+  export interface FontFamily extends Parent {
+    type: "fontFamily";
     data: {
-      color: string;
+      family: string;
     };
     children: PhrasingContent[];
   }
 
   interface StaticPhrasingContentMap {
-    textColor: TextColor;
+    fontFamily: FontFamily;
   }
 
   interface PhrasingContentMap {
-    textColor: TextColor;
+    fontFamily: FontFamily;
   }
 
   interface RootContentMap {
-    textColor: TextColor;
+    fontFamily: FontFamily;
   }
 }
 
 // Captures the full style attribute value from any <span style="..."> tag
 const SPAN_WITH_STYLE_RE = /^<span\s[^>]*style="([^"]*)"[^>]*>$/i;
-// Extracts the color value from a style string
-const COLOR_IN_STYLE_RE = /(?:^|;)\s*color:\s*([^;"]+)/i;
 // Extracts the font-family value from a style string
 const FONT_FAMILY_IN_STYLE_RE = /(?:^|;)\s*font-family:\s*([^;"]+)/i;
 // Matches ANY span open tag (used for nesting depth tracking)
@@ -39,23 +37,21 @@ const ANY_SPAN_OPEN_RE = /^<span[\s>]/i;
 const SPAN_CLOSE_RE = /^<\/span>$/i;
 
 /**
- * Remark plugin to support text color via inline HTML spans.
+ * Remark plugin to support font family via inline HTML spans.
  *
- * Parses:   <span style="color: #ff0000">text</span>
- * Produces: textColor mdast node with { data: { color: "#ff0000" } }
+ * Parses:   <span style="font-family: Georgia, serif">text</span>
+ * Produces: fontFamily mdast node with { data: { family: "Georgia, serif" } }
  *
- * Also handles combined spans:
- *   <span style="color: #ff0000; font-family: Georgia, serif">text</span>
- * Produces: textColor { fontFamily { text } }
+ * Skips combined spans (those that also contain color:) — remarkTextColor
+ * handles those and creates the nested fontFamily node inside textColor.
  *
  * Serializes back to a single combined span when both marks are present.
  */
-export function remarkTextColor(this: Processor) {
+export function remarkFontFamily(this: Processor) {
   const data = this.data();
-  add(data, "toMarkdownExtensions", textColorToMarkdown);
+  add(data, "toMarkdownExtensions", fontFamilyToMarkdown);
 
   return (tree: Root) => {
-    // Walk all parent nodes (paragraphs, list items, blockquotes, etc.)
     visit(tree, (node) => {
       const parent = node as unknown as Parent;
       if (!parent.children || !Array.isArray(parent.children)) return;
@@ -76,16 +72,20 @@ export function remarkTextColor(this: Processor) {
         }
 
         const styleAttr = spanMatch[1];
-        const colorMatch = styleAttr.match(COLOR_IN_STYLE_RE);
-        if (!colorMatch) {
+
+        // Skip combined spans — remarkTextColor handles those
+        if (/(?:^|;)\s*color:/i.test(styleAttr)) {
           i++;
           continue;
         }
 
-        const color = colorMatch[1].trim();
-        // Also extract font-family if present in the same span (combined span)
         const familyMatch = styleAttr.match(FONT_FAMILY_IN_STYLE_RE);
-        const family = familyMatch ? familyMatch[1].trim() : null;
+        if (!familyMatch) {
+          i++;
+          continue;
+        }
+
+        const family = familyMatch[1].trim();
 
         // Find the matching closing </span>, skipping over any nested spans
         let closeIdx = -1;
@@ -111,31 +111,16 @@ export function remarkTextColor(this: Processor) {
         }
 
         // Grab everything between the open and close tags
-        const innerChildren = parent.children.slice(i + 1, closeIdx) as any[];
+        const children = parent.children.slice(i + 1, closeIdx) as any[];
 
-        let textColorNode: any;
-        if (family) {
-          // Combined span — nest fontFamily inside textColor so both marks apply
-          const fontFamilyNode: any = {
-            type: "fontFamily",
-            data: { family },
-            children: innerChildren,
-          };
-          textColorNode = {
-            type: "textColor",
-            data: { color },
-            children: [fontFamilyNode],
-          };
-        } else {
-          textColorNode = {
-            type: "textColor",
-            data: { color },
-            children: innerChildren,
-          };
-        }
+        const fontFamilyNode: any = {
+          type: "fontFamily",
+          data: { family },
+          children,
+        };
 
         // Replace the open-tag, content, and close-tag with a single node
-        parent.children.splice(i, closeIdx - i + 1, textColorNode);
+        parent.children.splice(i, closeIdx - i + 1, fontFamilyNode);
         // Don't increment — re-visit in case of nested spans
       }
     });
@@ -144,15 +129,16 @@ export function remarkTextColor(this: Processor) {
 
 // ── Serializer ──────────────────────────────────────────────────────────────
 
-const handleTextColor: Handle = (node, _, state, info) => {
-  const color = (node as any).data?.color ?? "inherit";
+const handleFontFamily: Handle = (node, _, state, info) => {
+  const family = (node as any).data?.family ?? "inherit";
   const tracker = state.createTracker(info);
 
-  // If the sole child is a fontFamily node, emit a single combined span
+  // If the sole child is a textColor node, emit a single combined span
+  // (handles old notes saved with fontFamily as the outer mark)
   const nodeChildren = (node as any).children ?? [];
-  if (nodeChildren.length === 1 && nodeChildren[0].type === "fontFamily") {
-    const family = nodeChildren[0].data?.family ?? "inherit";
-    const open = `<span style="color: ${color}; font-family: ${family}">`;
+  if (nodeChildren.length === 1 && nodeChildren[0].type === "textColor") {
+    const color = nodeChildren[0].data?.color ?? "inherit";
+    const open = `<span style="font-family: ${family}; color: ${color}">`;
     const close = `</span>`;
     let value = tracker.move(open);
     value += tracker.move(
@@ -166,7 +152,7 @@ const handleTextColor: Handle = (node, _, state, info) => {
     return value;
   }
 
-  const open = `<span style="color: ${color}">`;
+  const open = `<span style="font-family: ${family}">`;
   const close = `</span>`;
 
   let value = tracker.move(open);
@@ -181,10 +167,10 @@ const handleTextColor: Handle = (node, _, state, info) => {
   return value;
 };
 
-const textColorToMarkdown: ToMarkdownExtension = {
+const fontFamilyToMarkdown: ToMarkdownExtension = {
   unsafe: [],
   handlers: {
-    textColor: handleTextColor,
+    fontFamily: handleFontFamily,
   },
 };
 
