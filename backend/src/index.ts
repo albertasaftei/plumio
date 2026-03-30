@@ -105,6 +105,7 @@ if (!fs.existsSync(documentsPath)) {
 const port = parseInt(process.env.BACKEND_INTERNAL_PORT || "3001");
 
 console.log(`🚀 Plumio Backend starting on port ${port}`);
+console.log(`📂 Documents directory: ${documentsPath}`);
 
 serve({
   fetch: app.fetch,
