@@ -31,7 +31,11 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
   const [showNewDocModal, setShowNewDocModal] = createSignal(false);
   const [showNewFolderModal, setShowNewFolderModal] = createSignal(false);
   const [showRenameModal, setShowRenameModal] = createSignal(false);
-  const [newItemName, setNewItemName] = createSignal("");
+  const getDefaultDocName = () => {
+    const now = new Date();
+    return `Note (${now.toLocaleDateString()}  ${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")})`;
+  };
+  const [newItemName, setNewItemName] = createSignal(getDefaultDocName());
   const [targetFolder, setTargetFolder] = createSignal<string>("/");
   const [itemToRename, setItemToRename] = createSignal<string | null>(null);
   const [openMenuPath, setOpenMenuPath] = createSignal<string | null>(null);
@@ -220,6 +224,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                         onClick={(e) => {
                           e.stopPropagation();
                           setTargetFolder(nodeProps.node.path);
+                          setNewItemName(getDefaultDocName());
                           setShowNewDocModal(true);
                           setOpenMenuPath(null);
                         }}
@@ -434,6 +439,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             <Button
               onClick={() => {
                 setTargetFolder("/");
+                setNewItemName(getDefaultDocName());
                 setShowNewDocModal(true);
               }}
               variant="primary"
@@ -500,7 +506,10 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         isOpen={showNewDocModal()}
         title="New Document"
         onConfirm={handleCreateDocument}
-        onCancel={() => setShowNewDocModal(false)}
+        onCancel={() => {
+          setNewItemName(getDefaultDocName());
+          setShowNewDocModal(false);
+        }}
       >
         <p class="text-[var(--color-text-secondary)] mb-3">
           Creating in: {targetFolder()}
