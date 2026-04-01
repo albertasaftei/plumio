@@ -643,6 +643,12 @@
   -webkit-user-select: none;
 }
 
+.code-block-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .code-block-lang-label {
   color: #737373;
   font-size: 0.75rem;
@@ -2216,29 +2222,102 @@
 
 /* ── Mermaid preview (decoration widget below code block) ── */
 .mermaid-preview {
-  display: block;
-  overflow-x: auto;
-  text-align: center;
-  min-height: 60px;
-  padding: 1.5rem 1rem;
-  margin: 0 0 1rem 0;
+  display: none;
   background: #0d0d0d;
-  border: 1px solid #262626;
-  border-top: none;
-  border-radius: 0 0 6px 6px;
-  margin-top: -1rem;
+  overflow: hidden;
+}
+
+.mermaid-preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent);
+}
+
+.mermaid-preview-toolbar-meta,
+.mermaid-preview-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mermaid-preview-toolbar-icon,
+.mermaid-viewer-title-icon {
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.mermaid-preview-toolbar-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #a3a3a3;
+}
+
+.mermaid-preview-action,
+.mermaid-viewer-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: #f5f5f5;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
   cursor: pointer;
 }
 
-.mermaid-preview:hover {
-  border-color: #404040;
+.mermaid-preview-action:hover,
+.mermaid-viewer-action:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.mermaid-preview-action span,
+.mermaid-viewer-action span {
+  font-size: 1rem;
+}
+
+.mermaid-preview-zoom-label,
+.mermaid-viewer-zoom-label {
+  min-width: 3rem;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #d4d4d4;
+}
+
+.mermaid-preview-viewport {
+  overflow: auto;
+  padding: 1.25rem 1rem 1.5rem;
+  min-height: 80px;
+  text-align: center;
+}
+
+.mermaid-preview-canvas {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 100%;
+  min-height: 220px;
 }
 
 .mermaid-preview svg {
   overflow: visible;
-  max-width: 100%;
+  max-width: none;
   height: auto;
   display: inline-block;
+  user-select: none;
 }
 
 .mermaid-placeholder {
@@ -2257,11 +2336,33 @@
 /* ── Mermaid light theme ── */
 .light .mermaid-preview {
   background: #fafafa;
-  border-color: #e5e5e5;
 }
 
-.light .mermaid-preview:hover {
-  border-color: #d4d4d4;
+.light .mermaid-preview-toolbar {
+  border-top-color: rgba(23, 23, 23, 0.08);
+  background: linear-gradient(180deg, rgba(23, 23, 23, 0.03), transparent);
+}
+
+.light .mermaid-preview-toolbar-label {
+  color: #737373;
+}
+
+.light .mermaid-preview-action,
+.light .mermaid-viewer-action {
+  color: #171717;
+  background: rgba(23, 23, 23, 0.04);
+  border-color: rgba(23, 23, 23, 0.08);
+}
+
+.light .mermaid-preview-action:hover,
+.light .mermaid-viewer-action:hover {
+  background: rgba(23, 23, 23, 0.08);
+  border-color: rgba(23, 23, 23, 0.14);
+}
+
+.light .mermaid-preview-zoom-label,
+.light .mermaid-viewer-zoom-label {
+  color: #404040;
 }
 
 .light .mermaid-placeholder {
@@ -2270,4 +2371,163 @@
 
 .light .mermaid-error-message {
   color: #dc2626;
+}
+
+/* ── Mermaid modal viewer ── */
+.mermaid-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+}
+
+.mermaid-viewer-shell {
+  width: min(96vw, 1200px);
+  height: min(92vh, 900px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 40%),
+    #090909;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+
+.mermaid-viewer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mermaid-viewer-title-group,
+.mermaid-viewer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mermaid-viewer-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fafafa;
+}
+
+.mermaid-viewer-subtitle {
+  font-size: 0.78rem;
+  color: #a3a3a3;
+}
+
+.mermaid-viewer-close {
+  margin-left: 0.25rem;
+}
+
+.mermaid-viewer-viewport {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  padding: 1rem;
+  background:
+    linear-gradient(0deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.02) 0,
+      rgba(255, 255, 255, 0.02) 1px,
+      transparent 1px,
+      transparent 28px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.02) 0,
+      rgba(255, 255, 255, 0.02) 1px,
+      transparent 1px,
+      transparent 28px
+    );
+}
+
+.mermaid-viewer-canvas {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.mermaid-viewer-canvas svg {
+  max-width: none;
+  width: auto;
+  height: auto;
+  user-select: none;
+}
+
+.mermaid-viewer-status {
+  position: absolute;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f5f5f5;
+  font-size: 0.78rem;
+  z-index: 2;
+}
+
+.mermaid-viewer-status-error {
+  color: #fca5a5;
+}
+
+.light .mermaid-viewer-shell {
+  border-color: rgba(23, 23, 23, 0.08);
+  background:
+    radial-gradient(circle at top, rgba(23, 23, 23, 0.04), transparent 40%),
+    #ffffff;
+}
+
+.light .mermaid-viewer-toolbar {
+  border-bottom-color: rgba(23, 23, 23, 0.08);
+}
+
+.light .mermaid-viewer-title {
+  color: #171717;
+}
+
+.light .mermaid-viewer-subtitle {
+  color: #737373;
+}
+
+.light .mermaid-viewer-viewport {
+  background:
+    linear-gradient(0deg, rgba(23, 23, 23, 0.015), rgba(23, 23, 23, 0.015)),
+    repeating-linear-gradient(
+      0deg,
+      rgba(23, 23, 23, 0.03) 0,
+      rgba(23, 23, 23, 0.03) 1px,
+      transparent 1px,
+      transparent 28px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(23, 23, 23, 0.03) 0,
+      rgba(23, 23, 23, 0.03) 1px,
+      transparent 1px,
+      transparent 28px
+    );
+}
+
+.light .mermaid-viewer-status {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(23, 23, 23, 0.08);
+  color: #171717;
 }

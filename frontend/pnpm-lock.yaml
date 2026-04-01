@@ -70,6 +70,9 @@ importers:
       '@milkdown/utils':
         specifier: ^7.18.0
         version: 7.18.0
+      '@panzoom/panzoom':
+        specifier: ^4.6.1
+        version: 4.6.1
       '@solidjs/router':
         specifier: ^0.15.4
         version: 0.15.4(solid-js@1.9.11)
@@ -83,11 +86,11 @@ importers:
         specifier: ^4.0.4
         version: 4.0.4
       '@unocss/preset-icons':
-        specifier: ^66.6.0
-        version: 66.6.0
+        specifier: ^66.6.6
+        version: 66.6.6
       '@unocss/preset-typography':
-        specifier: ^66.6.0
-        version: 66.6.0
+        specifier: ^66.6.6
+        version: 66.6.6
       '@unocss/preset-wind4':
         specifier: ^66.6.6
         version: 66.6.6
@@ -1054,6 +1057,9 @@ packages:
   '@oxc-project/types@0.115.0':
     resolution: {integrity: sha512-4n91DKnebUS4yjUHl2g3/b2T+IUdCfmoZGhmwsovZCDaJSs+QkVAM+0AqqTxHSsHfeiMuueT75cZaZcT/m0pSw==}
 
+  '@panzoom/panzoom@4.6.1':
+    resolution: {integrity: sha512-ogf/KhHHjj+DYAvHfaf3TXMQ8OE36pJtKpabLlx1OmpjcgtpCvkUoCiNONA8kuVRPGJdLiqMf0n8LRFXj1OyuA==}
+
   '@parcel/watcher-android-arm64@2.5.1':
     resolution: {integrity: sha512-KF8+j9nNbUN8vzOFDpRMsaKBHZ/mcjEjMToVMJOhTozkDonQFFrRcfdLWn6yWKCmJKmdVxSgHiYvTCef4/qcBA==}
     engines: {node: '>= 10.0.0'}
@@ -1665,9 +1671,6 @@ packages:
     resolution: {integrity: sha512-menlnkqAFX/4wR2aandY8hSqrt01JE+rOzvtQxWaBt8kf1du62b0sS72FE5Z40n6HlEsEbF91N9FCfhnzG6i6g==}
     engines: {node: '>=14'}
 
-  '@unocss/core@66.6.0':
-    resolution: {integrity: sha512-Sxm7HmhsPIIzxbPnWembPyobuCeA5j9KxL+jIOW2c+kZiTFjHeju7vuVWX9jmAMMC+UyDuuCQ4yE+kBo3Y7SWQ==}
-
   '@unocss/core@66.6.6':
     resolution: {integrity: sha512-Sbbx0ZQqmV8K2lg8E+z9MJzWb1MgRtJnvqzxDIrNuBjXasKhbcFt5wEMBtEZJOr63Z4ck0xThhZK53HmYT2jmg==}
 
@@ -1680,9 +1683,6 @@ packages:
   '@unocss/preset-attributify@66.6.6':
     resolution: {integrity: sha512-3H12UI1rBt60PQy+S4IEeFYWu1/WQFuc2yhJ5mu/RCvX5/qwlIGanBpuh+xzTPXU1fWBlZN68yyO9uWOQgTqZQ==}
 
-  '@unocss/preset-icons@66.6.0':
-    resolution: {integrity: sha512-ObgmN9SsqU7TiClNvy+mQDyqzwOhlBXT0whXFp3iiBfSbnxUIDyf4Pr/2hwxnAWrCWCQj7xw2H0Y0sDtXq8XkA==}
-
   '@unocss/preset-icons@66.6.6':
     resolution: {integrity: sha512-HfIEEqf3jyKexOB2Sux556n0NkPoUftb2H4+Cf7prJvKHopMkZ/OUkXjwvUlxt1e5UpAEaIa0A2Ir7+ApxXoGA==}
 
@@ -1691,9 +1691,6 @@ packages:
 
   '@unocss/preset-tagify@66.6.6':
     resolution: {integrity: sha512-KgBXYPYS0g4TVC3NLiIB78YIqUlvDLanz1EHIDo34rOTUfMgY8Uf5VuDJAzMu4Sc0LiwwBJbk6nIG9/Zm7ufWg==}
-
-  '@unocss/preset-typography@66.6.0':
-    resolution: {integrity: sha512-vDogO+jaatGSAoZqqa9+GJ18WbrwYzJr5UyIFUQqXJ5TUDaWzKb4Qhty2WnOtjQaf4sOMML8JFA/cydZl+Rjjw==}
 
   '@unocss/preset-typography@66.6.6':
     resolution: {integrity: sha512-SM1km5nqt15z4sTabfOobSC633I5Ol5nnme6JFTra4wiyCUNs+Cg31nJ6jnopWDUT4SEAXqfUH7jKSSoCnI6ZA==}
@@ -1715,10 +1712,6 @@ packages:
 
   '@unocss/reset@66.6.6':
     resolution: {integrity: sha512-rBFviUfHC6h0mSW6TYa7O1HGoEF7IV9VS0Q0EpweeQqR4N3D72DazZLWMASwNsmqKHUSDa+6h1oBqF/yqHfGAQ==}
-
-  '@unocss/rule-utils@66.6.0':
-    resolution: {integrity: sha512-v16l6p5VrefDx8P/gzWnp0p6/hCA0vZ4UMUN6SxHGVE6V+IBpX6I6Du3Egk9TdkhZ7o+Pe1NHxksHcjT0V/tww==}
-    engines: {node: '>=14'}
 
   '@unocss/rule-utils@66.6.6':
     resolution: {integrity: sha512-krWtQKGshOaqQMuxeGq1NOA8NL35VdpYlmQEWOe39BY6TACT51bgQFu40MRfsAIMZZtoGS2YYTrnHojgR92omw==}
@@ -5040,6 +5033,8 @@ snapshots:
 
   '@oxc-project/types@0.115.0': {}
 
+  '@panzoom/panzoom@4.6.1': {}
+
   '@parcel/watcher-android-arm64@2.5.1':
     optional: true
 
@@ -5656,8 +5651,6 @@ snapshots:
       consola: 3.4.2
       unconfig: 7.5.0
 
-  '@unocss/core@66.6.0': {}
-
   '@unocss/core@66.6.6': {}
 
   '@unocss/extractor-arbitrary-variants@66.6.6':
@@ -5676,12 +5669,6 @@ snapshots:
     dependencies:
       '@unocss/core': 66.6.6
 
-  '@unocss/preset-icons@66.6.0':
-    dependencies:
-      '@iconify/utils': 3.1.0
-      '@unocss/core': 66.6.0
-      ofetch: 1.5.1
-
   '@unocss/preset-icons@66.6.6':
     dependencies:
       '@iconify/utils': 3.1.0
@@ -5697,11 +5684,6 @@ snapshots:
   '@unocss/preset-tagify@66.6.6':
     dependencies:
       '@unocss/core': 66.6.6
-
-  '@unocss/preset-typography@66.6.0':
-    dependencies:
-      '@unocss/core': 66.6.0
-      '@unocss/rule-utils': 66.6.0
 
   '@unocss/preset-typography@66.6.6':
     dependencies:
@@ -5736,11 +5718,6 @@ snapshots:
       '@unocss/preset-wind3': 66.6.6
 
   '@unocss/reset@66.6.6': {}
-
-  '@unocss/rule-utils@66.6.0':
-    dependencies:
-      '@unocss/core': 66.6.0
-      magic-string: 0.30.21
 
   '@unocss/rule-utils@66.6.6':
     dependencies:
@@ -7541,7 +7518,7 @@ snapshots:
     dependencies:
       destr: 2.0.5
       node-fetch-native: 1.6.7
-      ufo: 1.6.1
+      ufo: 1.6.3
 
   ohash@2.0.11: {}
 

@@ -12,11 +12,15 @@ import { fontFamilySchema } from "~/utils/milkdown/fontFamily/fontFamilySchema";
 import { remarkFontFamily } from "~/utils/milkdown/fontFamily/remarkFontFamily";
 import { taskListInputPlugin } from "~/utils/milkdown/taskListInputPlugin";
 import { codeBlockViewPlugin } from "~/utils/milkdown/codeBlockView";
-import { mermaidPreviewPlugin } from "~/utils/milkdown/mermaidPlugin";
+import {
+  MERMAID_PREVIEW_OPEN_EVENT,
+  type MermaidPreviewOpenDetail,
+} from "~/utils/milkdown/mermaidPlugin";
 import { pdfImagePlugin } from "~/utils/milkdown/pdfImagePlugin";
 import LinkPopup from "./LinkPopup";
 import { api } from "~/lib/api";
 import AttachmentPanel from "./AttachmentPanel";
+import MermaidViewer from "./MermaidViewer";
 
 const milkdownMarkColorPlugin = $remark("markColor", () => remarkMarkColor);
 const milkdownTextColorPlugin = $remark("textColor", () => remarkTextColor);
@@ -42,6 +46,10 @@ export default function MarkdownEditor(props: EditorProps) {
     href: string;
     title?: string;
   }>({ href: "" });
+  const [mermaidViewer, setMermaidViewer] = createSignal({
+    isOpen: false,
+    source: "",
+  });
   const [activeState, setActiveState] = createSignal({
     bold: false,
     italic: false,
@@ -554,6 +562,24 @@ export default function MarkdownEditor(props: EditorProps) {
   onMount(async () => {
     if (!editorRef || typeof window === "undefined") return;
 
+    const handleMermaidPreviewOpen = (event: Event) => {
+      const detail = (event as CustomEvent<MermaidPreviewOpenDetail>).detail;
+      if (!detail?.source?.trim()) return;
+      setMermaidViewer({ isOpen: true, source: detail.source });
+    };
+
+    window.addEventListener(
+      MERMAID_PREVIEW_OPEN_EVENT,
+      handleMermaidPreviewOpen as EventListener,
+    );
+
+    onCleanup(() => {
+      window.removeEventListener(
+        MERMAID_PREVIEW_OPEN_EVENT,
+        handleMermaidPreviewOpen as EventListener,
+      );
+    });
+
     try {
       // Dynamic import to avoid SSR issues
       const { Editor, rootCtx, defaultValueCtx } =
@@ -601,7 +627,6 @@ export default function MarkdownEditor(props: EditorProps) {
         .use(exitMarkKeymap)
         .use(taskListInputPlugin)
         .use(codeBlockViewPlugin)
-        .use(mermaidPreviewPlugin)
         .use(pdfImagePlugin)
         .create();
 
@@ -971,6 +996,11 @@ export default function MarkdownEditor(props: EditorProps) {
           handleCommand("insertAttachment", { url, filename, isImage })
         }
         onClose={() => setShowAttachments(false)}
+      />
+      <MermaidViewer
+        isOpen={mermaidViewer().isOpen}
+        source={mermaidViewer().source}
+        onClose={() => setMermaidViewer({ isOpen: false, source: "" })}
       />
       <div class="flex-1 min-h-0 overflow-auto">
         <div
