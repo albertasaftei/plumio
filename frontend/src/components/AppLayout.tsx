@@ -118,14 +118,13 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
   });
 
   const createNewDocument = async (name: string, folderPath = "/") => {
-    const fileName = name.endsWith(".md") ? name : `${name}.md`;
-    const fullPath =
-      folderPath === "/" ? `/${fileName}` : `${folderPath}/${fileName}`;
     try {
       const result = await api.saveDocument(
-        fullPath,
+        "",
         "# New Document\n\nStart writing...",
-        true, // isNew flag
+        true,
+        folderPath,
+        name,
       );
       await loadAllDocuments();
       // Navigate to the new document
@@ -140,9 +139,8 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
   };
 
   const createNewFolder = async (name: string, parentPath = "/") => {
-    const fullPath = parentPath === "/" ? `/${name}` : `${parentPath}/${name}`;
     try {
-      await api.createFolder(fullPath);
+      await api.createFolder("", parentPath, name);
       await loadAllDocuments();
       // Auto-expand parent folder to show the new subfolder
       if (parentPath !== "/") {
@@ -180,17 +178,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
 
   const renameItem = async (oldPath: string, newName: string) => {
     try {
-      const pathParts = oldPath.split("/");
-      const oldName = pathParts[pathParts.length - 1];
-      const parentPath = pathParts.slice(0, -1).join("/") || "/";
-
-      const isFile = oldName.includes(".");
-      const finalName =
-        isFile && !newName.endsWith(".md") ? `${newName}.md` : newName;
-      const newPath =
-        parentPath === "/" ? `/${finalName}` : `${parentPath}/${finalName}`;
-
-      await api.renameItem(oldPath, newPath);
+      const result = await api.renameItem(oldPath, newName);
       await loadAllDocuments();
 
       // If we're viewing the renamed item, navigate to the new path
@@ -199,7 +187,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
         .map(encodeURIComponent)
         .join("/");
       if (window.location.pathname === `/file${oldEncodedPath}`) {
-        const newEncodedPath = newPath
+        const newEncodedPath = result.newPath
           .split("/")
           .map(encodeURIComponent)
           .join("/");

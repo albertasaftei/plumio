@@ -417,20 +417,32 @@ export class ApiClient {
     );
   }
 
-  async saveDocument(path: string, content: string, isNew: boolean = false) {
+  async saveDocument(
+    path: string,
+    content: string,
+    isNew: boolean = false,
+    folder?: string,
+    name?: string,
+  ) {
     return this.request<{ message: string; path: string }>(
       "/api/documents/save",
       {
         method: "POST",
-        body: JSON.stringify({ path, content, isNew }),
+        body: JSON.stringify({
+          path: path || undefined,
+          content,
+          isNew,
+          folder,
+          name,
+        }),
       },
     );
   }
 
-  async createFolder(path: string) {
+  async createFolder(path: string, folder?: string, name?: string) {
     return this.request("/api/documents/folder", {
       method: "POST",
-      body: JSON.stringify({ path }),
+      body: JSON.stringify({ path: path || undefined, folder, name }),
     });
   }
 
@@ -443,11 +455,14 @@ export class ApiClient {
     );
   }
 
-  async renameItem(oldPath: string, newPath: string) {
-    return this.request("/api/documents/rename", {
-      method: "POST",
-      body: JSON.stringify({ oldPath, newPath }),
-    });
+  async renameItem(oldPath: string, newName: string) {
+    return this.request<{ message: string; newPath: string }>(
+      "/api/documents/rename",
+      {
+        method: "POST",
+        body: JSON.stringify({ oldPath, newName }),
+      },
+    );
   }
 
   async moveItem(sourcePath: string, destinationFolder: string) {

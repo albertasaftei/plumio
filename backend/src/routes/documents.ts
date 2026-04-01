@@ -69,6 +69,12 @@ function sanitizePath(userPath: string, organizationId: number): string {
   return path.join(orgPath, normalized);
 }
 
+// Sanitize a filename segment — replaces slashes so user-typed names
+// (e.g. dates like "01/04/2026") never create unintended subdirectories.
+function sanitizeFilename(name: string): string {
+  return name.replace(/\//g, "-");
+}
+
 // Generate unique file path by appending (1), (2), etc. if file already exists
 async function getUniqueFilePath(
   basePath: string,
@@ -390,7 +396,11 @@ documentsRouter.get("/content", async (c) => {
 });
 
 const saveDocumentSchema = z.object({
-  path: z.string().min(1),
+  // For existing-doc saves: full path
+  path: z.string().optional(),
+  // For new-doc creation: folder + raw user-typed name (sanitized server-side)
+  folder: z.string().optional(),
+  name: z.string().optional(),
   content: z.string(),
   isNew: z.boolean().optional(),
 });
@@ -403,10 +413,23 @@ documentsRouter.post("/save", async (c) => {
     return c.json({ error: z.treeifyError(parsed.error) }, 400);
   }
 
-  const { path: filePath, content, isNew = false } = parsed.data;
+  const { path: rawPath, folder, name, content, isNew = false } = parsed.data;
 
-  if (!filePath || !content) {
-    return c.json({ error: "Path and content are required" }, 400);
+  // Resolve the file path: for new documents prefer folder+name so the
+  // server can sanitize the user-typed name before it touches the filesystem.
+  let filePath: string;
+  if (isNew && folder !== undefined && name !== undefined) {
+    const safeName = sanitizeFilename(name);
+    const fileName = safeName.endsWith(".md") ? safeName : `${safeName}.md`;
+    filePath = folder === "/" ? `/${fileName}` : `${folder}/${fileName}`;
+  } else if (rawPath) {
+    filePath = rawPath;
+  } else {
+    return c.json({ error: "Provide either 'path' or 'folder'+'name'" }, 400);
+  }
+
+  if (!content) {
+    return c.json({ error: "Content is required" }, 400);
   }
   try {
     const user = c.get("user");
@@ -471,7 +494,11 @@ documentsRouter.post("/save", async (c) => {
 });
 
 const createFolderSchema = z.object({
-  path: z.string().min(1),
+  // Prefer folder+name so the server can sanitize the user-typed name
+  folder: z.string().optional(),
+  name: z.string().optional(),
+  // Fallback: pre-built full path (legacy / internal use)
+  path: z.string().optional(),
 });
 
 // Create folder
@@ -488,7 +515,18 @@ documentsRouter.post("/folder", async (c) => {
     return c.json({ error: "No organization context" }, 400);
   }
 
-  const { path: folderPath } = parsed.data;
+  let folderPath: string;
+  if (parsed.data.folder !== undefined && parsed.data.name !== undefined) {
+    const safeName = sanitizeFilename(parsed.data.name);
+    folderPath =
+      parsed.data.folder === "/"
+        ? `/${safeName}`
+        : `${parsed.data.folder}/${safeName}`;
+  } else if (parsed.data.path) {
+    folderPath = parsed.data.path;
+  } else {
+    return c.json({ error: "Provide either 'path' or 'folder'+'name'" }, 400);
+  }
 
   const fullPath = sanitizePath(folderPath, organizationId);
 
@@ -648,7 +686,10 @@ documentsRouter.delete("/delete", async (c) => {
 
 const renameDocumentSchema = z.object({
   oldPath: z.string().min(1),
-  newPath: z.string().min(1),
+  // Prefer newName so the server can sanitize the user-typed name
+  newName: z.string().optional(),
+  // Fallback: full pre-built new path (legacy / internal use)
+  newPath: z.string().optional(),
 });
 // Rename/move document or folder
 documentsRouter.post("/rename", async (c) => {
@@ -664,7 +705,24 @@ documentsRouter.post("/rename", async (c) => {
     return c.json({ error: "No organization context" }, 400);
   }
 
-  const { oldPath, newPath } = parsed.data;
+  const { oldPath, newName, newPath: rawNewPath } = parsed.data;
+
+  let newPath: string;
+  if (newName !== undefined) {
+    const safeName = sanitizeFilename(newName);
+    const pathParts = oldPath.split("/");
+    const oldFileName = pathParts[pathParts.length - 1];
+    const isFile = oldFileName.includes(".");
+    const finalName =
+      isFile && !safeName.endsWith(".md") ? `${safeName}.md` : safeName;
+    const parentDir = pathParts.slice(0, -1).join("/") || "/";
+    newPath = parentDir === "/" ? `/${finalName}` : `${parentDir}/${finalName}`;
+  } else if (rawNewPath) {
+    newPath = rawNewPath;
+  } else {
+    return c.json({ error: "Provide either 'newPath' or 'newName'" }, 400);
+  }
+
   const fullOldPath = sanitizePath(oldPath, organizationId);
   const fullNewPath = sanitizePath(newPath, organizationId);
 
@@ -906,7 +964,7 @@ documentsRouter.post("/color", async (c) => {
       // Document doesn't exist in DB yet, create it
       const stats = await fs.stat(fullPath);
       const fileName = path.basename(itemPath);
-      const title = fileName.replace(/\.(md|txt)$/, "");
+      const title = fileName.replace(/\.(md)$/, "");
 
       documentQueries.upsert.run(
         organizationId,
