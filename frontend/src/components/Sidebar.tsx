@@ -35,6 +35,8 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     const now = new Date();
     return `Note (${now.toLocaleDateString()}  ${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")})`;
   };
+  const [newDocName, setNewDocName] = createSignal(getDefaultDocName());
+  const [newFolderName, setNewFolderName] = createSignal("");
   const [newItemName, setNewItemName] = createSignal(getDefaultDocName());
   const [targetFolder, setTargetFolder] = createSignal<string>("/");
   const [itemToRename, setItemToRename] = createSignal<string | null>(null);
@@ -93,17 +95,17 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
   });
 
   const handleCreateDocument = () => {
-    const name = newItemName().trim();
+    const name = newDocName().trim();
     if (name) {
       props.onCreateDocument(name, targetFolder());
-      setNewItemName("");
+      setNewDocName(getDefaultDocName());
       setTargetFolder("/");
       setShowNewDocModal(false);
     }
   };
 
   const handleCreateFolder = () => {
-    const name = newItemName().trim();
+    const name = newFolderName().trim();
     const parent = targetFolder();
     if (name) {
       props.onCreateFolder(name, parent);
@@ -111,7 +113,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
       if (parent !== "/") {
         props.onExpandFolder(parent);
       }
-      setNewItemName("");
+      setNewFolderName("");
       setTargetFolder("/");
       setShowNewFolderModal(false);
     }
@@ -224,7 +226,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                         onClick={(e) => {
                           e.stopPropagation();
                           setTargetFolder(nodeProps.node.path);
-                          setNewItemName(getDefaultDocName());
+                          setNewDocName(getDefaultDocName());
                           setShowNewDocModal(true);
                           setOpenMenuPath(null);
                         }}
@@ -236,6 +238,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                         onClick={(e) => {
                           e.stopPropagation();
                           setTargetFolder(nodeProps.node.path);
+                          setNewFolderName("");
                           setShowNewFolderModal(true);
                           setOpenMenuPath(null);
                         }}
@@ -439,7 +442,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             <Button
               onClick={() => {
                 setTargetFolder("/");
-                setNewItemName(getDefaultDocName());
+                setNewDocName(getDefaultDocName());
                 setShowNewDocModal(true);
               }}
               variant="primary"
@@ -453,6 +456,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             <Button
               onClick={() => {
                 setTargetFolder("/");
+                setNewFolderName("");
                 setShowNewFolderModal(true);
               }}
               variant="secondary"
@@ -507,7 +511,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         title="New Document"
         onConfirm={handleCreateDocument}
         onCancel={() => {
-          setNewItemName(getDefaultDocName());
+          setNewDocName(getDefaultDocName());
           setShowNewDocModal(false);
         }}
       >
@@ -518,8 +522,8 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           ref={newDocInputRef}
           type="text"
           placeholder="Document name"
-          value={newItemName()}
-          onInput={(e) => setNewItemName(e.currentTarget.value)}
+          value={newDocName()}
+          onInput={(e) => setNewDocName(e.currentTarget.value)}
           onKeyPress={(e) => e.key === "Enter" && handleCreateDocument()}
           class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] mb-4"
         />
@@ -530,7 +534,10 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         isOpen={showNewFolderModal()}
         title="New Folder"
         onConfirm={handleCreateFolder}
-        onCancel={() => setShowNewFolderModal(false)}
+        onCancel={() => {
+          setNewFolderName("");
+          setShowNewFolderModal(false);
+        }}
       >
         <p class="text-[var(--color-text-secondary)] mb-3">
           Creating in: {targetFolder()}
@@ -539,8 +546,8 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           ref={newFolderInputRef}
           type="text"
           placeholder="Folder name"
-          value={newItemName()}
-          onInput={(e) => setNewItemName(e.currentTarget.value)}
+          value={newFolderName()}
+          onInput={(e) => setNewFolderName(e.currentTarget.value)}
           onKeyPress={(e) => e.key === "Enter" && handleCreateFolder()}
           class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] mb-4"
         />
