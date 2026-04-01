@@ -1,18 +1,23 @@
 import { Hono } from "hono";
 import { SignJWT } from "jose";
 import bcrypt from "bcrypt";
-import { JWT_SECRET } from "../config.js";
+import { JWT_SECRET } from "../../config.js";
 import {
   userQueries,
   sessionQueries,
   organizationQueries,
   memberQueries,
   settingsQueries,
-} from "../db/index.js";
+} from "../../db/index.js";
 import crypto from "crypto";
-import { UserJWTPayload } from "../middlewares/auth.types.js";
-import { authMiddleware } from "../middlewares/auth.js";
+import { UserJWTPayload } from "../../middlewares/auth.types.js";
+import { authMiddleware } from "../../middlewares/auth.js";
 import * as z from "zod";
+import {
+  loginSchema,
+  registerSchema,
+  updateProfileSchema,
+} from "./helpers/schemas.js";
 
 type Variables = {
   user: UserJWTPayload;
@@ -88,11 +93,7 @@ authRouter.post("/setup", async (c) => {
   }
 });
 
-const loginSchema = z.object({
-  username: z.string().min(1),
-  password: z.string().min(8),
-});
-
+// Login
 authRouter.post("/login", async (c) => {
   try {
     const parsed = loginSchema.safeParse(await c.req.json());
@@ -178,12 +179,6 @@ authRouter.post("/logout", async (c) => {
   }
 });
 
-const registerSchema = z.object({
-  username: z.string().min(1),
-  email: z.email(),
-  password: z.string().min(8),
-  organizationName: z.string().optional(),
-});
 // Register - Create new user account
 authRouter.post("/register", async (c) => {
   try {
@@ -241,10 +236,6 @@ authRouter.post("/register", async (c) => {
     console.error("Register error:", error);
     return c.json({ error: "Registration failed" }, 500);
   }
-});
-
-const updateProfileSchema = z.object({
-  username: z.string().min(1).max(50),
 });
 
 // Update own profile

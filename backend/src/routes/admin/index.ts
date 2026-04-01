@@ -5,10 +5,17 @@ import {
   organizationQueries,
   memberQueries,
   settingsQueries,
-} from "../db/index.js";
-import { adminMiddleware } from "../middlewares/auth.js";
-import { UserJWTPayload } from "../middlewares/auth.types.js";
+} from "../../db/index.js";
+import { adminMiddleware } from "../../middlewares/auth.js";
+import { UserJWTPayload } from "../../middlewares/auth.types.js";
 import * as z from "zod";
+import {
+  registerSchema,
+  updateUserParamsSchema,
+  updateUserSchema,
+  deleteUserParamsSchema,
+  updateSettingSchema,
+} from "./helpers/schemas.js";
 
 const adminRouter = new Hono<{ Variables: { user: UserJWTPayload } }>();
 
@@ -33,12 +40,6 @@ adminRouter.get("/users", async (c) => {
   }
 });
 
-const registerSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  isAdmin: z.boolean().optional().default(false),
-});
 // Create new user
 adminRouter.post("/users", async (c) => {
   try {
@@ -86,14 +87,6 @@ adminRouter.post("/users", async (c) => {
   }
 });
 
-const updateUserParamsSchema = z.object({
-  id: z.string().transform((val) => parseInt(val)),
-});
-
-const updateUserSchema = z.object({
-  isAdmin: z.boolean(),
-});
-
 // Update user admin status
 adminRouter.put("/users/:id", async (c) => {
   try {
@@ -130,9 +123,6 @@ adminRouter.put("/users/:id", async (c) => {
   }
 });
 
-const deleteUserParamsSchema = z.object({
-  id: z.string().transform((val) => parseInt(val)),
-});
 // Delete user
 adminRouter.delete("/users/:id", async (c) => {
   try {
@@ -169,11 +159,6 @@ adminRouter.get("/settings", (c) => {
   const settings: Record<string, string> = {};
   for (const row of rows) settings[row.key] = row.value;
   return c.json({ settings });
-});
-
-const updateSettingSchema = z.object({
-  key: z.string().min(1),
-  value: z.string(),
 });
 
 // PUT /settings — update a single app config setting

@@ -1,15 +1,27 @@
 import { Hono } from "hono";
 import { SignJWT } from "jose";
-import { JWT_SECRET } from "../config.js";
+import { JWT_SECRET } from "../../config.js";
 import {
   organizationQueries,
   memberQueries,
   userQueries,
   sessionQueries,
-} from "../db/index.js";
-import { authMiddleware } from "../middlewares/auth.js";
-import { UserJWTPayload } from "../middlewares/auth.types.js";
+} from "../../db/index.js";
+import { authMiddleware } from "../../middlewares/auth.js";
+import { UserJWTPayload } from "../../middlewares/auth.types.js";
 import * as z from "zod";
+import {
+  getOrgParamsSchema,
+  updateOrgSchema,
+  updateOrgParamsSchema,
+  createOrgParamsSchema,
+  addMemberSchema,
+  addMemberParamsSchema,
+  updateMemberParamsSchema,
+  updateMemberSchema,
+  getUserRoleParamsSchema,
+  removeMemberParamsSchema,
+} from "./helpers/schemas.js";
 
 type Variables = {
   user: UserJWTPayload;
@@ -46,9 +58,6 @@ organizationsRouter.get("/", async (c) => {
   }
 });
 
-const getOrgParamsSchema = z.object({
-  id: z.string().transform((val) => parseInt(val)),
-});
 // Get organization details
 organizationsRouter.get("/:id", async (c) => {
   try {
@@ -159,14 +168,6 @@ organizationsRouter.post("/:id/switch", async (c) => {
   }
 });
 
-const updateOrgSchema = z.object({
-  name: z.string().min(1),
-  slug: z.string().min(1),
-});
-
-const updateOrgParamsSchema = z.object({
-  id: z.string().transform((val) => parseInt(val)),
-});
 // Update organization (admin only)
 organizationsRouter.put("/:id", async (c) => {
   try {
@@ -211,10 +212,6 @@ organizationsRouter.put("/:id", async (c) => {
   }
 });
 
-const createOrgParamsSchema = z.object({
-  id: z.string().transform((val) => parseInt(val)),
-});
-
 // List organization members (members can view)
 organizationsRouter.get("/:id/members", async (c) => {
   try {
@@ -255,15 +252,6 @@ organizationsRouter.get("/:id/members", async (c) => {
     console.error("Error listing members:", error);
     return c.json({ error: "Failed to list members" }, 500);
   }
-});
-
-const addMemberSchema = z.object({
-  username: z.string().min(1),
-  role: z.enum(["admin", "member"]).optional(),
-});
-
-const addMemberParamsSchema = z.object({
-  id: z.string().transform((val) => parseInt(val)),
 });
 
 // Add member to organization (admin only)
@@ -323,15 +311,6 @@ organizationsRouter.post("/:id/members", async (c) => {
   }
 });
 
-const updateMemberParamsSchema = z.object({
-  id: z.string().transform((val) => parseInt(val)),
-  userId: z.string().transform((val) => parseInt(val)),
-});
-
-const updateMemberSchema = z.object({
-  role: z.enum(["admin", "member"]),
-});
-
 // Update member role (admin only)
 organizationsRouter.put("/:id/members/:userId", async (c) => {
   try {
@@ -373,9 +352,6 @@ organizationsRouter.put("/:id/members/:userId", async (c) => {
   }
 });
 
-const getUserRoleParamsSchema = z.object({
-  id: z.string().transform((val) => parseInt(val)),
-});
 // Get current user's role in organization
 organizationsRouter.get("/:id/role", async (c) => {
   try {
@@ -401,11 +377,6 @@ organizationsRouter.get("/:id/role", async (c) => {
     console.error("Error getting user role:", error);
     return c.json({ error: "Failed to get user role" }, 500);
   }
-});
-
-const removeMemberParamsSchema = z.object({
-  id: z.string().transform((val) => parseInt(val)),
-  userId: z.string().transform((val) => parseInt(val)),
 });
 
 // Remove member from organization (admin only)

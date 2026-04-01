@@ -1,13 +1,43 @@
 import { Hono } from "hono";
 import fs from "fs/promises";
 import path from "path";
-import crypto from "crypto";
-import { ENCRYPTION_KEY, ENABLE_ENCRYPTION } from "../config.js";
-import db, { documentQueries, attachmentQueries } from "../db/index.js";
-import { authMiddleware } from "../middlewares/auth.js";
-import { UserJWTPayload } from "../middlewares/auth.types.js";
+import { ENABLE_ENCRYPTION } from "../../config.js";
+import db, { documentQueries } from "../../db/index.js";
+import { authMiddleware } from "../../middlewares/auth.js";
+import { UserJWTPayload } from "../../middlewares/auth.types.js";
 import * as z from "zod";
-import { DocumentMetadata } from "../db/index.types.js";
+import { DocumentMetadata } from "../../db/index.types.js";
+import {
+  getOrgDocumentsPath,
+  sanitizePath,
+  sanitizeFilename,
+  getUniqueFilePath,
+  getUniqueFolderPath,
+  ensureOrgDirectoryExists,
+} from "./helpers/paths.js";
+import { encrypt, decrypt } from "./helpers/encryption.js";
+import { escapeHtmlForFts } from "./helpers/fts.js";
+import {
+  collectMdFilesRecursively,
+  cleanupInvalidFiles,
+  deleteDocumentAttachments,
+} from "./helpers/files.js";
+import {
+  saveDocumentSchema,
+  createFolderSchema,
+  deleteDocumentSchema,
+  renameDocumentSchema,
+  moveDocumentSchema,
+  colorDocumentSchema,
+  favoriteDocumentSchema,
+  importDocumentSchema,
+  archiveDocumentSchema,
+  unarchiveDocumentSchema,
+  deleteArchivedDocumentSchema,
+  restoreDocumentSchema,
+  permanentlyDeleteDocumentSchema,
+  duplicateItemSchema,
+} from "./helpers/schemas.js";
 
 type Variables = {
   user: UserJWTPayload;
@@ -15,268 +45,8 @@ type Variables = {
 
 const documentsRouter = new Hono<{ Variables: Variables }>();
 
-const DOCUMENTS_PATH = process.env.DOCUMENTS_PATH || "./documents";
-const encryptionKeyBuffer = ENABLE_ENCRYPTION
-  ? Buffer.from(ENCRYPTION_KEY, "hex")
-  : Buffer.alloc(0);
-
 // Auth middleware
 documentsRouter.use("*", authMiddleware);
-
-// Get organization-specific documents path
-function getOrgDocumentsPath(organizationId: number): string {
-  return path.join(DOCUMENTS_PATH, `org-${organizationId}`);
-}
-
-// Encryption helpers
-function encrypt(text: string): string {
-  if (!ENABLE_ENCRYPTION) {
-    return text;
-  }
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv("aes-256-cbc", encryptionKeyBuffer, iv);
-  let encrypted = cipher.update(text, "utf8", "hex");
-  encrypted += cipher.final("hex");
-  return iv.toString("hex") + ":" + encrypted;
-}
-
-function decrypt(text: string): string {
-  if (!ENABLE_ENCRYPTION) {
-    return text;
-  }
-  const parts = text.split(":");
-  const iv = Buffer.from(parts[0], "hex");
-  const encryptedText = parts[1];
-  const decipher = crypto.createDecipheriv(
-    "aes-256-cbc",
-    encryptionKeyBuffer,
-    iv,
-  );
-  let decrypted = decipher.update(encryptedText, "hex", "utf8");
-  decrypted += decipher.final("utf8");
-  return decrypted;
-}
-
-// Escape HTML special characters before storing in FTS to prevent XSS via snippet()
-function escapeHtmlForFts(str: string): string {
-  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-// Sanitize path to prevent directory traversal
-function sanitizePath(userPath: string, organizationId: number): string {
-  const normalized = path.normalize(userPath).replace(/^(\.\.[\/\\])+/, "");
-  const orgPath = getOrgDocumentsPath(organizationId);
-  return path.join(orgPath, normalized);
-}
-
-// Sanitize a filename segment — replaces slashes so user-typed names
-// (e.g. dates like "01/04/2026") never create unintended subdirectories.
-function sanitizeFilename(name: string): string {
-  return name.replace(/\//g, "-");
-}
-
-// Generate unique file path by appending (1), (2), etc. if file already exists
-async function getUniqueFilePath(
-  basePath: string,
-  organizationId: number,
-  isNewDocument: boolean = false,
-): Promise<string> {
-  // If not a new document, return the path as-is
-  if (!isNewDocument) {
-    return basePath;
-  }
-
-  const orgPath = getOrgDocumentsPath(organizationId);
-  const fullPath = path.join(orgPath, basePath);
-
-  // Check if file exists
-  try {
-    await fs.access(fullPath);
-    // File exists, need to generate unique name
-  } catch {
-    // File doesn't exist, can use the original path
-    return basePath;
-  }
-
-  // Parse the path to extract directory, filename, and extension
-  const dir = path.dirname(basePath);
-  const filename = path.basename(basePath);
-  const ext = path.extname(filename);
-  const nameWithoutExt = filename.slice(0, -ext.length);
-
-  // Try with incrementing counter until we find a unique name
-  let counter = 1;
-  while (true) {
-    const newName = `${nameWithoutExt} (${counter})${ext}`;
-    const newPath = dir === "/" ? `/${newName}` : `${dir}/${newName}`;
-    const newFullPath = path.join(orgPath, newPath);
-
-    try {
-      await fs.access(newFullPath);
-      // File exists, try next counter
-      counter++;
-    } catch {
-      // File doesn't exist, we can use this path
-      return newPath;
-    }
-  }
-}
-
-// Generate unique folder path by appending (1), (2), etc. if folder already exists
-async function getUniqueFolderPath(
-  basePath: string,
-  organizationId: number,
-): Promise<string> {
-  const orgPath = getOrgDocumentsPath(organizationId);
-  const fullPath = path.join(orgPath, basePath);
-
-  try {
-    await fs.access(fullPath);
-    // Folder exists, need to generate unique name
-  } catch {
-    return basePath;
-  }
-
-  const dir = path.dirname(basePath);
-  const folderName = path.basename(basePath);
-
-  let counter = 1;
-  while (true) {
-    const newName = `${folderName} (${counter})`;
-    const newPath =
-      dir === "." || dir === "/" ? `/${newName}` : `${dir}/${newName}`;
-    const newFullPath = path.join(orgPath, newPath);
-
-    try {
-      await fs.access(newFullPath);
-      counter++;
-    } catch {
-      return newPath;
-    }
-  }
-}
-
-async function ensureOrgDirectoryExists(organizationId: number): Promise<void> {
-  const orgPath = getOrgDocumentsPath(organizationId);
-  try {
-    await fs.access(orgPath);
-  } catch {
-    // Directory doesn't exist, create it
-    await fs.mkdir(orgPath, { recursive: true });
-  }
-}
-
-// Delete all attachment files and DB records for a given document path
-async function deleteDocumentAttachments(
-  organizationId: number,
-  documentPath: string,
-): Promise<void> {
-  const attachmentsDir = path.join(
-    DOCUMENTS_PATH,
-    `org-${organizationId}`,
-    "attachments",
-  );
-  const rows = attachmentQueries.listByDocument.all(
-    organizationId,
-    documentPath,
-  );
-  for (const row of rows) {
-    try {
-      await fs.unlink(path.join(attachmentsDir, row.filename));
-    } catch {
-      // File already gone — still remove DB record
-    }
-  }
-  attachmentQueries.deleteByDocumentPath.run(organizationId, documentPath);
-}
-
-// Allowed file extensions for import
-const ALLOWED_EXTENSIONS = [".md"];
-const ALLOWED_METADATA_EXTENSIONS = [".meta.json"];
-
-// Check if a file has an allowed extension
-function hasAllowedExtension(fileName: string): boolean {
-  // Check for metadata files first (ends with .meta.json)
-  if (ALLOWED_METADATA_EXTENSIONS.some((ext) => fileName.endsWith(ext))) {
-    return true;
-  }
-
-  // Check for regular file extensions
-  const ext = path.extname(fileName).toLowerCase();
-  return ALLOWED_EXTENSIONS.includes(ext);
-}
-
-// Recursively collect all active .md files under a directory (ignores archived/deleted/hidden)
-async function collectMdFilesRecursively(dir: string): Promise<string[]> {
-  const files: string[] = [];
-  try {
-    const items = await fs.readdir(dir, { withFileTypes: true });
-    for (const item of items) {
-      if (item.name.startsWith(".") || item.name.endsWith(".meta.json"))
-        continue;
-      const fullItemPath = path.join(dir, item.name);
-      if (item.isDirectory()) {
-        files.push(...(await collectMdFilesRecursively(fullItemPath)));
-      } else if (
-        item.name.endsWith(".md") &&
-        !item.name.includes(".archived-") &&
-        !item.name.includes(".deleted-")
-      ) {
-        files.push(fullItemPath);
-      }
-    }
-  } catch {
-    // ignore read errors
-  }
-  return files;
-}
-
-// Recursively remove hidden files, folders, and files with invalid extensions
-async function cleanupInvalidFiles(dirPath: string): Promise<void> {
-  try {
-    const items = await fs.readdir(dirPath, { withFileTypes: true });
-
-    for (const item of items) {
-      const itemPath = path.join(dirPath, item.name);
-
-      // Check if item is hidden (starts with .)
-      if (item.name.startsWith(".")) {
-        // Remove hidden file or directory
-        if (item.isDirectory()) {
-          await fs.rm(itemPath, { recursive: true, force: true });
-        } else {
-          await fs.unlink(itemPath);
-        }
-        console.log(`Removed hidden item: ${item.name}`);
-      } else if (item.isDirectory()) {
-        // Never touch the attachments directory created by the attachments feature
-        if (item.name === "attachments") continue;
-
-        // Recursively clean subdirectories first
-        await cleanupInvalidFiles(itemPath);
-
-        // After cleaning, check if directory is now empty and remove it
-        try {
-          const remainingItems = await fs.readdir(itemPath);
-          if (remainingItems.length === 0) {
-            await fs.rmdir(itemPath);
-            console.log(`Removed empty directory: ${item.name}`);
-          }
-        } catch (err) {
-          // Directory might not exist or other error, continue
-        }
-      } else {
-        if (!hasAllowedExtension(item.name)) {
-          await fs.unlink(itemPath);
-          console.log(`Removed file with invalid extension: ${item.name}`);
-        }
-      }
-    }
-  } catch (error) {
-    console.error("Error cleaning invalid files:", error);
-    // Don't throw - allow import to continue even if cleanup fails
-  }
-}
 
 // List all documents and folders
 documentsRouter.get("/list", async (c) => {
@@ -305,11 +75,10 @@ documentsRouter.get("/list", async (c) => {
         .filter((item) => !item.name.includes(".archived-")) // Filter out archived files
         .filter((item) => !item.name.includes(".deleted-")) // Filter out deleted files
         .filter((item) => item.name !== "attachments") // Filter out the attachments directory
-        .filter((item) => item.isDirectory() || hasAllowedExtension(item.name)) // Only show folders or allowed file types
+        .filter((item) => item.isDirectory() || item.name.endsWith(".md")) // Only show folders or md files
         .map(async (item) => {
           const itemPath = path.join(fullPath, item.name);
           const stats = await fs.stat(itemPath);
-          const orgPath = getOrgDocumentsPath(organizationId);
           const relativePath = path.relative(orgPath, itemPath);
           const docPath = "/" + relativePath.replace(/\\/g, "/");
           const metadataPath = itemPath + ".meta.json";
@@ -395,16 +164,6 @@ documentsRouter.get("/content", async (c) => {
   }
 });
 
-const saveDocumentSchema = z.object({
-  // For existing-doc saves: full path
-  path: z.string().optional(),
-  // For new-doc creation: folder + raw user-typed name (sanitized server-side)
-  folder: z.string().optional(),
-  name: z.string().optional(),
-  content: z.string(),
-  isNew: z.boolean().optional(),
-});
-
 // Save or create document
 documentsRouter.post("/save", async (c) => {
   const parsed = saveDocumentSchema.safeParse(await c.req.json());
@@ -431,6 +190,7 @@ documentsRouter.post("/save", async (c) => {
   if (!content) {
     return c.json({ error: "Content is required" }, 400);
   }
+
   try {
     const user = c.get("user");
     const organizationId = user.currentOrgId;
@@ -493,14 +253,6 @@ documentsRouter.post("/save", async (c) => {
   }
 });
 
-const createFolderSchema = z.object({
-  // Prefer folder+name so the server can sanitize the user-typed name
-  folder: z.string().optional(),
-  name: z.string().optional(),
-  // Fallback: pre-built full path (legacy / internal use)
-  path: z.string().optional(),
-});
-
 // Create folder
 documentsRouter.post("/folder", async (c) => {
   const parsed = createFolderSchema.safeParse(await c.req.json());
@@ -537,10 +289,6 @@ documentsRouter.post("/folder", async (c) => {
     console.error("Error creating folder:", error);
     return c.json({ error: "Failed to create folder" }, 500);
   }
-});
-
-const deleteDocumentSchema = z.object({
-  path: z.string().min(1),
 });
 
 // Delete document or folder (soft delete - moves to deleted folder)
@@ -684,13 +432,6 @@ documentsRouter.delete("/delete", async (c) => {
   }
 });
 
-const renameDocumentSchema = z.object({
-  oldPath: z.string().min(1),
-  // Prefer newName so the server can sanitize the user-typed name
-  newName: z.string().optional(),
-  // Fallback: full pre-built new path (legacy / internal use)
-  newPath: z.string().optional(),
-});
 // Rename/move document or folder
 documentsRouter.post("/rename", async (c) => {
   const parsed = renameDocumentSchema.safeParse(await c.req.json());
@@ -752,11 +493,6 @@ documentsRouter.post("/rename", async (c) => {
     console.error("Error renaming:", error);
     return c.json({ error: "Failed to rename" }, 500);
   }
-});
-
-const moveDocumentSchema = z.object({
-  sourcePath: z.string().min(1),
-  destinationFolder: z.string(),
 });
 
 // Move document or folder to a different parent
@@ -850,16 +586,6 @@ documentsRouter.post("/move", async (c) => {
     console.error("Error moving:", error);
     return c.json({ error: "Failed to move item" }, 500);
   }
-});
-
-const colorDocumentSchema = z.object({
-  path: z.string().min(1),
-  color: z.string().or(z.null()),
-});
-
-const favoriteDocumentSchema = z.object({
-  path: z.string().min(1),
-  favorite: z.boolean(),
 });
 
 // Toggle item favorite metadata
@@ -1044,9 +770,6 @@ documentsRouter.post("/export", async (c) => {
   }
 });
 
-const importDocumentSchema = z.object({
-  file: z.instanceof(File),
-});
 // Import documents from encrypted zip
 documentsRouter.post("/import", async (c) => {
   try {
@@ -1142,9 +865,6 @@ documentsRouter.get("/search", async (c) => {
   }
 });
 
-const archiveDocumentSchema = z.object({
-  path: z.string().min(1),
-});
 // Archive document
 documentsRouter.post("/archive", async (c) => {
   const parsed = archiveDocumentSchema.safeParse(await c.req.json());
@@ -1226,9 +946,6 @@ documentsRouter.post("/archive", async (c) => {
   }
 });
 
-const unarchiveDocumentSchema = z.object({
-  path: z.string().min(1),
-});
 // Unarchive document
 documentsRouter.post("/unarchive", async (c) => {
   const parsed = unarchiveDocumentSchema.safeParse(await c.req.json());
@@ -1322,10 +1039,6 @@ documentsRouter.get("/archived", async (c) => {
   }
 });
 
-const deleteArchivedDocumentSchema = z.object({
-  path: z.string().min(1),
-});
-
 // Permanently delete archived document
 documentsRouter.post("/archive/delete", async (c) => {
   const parsed = deleteArchivedDocumentSchema.safeParse(await c.req.json());
@@ -1335,7 +1048,6 @@ documentsRouter.post("/archive/delete", async (c) => {
   }
 
   const { path: docPath } = parsed.data;
-
   const user = c.get("user");
 
   if (!user?.currentOrgId) {
@@ -1399,10 +1111,6 @@ documentsRouter.get("/deleted", async (c) => {
     console.error("Error listing deleted documents:", error);
     return c.json({ error: "Failed to list deleted documents" }, 500);
   }
-});
-
-const restoreDocumentSchema = z.object({
-  path: z.string().min(1),
 });
 
 // Restore recently deleted document
@@ -1485,10 +1193,6 @@ documentsRouter.post("/deleted/restore", async (c) => {
   }
 });
 
-const permanentlyDeleteDocumentSchema = z.object({
-  path: z.string().min(1),
-});
-
 // Permanently delete recently deleted document
 documentsRouter.post("/deleted/permanent", async (c) => {
   const parsed = permanentlyDeleteDocumentSchema.safeParse(await c.req.json());
@@ -1531,10 +1235,6 @@ documentsRouter.post("/deleted/permanent", async (c) => {
     console.error("Error permanently deleting document:", error);
     return c.json({ error: "Failed to delete document" }, 500);
   }
-});
-
-const duplicateItemSchema = z.object({
-  path: z.string().min(1),
 });
 
 // Duplicate a file or folder

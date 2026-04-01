@@ -4,4 +4,4 @@ dist/
 *.log
 auth.json
 data/
-documents/
+backend/documents
