@@ -75,6 +75,61 @@ app.get("/api/health", (c) => {
   });
 });
 
+// Version check — fetches latest GitHub release server-side and caches result.
+// The comparison against the running version is done client-side using VITE_APP_VERSION.
+let versionCache: {
+  data: {
+    latestVersion: string | null;
+    releaseUrl: string | null;
+  };
+  cachedAt: number;
+} | null = null;
+
+app.get("/api/version/check", async (c) => {
+  const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+  if (versionCache && Date.now() - versionCache.cachedAt < TWELVE_HOURS) {
+    return c.json(versionCache.data);
+  }
+
+  try {
+    const response = await fetch(
+      "https://api.github.com/repos/albertasaftei/plumio/releases/latest",
+      {
+        headers: {
+          Accept: "application/vnd.github+json",
+          "User-Agent": "plumio-instance/1.0",
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`GitHub API responded with ${response.status}`);
+    }
+
+    const release = (await response.json()) as {
+      tag_name: string;
+      html_url: string;
+      draft: boolean;
+      prerelease: boolean;
+    };
+
+    if (release.draft || release.prerelease) {
+      throw new Error("Latest release is a draft or prerelease");
+    }
+
+    const data = {
+      latestVersion: release.tag_name,
+      releaseUrl: release.html_url,
+    };
+
+    versionCache = { data, cachedAt: Date.now() };
+    return c.json(data);
+  } catch {
+    return c.json({ latestVersion: null, releaseUrl: null });
+  }
+});
+
 // Public config endpoint (no auth required — only exposes non-sensitive flags)
 app.get("/api/config", (c) => {
   const rows = settingsQueries.getAll.all();

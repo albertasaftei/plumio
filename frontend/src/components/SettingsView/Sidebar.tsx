@@ -1,5 +1,6 @@
-import { Show } from "solid-js";
+import { Show, createSignal, onMount } from "solid-js";
 import Button from "../Button";
+import { api } from "~/lib/api";
 
 export type SettingsSection =
   | "account"
@@ -22,6 +23,19 @@ interface SettingsSidebarProps {
 }
 
 export default function SettingsSidebar(props: SettingsSidebarProps) {
+  const [versionInfo, setVersionInfo] = createSignal<{
+    updateAvailable: boolean;
+    latestVersion: string | null;
+    releaseUrl: string | null;
+  } | null>(null);
+
+  onMount(() => {
+    api
+      .checkVersion()
+      .then(setVersionInfo)
+      .catch(() => {});
+  });
+
   return (
     <aside
       class="w-80 h-full border-r py-2 border-subtle bg-base flex flex-col fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto transition-transform duration-300 ease-in-out"
@@ -106,19 +120,24 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
             </Button>
           </Show>
 
-          <Button
-            onClick={() => props.onSectionChange("build-information")}
-            variant={
-              props.activeSection === "build-information"
-                ? "secondary"
-                : "ghost"
-            }
-            size="md"
-            fullWidth
-          >
-            <div class="i-carbon-document-import w-4 h-4" />
-            <span class="ml-2">Build Information</span>
-          </Button>
+          <div class="relative">
+            <Button
+              onClick={() => props.onSectionChange("build-information")}
+              variant={
+                props.activeSection === "build-information"
+                  ? "secondary"
+                  : "ghost"
+              }
+              size="md"
+              fullWidth
+            >
+              <div class="i-carbon-information w-4 h-4" />
+              <span class="ml-2">Build Information</span>
+              <Show when={versionInfo()?.updateAvailable}>
+                <span class="ml-auto w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+              </Show>
+            </Button>
+          </div>
 
           <div class="border-t border-subtle my-2" />
 

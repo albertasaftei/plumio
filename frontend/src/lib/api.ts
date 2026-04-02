@@ -664,6 +664,37 @@ export class ApiClient {
   getAttachmentUrl(attachmentPath: string): string {
     return `${API_URL}/api/attachments/file?path=${encodeURIComponent(attachmentPath)}&token=${this.token}`;
   }
+
+  async checkVersion(): Promise<{
+    updateAvailable: boolean;
+    currentVersion: string;
+    latestVersion: string | null;
+    releaseUrl: string | null;
+  }> {
+    const currentVersion = (import.meta.env.VITE_APP_VERSION as string) ?? "";
+    const result = await this.request<{
+      latestVersion: string | null;
+      releaseUrl: string | null;
+    }>("/api/version/check");
+
+    const isNewer = (latest: string, current: string): boolean => {
+      const parse = (v: string) => v.replace(/^v/, "").split(".").map(Number);
+      const [lM, lm, lp] = parse(latest);
+      const [cM, cm, cp] = parse(current);
+      return (
+        lM > cM || (lM === cM && lm > cm) || (lM === cM && lm === cm && lp > cp)
+      );
+    };
+
+    return {
+      updateAvailable: result.latestVersion
+        ? isNewer(result.latestVersion, currentVersion)
+        : false,
+      currentVersion,
+      latestVersion: result.latestVersion,
+      releaseUrl: result.releaseUrl,
+    };
+  }
 }
 
 // Conditional API client - uses demo client in demo mode, otherwise real API client

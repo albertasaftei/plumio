@@ -20,9 +20,15 @@ import PopoverItem from "./PopoverItem";
 import MoveDialog from "./MoveDialog";
 import { routes } from "~/routes";
 import { ResizableContainer } from "./ResizableContainer";
+import { api } from "~/lib/api";
 
 export default function Sidebar(props: Readonly<SidebarProps>) {
   const navigate = useNavigate();
+  const [versionInfo, setVersionInfo] = createSignal<{
+    updateAvailable: boolean;
+    latestVersion: string | null;
+    releaseUrl: string | null;
+  } | null>(null);
   const [showNewDocModal, setShowNewDocModal] = createSignal(false);
   const [showNewFolderModal, setShowNewFolderModal] = createSignal(false);
   const [showRenameModal, setShowRenameModal] = createSignal(false);
@@ -67,6 +73,14 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     checkMobile();
     window.addEventListener("resize", checkMobile);
     onCleanup(() => window.removeEventListener("resize", checkMobile));
+  });
+
+  // Check for updates client-side only to avoid SSR hydration mismatch
+  onMount(() => {
+    api
+      .checkVersion()
+      .then(setVersionInfo)
+      .catch(() => {});
   });
 
   // Auto-focus inputs when modals open
@@ -404,14 +418,23 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           <div class="i-carbon-trash-can w-5 h-5 flex-shrink-0" />
         </Button>
         <div class="flex-1" />
-        <Button
-          onClick={() => navigate(routes.settings)}
-          variant="icon"
-          size="md"
-          title="Settings"
-        >
-          <div class="i-carbon-settings w-5 h-5 flex-shrink-0" />
-        </Button>
+        <div class="relative">
+          <Button
+            onClick={() => navigate(routes.settings)}
+            variant="icon"
+            size="md"
+            title={
+              versionInfo()?.updateAvailable
+                ? `Settings — Update available (${versionInfo()?.latestVersion})`
+                : "Settings"
+            }
+          >
+            <div class="i-carbon-settings w-5 h-5 flex-shrink-0" />
+          </Button>
+          <Show when={versionInfo()?.updateAvailable}>
+            <span class="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-amber-400 pointer-events-none" />
+          </Show>
+        </div>
       </div>
 
       {/* Big Sidebar */}
