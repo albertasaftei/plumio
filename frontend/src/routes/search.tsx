@@ -11,6 +11,7 @@ import { api } from "~/lib/api";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
 import { getDisplayName } from "~/utils/document.utils";
+import { formatDayRelativeDate } from "~/utils/date.utils";
 
 interface SearchResult {
   path: string;
@@ -72,19 +73,6 @@ export default function SearchPage() {
   const handleSelect = (path: string) => {
     const encodedPath = path.split("/").map(encodeURIComponent).join("/");
     navigate(`/file${encodedPath}`);
-  };
-
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
-    );
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString();
   };
 
   return (
@@ -170,7 +158,7 @@ export default function SearchPage() {
                     {getDisplayName(result.path)}
                   </span>
                   <span class="ml-auto text-xs text-muted-body flex-shrink-0">
-                    {formatDate(result.modified)}
+                    {formatDayRelativeDate(result.modified)}
                   </span>
                 </div>
 

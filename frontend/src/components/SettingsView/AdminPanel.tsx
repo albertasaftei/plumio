@@ -3,6 +3,7 @@ import { api } from "~/lib/api";
 import Button from "../Button";
 import AlertDialog from "../AlertDialog";
 import Toast from "../Toast";
+import { formatAbsoluteDate } from "~/utils/date.utils";
 
 interface User {
   id: number;
@@ -114,14 +115,6 @@ export default function AdminPanel(props: AdminPanelProps) {
       setError(err.message || "Failed to delete user");
       setDeleteDialog({ isOpen: false, user: null });
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
   };
 
   const renderContent = () => (
@@ -305,7 +298,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                       </Show>
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-muted-body">
-                      {formatDate(user.createdAt)}
+                      {formatAbsoluteDate(user.createdAt)}
                     </td>
                     <td class="flex items-center justify-end px-4 py-3 whitespace-nowrap text-right text-sm">
                       <Show

@@ -11,12 +11,7 @@ import { Popover } from "@kobalte/core/popover";
 import ColorPicker from "./ColorPicker";
 import Button from "./Button";
 import type { SidebarProps, TreeNode } from "~/types/Sidebar.types";
-import {
-  buildDocumentTree,
-  COLOR_PALETTE,
-  filterTreeNodes,
-  formatDate,
-} from "~/utils/sidebar.utils";
+import { buildDocumentTree, COLOR_PALETTE } from "~/utils/sidebar.utils";
 import { getDisplayName } from "~/utils/document.utils";
 import { useNavigate } from "@solidjs/router";
 import AlertDialog from "./AlertDialog";
@@ -41,7 +36,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
   const [targetFolder, setTargetFolder] = createSignal<string>("/");
   const [itemToRename, setItemToRename] = createSignal<string | null>(null);
   const [openMenuPath, setOpenMenuPath] = createSignal<string | null>(null);
-  const [searchQuery, setSearchQuery] = createSignal("");
   const [showMoveModal, setShowMoveModal] = createSignal(false);
   const [itemToMove, setItemToMove] = createSignal<{
     path: string;
@@ -62,7 +56,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     props.onExpandFolder(path);
   };
 
-  const filteredTree = () => filterTreeNodes(buildTree(), searchQuery());
+  const filteredTree = () => buildTree();
 
   // Detect mobile view after mount to prevent hydration mismatch
   onMount(() => {

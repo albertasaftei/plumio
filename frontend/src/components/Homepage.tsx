@@ -1,6 +1,7 @@
 import { For, Show, createSignal, onMount } from "solid-js";
 import { api, type Document } from "~/lib/api";
 import { getDisplayName } from "~/utils/document.utils";
+import { formatRelativeDate } from "~/utils/date.utils";
 
 interface HomepageProps {
   documents: Document[];
@@ -50,26 +51,6 @@ export default function Homepage(props: HomepageProps) {
       month: "long",
       day: "numeric",
     });
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
-    });
-  };
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -143,7 +124,7 @@ export default function Homepage(props: HomepageProps) {
             <RecentSection
               docs={recentDocuments()}
               onSelect={props.onSelectDocument}
-              formatDate={formatDate}
+              formatDate={formatRelativeDate}
               formatSize={formatSize}
             />
           }
@@ -190,7 +171,7 @@ export default function Homepage(props: HomepageProps) {
                               </span>
                             </Show>
                             <span class="text-[11px] text-[var(--color-text-muted)] shrink-0 ml-2">
-                              {formatDate(doc.modified)}
+                              {formatRelativeDate(doc.modified)}
                             </span>
                           </div>
                         </div>
@@ -205,7 +186,7 @@ export default function Homepage(props: HomepageProps) {
             <RecentSection
               docs={recentDocuments()}
               onSelect={props.onSelectDocument}
-              formatDate={formatDate}
+              formatDate={formatRelativeDate}
               formatSize={formatSize}
             />
           </div>

@@ -7,6 +7,7 @@ import DocumentListPage from "~/components/DocumentListPage";
 import { routes } from "~/routes";
 import { getDisplayName } from "~/utils/document.utils";
 import { useAppLayout } from "~/components/AppLayout";
+import { formatDayRelativeDate } from "~/utils/date.utils";
 
 export default function ArchivePage() {
   const navigate = useNavigate();
@@ -57,19 +58,6 @@ export default function ArchivePage() {
     }
   };
 
-  const formatDate = (dateStr: string | undefined) => {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString();
-  };
-
   return (
     <DocumentListPage
       title="Archived Documents"
@@ -104,7 +92,7 @@ export default function ArchivePage() {
                     </p>
                     <Show when={doc.archived_at}>
                       <p class="text-xs text-[var(--color-text-muted)]">
-                        Archived {formatDate(doc.archived_at)}
+                        Archived {formatDayRelativeDate(doc.archived_at)}
                       </p>
                     </Show>
                   </div>

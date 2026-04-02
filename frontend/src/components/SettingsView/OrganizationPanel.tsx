@@ -3,6 +3,7 @@ import { api } from "~/lib/api";
 import Button from "../Button";
 import AlertDialog from "../AlertDialog";
 import Toast from "../Toast";
+import { formatAbsoluteDate } from "~/utils/date.utils";
 
 interface Member {
   id: number;
@@ -174,14 +175,6 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
       });
       setRemoveDialog({ isOpen: false, member: null });
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
   };
 
   const renderContent = () => (
@@ -425,7 +418,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                         </div>
                       </td>
                       <td class="px-4 py-3 whitespace-nowrap text-sm text-muted-body">
-                        {formatDate(member.joinedAt)}
+                        {formatAbsoluteDate(member.joinedAt)}
                       </td>
                       <Show when={mounted() && isAdmin()}>
                         <td class="flex items-center justify-end px-4 py-3 whitespace-nowrap text-sm">

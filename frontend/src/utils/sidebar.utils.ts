@@ -98,19 +98,6 @@ export function filterTreeNodes(tree: TreeNode[], query: string): TreeNode[] {
 }
 
 /**
- * Formats a date string for display
- */
-export function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-
-/**
  * Gets the parent path from a given path
  */
 export function getParentPath(itemPath: string): string {

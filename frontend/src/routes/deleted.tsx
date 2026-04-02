@@ -7,6 +7,7 @@ import DocumentListPage from "~/components/DocumentListPage";
 import { routes } from "~/routes";
 import { getDisplayName } from "~/utils/document.utils";
 import { useAppLayout } from "~/components/AppLayout";
+import { formatDayRelativeDate } from "~/utils/date.utils";
 
 export default function DeletedPage() {
   const navigate = useNavigate();
@@ -55,19 +56,6 @@ export default function DeletedPage() {
     } catch (error) {
       console.error("Failed to permanently delete document:", error);
     }
-  };
-
-  const formatDate = (dateStr: string | undefined) => {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString();
   };
 
   const getDaysUntilPermanentDelete = (deletedAt: string | undefined) => {
@@ -130,7 +118,7 @@ export default function DeletedPage() {
                           </h3>
                           <div class="flex items-center gap-4 text-sm text-[var(--color-text-secondary)]">
                             <span class="text-xs text-[var(--color-text-muted)]">
-                              Deleted {formatDate(doc.deleted_at)}
+                              Deleted {formatDayRelativeDate(doc.deleted_at)}
                             </span>
                             <span class="text-xs text-yellow-400 dark:text-yellow-400 light:text-yellow-600">
                               {daysLeft === 0
