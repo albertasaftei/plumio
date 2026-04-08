@@ -2,10 +2,15 @@ import { createSignal, Show } from "solid-js";
 import Button from "../Button";
 import AlertDialog from "../AlertDialog";
 import Toast from "../Toast";
-import { exportDocuments, importDocuments } from "~/lib/api";
+import {
+  exportDocuments,
+  exportDocumentsPlain,
+  importDocuments,
+} from "~/lib/api";
 
 export default function ImportExport() {
   const [isExporting, setIsExporting] = createSignal(false);
+  const [isExportingPlain, setIsExportingPlain] = createSignal(false);
   const [isImporting, setIsImporting] = createSignal(false);
   const [importDialog, setImportDialog] = createSignal<{
     isOpen: boolean;
@@ -36,6 +41,27 @@ export default function ImportExport() {
       });
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleExportPlain = async () => {
+    setIsExportingPlain(true);
+    try {
+      await exportDocumentsPlain();
+      setToast({
+        show: true,
+        message: "Documents exported successfully",
+        type: "success",
+      });
+    } catch (error) {
+      console.error("Export failed:", error);
+      setToast({
+        show: true,
+        message: "Failed to export documents",
+        type: "error",
+      });
+    } finally {
+      setIsExportingPlain(false);
     }
   };
 
@@ -101,25 +127,46 @@ export default function ImportExport() {
           <p class="text-muted-body mb-4">
             Download all your documents as a compressed archive.
           </p>
-          <Button
-            onClick={handleExport}
-            variant="primary"
-            size="md"
-            disabled={isExporting()}
-          >
-            <Show
-              when={!isExporting()}
-              fallback={
-                <>
-                  <div class="i-carbon-in-progress animate-spin w-4 h-4" />
-                  <span>Exporting...</span>
-                </>
-              }
+          <div class="flex gap-3 flex-wrap">
+            <Button
+              onClick={handleExport}
+              variant="primary"
+              size="md"
+              disabled={isExporting() || isExportingPlain()}
             >
-              <div class="i-carbon-download w-4 h-4" />
-              <span class="ml-2">Export</span>
-            </Show>
-          </Button>
+              <Show
+                when={!isExporting()}
+                fallback={
+                  <>
+                    <div class="i-carbon-in-progress animate-spin w-4 h-4" />
+                    <span class="ml-2">Exporting...</span>
+                  </>
+                }
+              >
+                <div class="i-carbon-download w-4 h-4" />
+                <span class="ml-2">Export Encrypted</span>
+              </Show>
+            </Button>
+            <Button
+              onClick={handleExportPlain}
+              variant="secondary"
+              size="md"
+              disabled={isExporting() || isExportingPlain()}
+            >
+              <Show
+                when={!isExportingPlain()}
+                fallback={
+                  <>
+                    <div class="i-carbon-in-progress animate-spin w-4 h-4" />
+                    <span class="ml-2">Exporting...</span>
+                  </>
+                }
+              >
+                <div class="i-carbon-document w-4 h-4" />
+                <span class="ml-2">Export Plain Text</span>
+              </Show>
+            </Button>
+          </div>
         </div>
 
         <div class="bg-elevated rounded-lg p-6 border border-transparent light:border-base light:shadow-sm">

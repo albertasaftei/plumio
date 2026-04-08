@@ -506,6 +506,30 @@ export class ApiClient {
     document.body.removeChild(a);
   }
 
+  async exportDocumentsPlain() {
+    const response = await fetch(`${API_URL}/api/documents/export-plain`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Export failed");
+    }
+
+    // Download the file
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `plumio-export-plain-${new Date().toISOString().slice(0, 10)}.tar.gz`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
+
   async importDocuments(file: File) {
     const formData = new FormData();
     formData.append("file", file);
@@ -737,4 +761,5 @@ export const api = new Proxy({} as ApiClient, {
 
 // Export standalone functions for convenience
 export const exportDocuments = () => api.exportDocuments();
+export const exportDocumentsPlain = () => api.exportDocumentsPlain();
 export const importDocuments = (file: File) => api.importDocuments(file);

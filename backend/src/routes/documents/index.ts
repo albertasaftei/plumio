@@ -770,6 +770,86 @@ documentsRouter.post("/export", async (c) => {
   }
 });
 
+// Export all documents as plain (decrypted) tar.gz
+documentsRouter.post("/export-plain", async (c) => {
+  try {
+    const user = c.get("user");
+    const organizationId = user.currentOrgId;
+
+    if (!organizationId) {
+      return c.json({ error: "No organization context" }, 400);
+    }
+
+    const orgDocumentsPath = getOrgDocumentsPath(organizationId);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const tempDir = path.join(
+      "/tmp",
+      `plumio-plain-export-org${organizationId}-${timestamp}`,
+    );
+    const exportFile = path.join(
+      "/tmp",
+      `plumio-export-plain-org${organizationId}-${timestamp}.tar.gz`,
+    );
+
+    await ensureOrgDirectoryExists(organizationId);
+
+    // Copy all files to temp dir, decrypting .md files
+    const copyDecrypted = async (srcDir: string, destDir: string) => {
+      await fs.mkdir(destDir, { recursive: true });
+      const items = await fs.readdir(srcDir, { withFileTypes: true });
+      for (const item of items) {
+        const srcPath = path.join(srcDir, item.name);
+        const destPath = path.join(destDir, item.name);
+        if (item.isDirectory()) {
+          await copyDecrypted(srcPath, destPath);
+        } else if (item.name.endsWith(".md")) {
+          const raw = await fs.readFile(srcPath, "utf-8");
+          let content = raw;
+          if (ENABLE_ENCRYPTION) {
+            try {
+              content = decrypt(raw);
+            } catch {
+              content = raw;
+            }
+          }
+          await fs.writeFile(destPath, content, "utf-8");
+        } else {
+          await fs.copyFile(srcPath, destPath);
+        }
+      }
+    };
+
+    await copyDecrypted(orgDocumentsPath, tempDir);
+
+    const { exec } = await import("child_process");
+    const { promisify } = await import("util");
+    const execAsync = promisify(exec);
+
+    try {
+      await execAsync(`tar -czf "${exportFile}" -C "${tempDir}" .`);
+      const stats = await fs.stat(exportFile);
+      if (stats.size === 0) {
+        throw new Error("Export archive is empty");
+      }
+    } catch (tarError: any) {
+      throw new Error(`Export failed: ${tarError.message}`);
+    } finally {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    }
+
+    const fileBuffer = await fs.readFile(exportFile);
+    await fs.unlink(exportFile);
+
+    return c.body(fileBuffer, 200, {
+      "Content-Type": "application/gzip",
+      "Content-Disposition": `attachment; filename="plumio-export-plain-org${organizationId}-${timestamp}.tar.gz"`,
+    });
+  } catch (error) {
+    console.error("Error exporting documents (plain):", error);
+    return c.json({ error: "Failed to export documents" }, 500);
+  }
+});
+
 // Import documents from encrypted zip
 documentsRouter.post("/import", async (c) => {
   try {
