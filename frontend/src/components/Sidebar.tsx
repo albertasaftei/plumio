@@ -178,6 +178,10 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                 toggleFolder(nodeProps.node.path);
               }
             }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              setOpenMenuPath(nodeProps.node.path);
+            }}
             class="flex items-center gap-2 py-1 pr-2"
           >
             <div
