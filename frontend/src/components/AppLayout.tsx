@@ -58,25 +58,11 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     type: "success" | "error";
   } | null>(null);
 
-  // Load all documents recursively
+  // Load all documents in a single recursive API call
   const loadAllDocuments = async () => {
-    const loadFolder = async (path: string): Promise<Document[]> => {
-      const result = await api.listDocuments(path);
-      const items: Document[] = [];
-
-      for (const item of result.items) {
-        items.push(item);
-        if (item.type === "folder") {
-          const children = await loadFolder(item.path);
-          items.push(...children);
-        }
-      }
-      return items;
-    };
-
     try {
-      const items = await loadFolder("/");
-      setAllDocuments(items);
+      const result = await api.listAllDocuments();
+      setAllDocuments(result.items);
     } catch (error) {
       console.error("Failed to load documents:", error);
     }
@@ -195,6 +181,9 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
       }
     } catch (error) {
       console.error("Failed to rename item:", error);
+      const message =
+        error instanceof Error ? error.message : "Failed to rename item";
+      setToast({ message, type: "error" });
     }
   };
 
@@ -240,6 +229,37 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
       await loadAllDocuments();
     } catch (error) {
       console.error("Failed to set item color:", error);
+    }
+  };
+
+  const reorderItem = async (
+    sourcePath: string,
+    targetPath: string,
+    operation: "reorder-before" | "reorder-after" | "make-child",
+  ) => {
+    try {
+      const result = await api.reorderItem(sourcePath, targetPath, operation);
+      await loadAllDocuments();
+
+      // If the item was moved (make-child or cross-folder), navigate if we're viewing it
+      if (result.newPath) {
+        const oldEncodedPath = sourcePath
+          .split("/")
+          .map(encodeURIComponent)
+          .join("/");
+        if (window.location.pathname === `/file${oldEncodedPath}`) {
+          const newEncodedPath = result.newPath
+            .split("/")
+            .map(encodeURIComponent)
+            .join("/");
+          navigate(`/file${newEncodedPath}`);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to reorder item:", error);
+      const message =
+        error instanceof Error ? error.message : "Failed to move item";
+      setToast({ message, type: "error" });
     }
   };
 
@@ -328,6 +348,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
               onOrgSwitch={() => loadAllDocuments()}
               onArchiveItem={archiveItem}
               onDuplicateItem={duplicateItem}
+              onReorderItem={reorderItem}
               onViewHome={() => {
                 navigate(routes.homepage);
                 if (window.innerWidth < 1024) {

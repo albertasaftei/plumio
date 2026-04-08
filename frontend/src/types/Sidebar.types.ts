@@ -19,6 +19,11 @@ export interface SidebarProps {
   onOrgSwitch: () => void;
   onArchiveItem: (path: string) => void;
   onDuplicateItem?: (path: string) => void;
+  onReorderItem?: (
+    sourcePath: string,
+    targetPath: string,
+    operation: "reorder-before" | "reorder-after" | "make-child",
+  ) => void;
   onViewHome: () => void;
   onViewArchive: () => void;
   onViewDeleted: () => void;

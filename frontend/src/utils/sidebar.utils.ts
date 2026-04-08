@@ -52,21 +52,32 @@ export function buildDocumentTree(documents: Document[]): TreeNode[] {
 }
 
 /**
- * Recursively sorts tree nodes: favorites first, then folders, then alphabetically
+ * Recursively sorts tree nodes.
+ * When any sibling has a custom sort_order (> 0), sort_order is primary.
+ * Otherwise falls back to: favorites first, folders before files, then alphabetically.
  */
 function sortTreeNodes(nodes: TreeNode[]) {
+  const hasCustomOrder = nodes.some((n) => (n.sort_order ?? 0) !== 0);
+
   nodes.sort((a, b) => {
-    // Favorites first
+    if (hasCustomOrder) {
+      const aOrder = a.sort_order ?? 0;
+      const bOrder = b.sort_order ?? 0;
+      // Items with sort_order 0 (not yet ordered) go to the end
+      if (aOrder === 0 && bOrder !== 0) return 1;
+      if (aOrder !== 0 && bOrder === 0) return -1;
+      if (aOrder !== bOrder) return aOrder - bOrder;
+      // Both 0 or equal — fall through to default tiebreaker
+    }
+
+    // Default grouping: favorites first, folders before files, then alpha
     if (a.favorite && !b.favorite) return -1;
     if (!a.favorite && b.favorite) return 1;
-
-    // Then folders before files
     if (a.type === "folder" && b.type === "file") return -1;
     if (a.type === "file" && b.type === "folder") return 1;
-
-    // Then alphabetically
     return a.name.localeCompare(b.name);
   });
+
   nodes.forEach((node) => {
     if (node.children.length > 0) {
       sortTreeNodes(node.children);

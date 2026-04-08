@@ -34,6 +34,7 @@ export interface Document {
   favorite?: boolean;
   archived_at?: string;
   deleted_at?: string;
+  sort_order?: number;
 }
 
 export class ApiClient {
@@ -411,6 +412,12 @@ export class ApiClient {
     );
   }
 
+  async listAllDocuments() {
+    return this.request<{ items: Document[] }>(
+      `/api/documents/list?path=/&recursive=true`,
+    );
+  }
+
   async getDocument(path: string) {
     return this.request<{ content: string; path: string }>(
       `/api/documents/content?path=${encodeURIComponent(path)}`,
@@ -471,6 +478,20 @@ export class ApiClient {
       {
         method: "POST",
         body: JSON.stringify({ sourcePath, destinationFolder }),
+      },
+    );
+  }
+
+  async reorderItem(
+    sourcePath: string,
+    targetPath: string,
+    operation: "reorder-before" | "reorder-after" | "make-child",
+  ) {
+    return this.request<{ message: string; newPath?: string }>(
+      "/api/documents/reorder",
+      {
+        method: "POST",
+        body: JSON.stringify({ sourcePath, targetPath, operation }),
       },
     );
   }

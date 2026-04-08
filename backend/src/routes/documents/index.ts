@@ -37,6 +37,7 @@ import {
   restoreDocumentSchema,
   permanentlyDeleteDocumentSchema,
   duplicateItemSchema,
+  reorderDocumentSchema,
 } from "./helpers/schemas.js";
 
 type Variables = {
@@ -48,9 +49,10 @@ const documentsRouter = new Hono<{ Variables: Variables }>();
 // Auth middleware
 documentsRouter.use("*", authMiddleware);
 
-// List all documents and folders
+// List documents and folders (supports ?recursive=true for a single-call tree load)
 documentsRouter.get("/list", async (c) => {
   const folderPath = c.req.query("path") || "/";
+  const recursive = c.req.query("recursive") === "true";
   const user = c.get("user");
   const organizationId = user.currentOrgId;
 
@@ -58,72 +60,93 @@ documentsRouter.get("/list", async (c) => {
     return c.json({ error: "No organization context" }, 400);
   }
 
-  const fullPath = sanitizePath(folderPath, organizationId);
-
   try {
     await ensureOrgDirectoryExists(organizationId);
-
-    const orgPath = getOrgDocumentsPath(organizationId);
-
-    await fs.access(fullPath);
-    const items = await fs.readdir(fullPath, { withFileTypes: true });
-
-    const result = await Promise.all(
-      items
-        .filter((item) => !item.name.startsWith(".")) // Filter out hidden files/folders
-        .filter((item) => !item.name.endsWith(".meta.json")) // Filter out metadata files
-        .filter((item) => !item.name.includes(".archived-")) // Filter out archived files
-        .filter((item) => !item.name.includes(".deleted-")) // Filter out deleted files
-        .filter((item) => item.name !== "attachments") // Filter out the attachments directory
-        .filter((item) => item.isDirectory() || item.name.endsWith(".md")) // Only show folders or md files
-        .map(async (item) => {
-          const itemPath = path.join(fullPath, item.name);
-          const stats = await fs.stat(itemPath);
-          const relativePath = path.relative(orgPath, itemPath);
-          const docPath = "/" + relativePath.replace(/\\/g, "/");
-          const metadataPath = itemPath + ".meta.json";
-
-          // Check if document is archived or deleted in database
-          const dbDoc = documentQueries.findByOrgAndPathIncludingArchived.get(
-            organizationId,
-            docPath,
-          );
-
-          // Skip archived or deleted documents
-          if (dbDoc && (dbDoc.archived === 1 || dbDoc.deleted === 1)) {
-            return null;
-          }
-
-          // Try to load metadata
-          let metadata: any = {};
-          try {
-            const metaContent = await fs.readFile(metadataPath, "utf-8");
-            metadata = JSON.parse(metaContent);
-          } catch {
-            // No metadata file, that's fine
-          }
-
-          return {
-            name: item.name,
-            path: docPath,
-            type: item.isDirectory() ? "folder" : "file",
-            modified: stats.mtime.toISOString(),
-            size: stats.size,
-            color: metadata.color || undefined,
-            favorite: metadata.favorite || false,
-          };
-        }),
-    );
-
-    // Filter out null values (archived documents)
-    const filteredResult = result.filter((item) => item !== null);
-
-    return c.json({ items: filteredResult });
+    const items = await readFolderItems(folderPath, organizationId, recursive);
+    return c.json({ items });
   } catch (error) {
     console.error("Error listing documents:", error);
     return c.json({ error: "Failed to list documents" }, 500);
   }
 });
+
+/**
+ * Reads a single folder and returns its items as Document-like objects.
+ * When recursive=true, also reads all sub-folders depth-first.
+ */
+async function readFolderItems(
+  folderPath: string,
+  organizationId: number,
+  recursive: boolean,
+): Promise<Record<string, unknown>[]> {
+  const fullPath = sanitizePath(folderPath, organizationId);
+  const orgPath = getOrgDocumentsPath(organizationId);
+
+  await fs.access(fullPath);
+  const entries = await fs.readdir(fullPath, { withFileTypes: true });
+
+  const result = await Promise.all(
+    entries
+      .filter((item) => !item.name.startsWith("."))
+      .filter((item) => !item.name.endsWith(".meta.json"))
+      .filter((item) => !item.name.includes(".archived-"))
+      .filter((item) => !item.name.includes(".deleted-"))
+      .filter((item) => item.name !== "attachments")
+      .filter((item) => item.isDirectory() || item.name.endsWith(".md"))
+      .map(async (item) => {
+        const itemPath = path.join(fullPath, item.name);
+        const stats = await fs.stat(itemPath);
+        const relativePath = path.relative(orgPath, itemPath);
+        const docPath = "/" + relativePath.replace(/\\/g, "/");
+        const metadataPath = itemPath + ".meta.json";
+
+        const dbDoc = documentQueries.findByOrgAndPathIncludingArchived.get(
+          organizationId,
+          docPath,
+        );
+
+        if (dbDoc && (dbDoc.archived === 1 || dbDoc.deleted === 1)) {
+          return null;
+        }
+
+        let metadata: any = {};
+        try {
+          const metaContent = await fs.readFile(metadataPath, "utf-8");
+          metadata = JSON.parse(metaContent);
+        } catch {
+          // No metadata file
+        }
+
+        const doc = {
+          name: item.name,
+          path: docPath,
+          type: item.isDirectory() ? "folder" : "file",
+          modified: stats.mtime.toISOString(),
+          size: stats.size,
+          color: metadata.color || undefined,
+          favorite: metadata.favorite || false,
+          sort_order: dbDoc?.sort_order ?? 0,
+        };
+
+        if (recursive && item.isDirectory()) {
+          try {
+            const children = await readFolderItems(
+              docPath,
+              organizationId,
+              true,
+            );
+            return [doc, ...children];
+          } catch {
+            return [doc];
+          }
+        }
+
+        return doc;
+      }),
+  );
+
+  return result.filter((item) => item !== null).flat();
+}
 
 // Get document content
 documentsRouter.get("/content", async (c) => {
@@ -470,6 +493,17 @@ documentsRouter.post("/rename", async (c) => {
   try {
     // Ensure new directory exists
     await fs.mkdir(path.dirname(fullNewPath), { recursive: true });
+
+    // Check for conflict (only when the destination is a different path)
+    if (fullOldPath !== fullNewPath) {
+      try {
+        await fs.access(fullNewPath);
+        return c.json({ error: "An item with this name already exists" }, 409);
+      } catch {
+        // Destination doesn't exist — safe to proceed
+      }
+    }
+
     await fs.rename(fullOldPath, fullNewPath);
 
     // Move metadata sidecar file if it exists
@@ -1478,5 +1512,318 @@ documentsRouter.post("/duplicate", async (c) => {
     return c.json({ error: "Failed to duplicate" }, 500);
   }
 });
+
+// === Reorder (drag & drop) ===
+documentsRouter.post("/reorder", async (c) => {
+  const parsed = reorderDocumentSchema.safeParse(await c.req.json());
+  const user = c.get("user");
+  const organizationId = user.currentOrgId;
+
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
+  }
+
+  if (!organizationId) {
+    return c.json({ error: "No organization context" }, 400);
+  }
+
+  const { sourcePath, targetPath, operation } = parsed.data;
+
+  if (sourcePath === targetPath) {
+    return c.json({ message: "No change needed" });
+  }
+
+  try {
+    // For "make-child", delegate to the move logic
+    if (operation === "make-child") {
+      // Prevent moving into itself or its own descendants
+      if (
+        targetPath === sourcePath ||
+        targetPath.startsWith(sourcePath + "/")
+      ) {
+        return c.json(
+          { error: "Cannot move an item into itself or its own descendant" },
+          400,
+        );
+      }
+
+      const fullSourcePath = sanitizePath(sourcePath, organizationId);
+      const itemName = path.basename(sourcePath);
+      const newPath =
+        targetPath === "/" ? `/${itemName}` : `${targetPath}/${itemName}`;
+
+      if (newPath === sourcePath) {
+        return c.json({
+          message: "Item is already in the target location",
+          newPath,
+        });
+      }
+
+      const fullNewPath = sanitizePath(newPath, organizationId);
+
+      await fs.access(fullSourcePath);
+
+      try {
+        await fs.access(fullNewPath);
+        return c.json(
+          {
+            error:
+              "An item with the same name already exists at the destination",
+          },
+          409,
+        );
+      } catch {
+        // Good — target doesn't exist yet
+      }
+
+      await fs.mkdir(path.dirname(fullNewPath), { recursive: true });
+      await fs.rename(fullSourcePath, fullNewPath);
+
+      // Move metadata sidecar file if it exists
+      try {
+        await fs.access(fullSourcePath + ".meta.json");
+        await fs.rename(
+          fullSourcePath + ".meta.json",
+          fullNewPath + ".meta.json",
+        );
+      } catch {
+        // No metadata file, that's fine
+      }
+
+      // Update database paths
+      const stats = await fs.stat(fullNewPath);
+      if (stats.isDirectory()) {
+        documentQueries.updatePathPrefix(organizationId, sourcePath, newPath);
+      } else {
+        documentQueries.updatePath.run(newPath, organizationId, sourcePath);
+      }
+
+      return c.json({ message: "Moved successfully", newPath });
+    }
+
+    // For reorder-before / reorder-after: update sort_order values
+    const sourceParent =
+      sourcePath.substring(0, sourcePath.lastIndexOf("/")) || "/";
+    const targetParent =
+      targetPath.substring(0, targetPath.lastIndexOf("/")) || "/";
+
+    // Ensure all items in the relevant folder have DB entries
+    // (items created implicitly via mkdir or pre-existing on disk may lack rows)
+    await ensureFolderChildrenInDb(
+      sourceParent === targetParent ? sourceParent : targetParent,
+      organizationId,
+      user.userId,
+    );
+
+    // If source and target are in different folders, move the file first
+    if (sourceParent !== targetParent) {
+      const fullSourcePath = sanitizePath(sourcePath, organizationId);
+      const itemName = path.basename(sourcePath);
+      const newPath =
+        targetParent === "/" ? `/${itemName}` : `${targetParent}/${itemName}`;
+
+      const fullNewPath = sanitizePath(newPath, organizationId);
+
+      await fs.access(fullSourcePath);
+
+      try {
+        await fs.access(fullNewPath);
+        return c.json(
+          {
+            error:
+              "An item with the same name already exists at the destination",
+          },
+          409,
+        );
+      } catch {
+        // Good
+      }
+
+      await fs.mkdir(path.dirname(fullNewPath), { recursive: true });
+      await fs.rename(fullSourcePath, fullNewPath);
+
+      try {
+        await fs.access(fullSourcePath + ".meta.json");
+        await fs.rename(
+          fullSourcePath + ".meta.json",
+          fullNewPath + ".meta.json",
+        );
+      } catch {
+        // No metadata
+      }
+
+      const stats = await fs.stat(fullNewPath);
+      if (stats.isDirectory()) {
+        documentQueries.updatePathPrefix(organizationId, sourcePath, newPath);
+      } else {
+        documentQueries.updatePath.run(newPath, organizationId, sourcePath);
+      }
+
+      // Now reorder within the target folder using the new path
+      reorderInFolder(
+        organizationId,
+        newPath,
+        targetPath,
+        operation,
+        targetParent,
+      );
+      return c.json({ message: "Moved and reordered successfully", newPath });
+    }
+
+    // Same folder: just reorder
+    reorderInFolder(
+      organizationId,
+      sourcePath,
+      targetPath,
+      operation,
+      sourceParent,
+    );
+    return c.json({ message: "Reordered successfully" });
+  } catch (error) {
+    console.error("Error reordering:", error);
+    return c.json({ error: "Failed to reorder" }, 500);
+  }
+});
+
+/**
+ * Reads a folder from the filesystem and ensures every direct child
+ * has a row in the documents table (INSERT … ON CONFLICT DO NOTHING).
+ */
+async function ensureFolderChildrenInDb(
+  folderPath: string,
+  organizationId: number,
+  userId: number,
+) {
+  const fullPath = sanitizePath(folderPath, organizationId);
+  const orgPath = getOrgDocumentsPath(organizationId);
+
+  try {
+    const items = await fs.readdir(fullPath, { withFileTypes: true });
+    for (const item of items) {
+      if (item.name.startsWith(".")) continue;
+      if (item.name.endsWith(".meta.json")) continue;
+      if (item.name.includes(".archived-")) continue;
+      if (item.name.includes(".deleted-")) continue;
+      if (item.name === "attachments") continue;
+      if (!item.isDirectory() && !item.name.endsWith(".md")) continue;
+
+      const itemFullPath = path.join(fullPath, item.name);
+      const relativePath = path.relative(orgPath, itemFullPath);
+      const docPath = "/" + relativePath.replace(/\\/g, "/");
+      const stats = await fs.stat(itemFullPath);
+
+      documentQueries.ensureExists.run(
+        organizationId,
+        userId,
+        docPath,
+        item.name,
+        stats.size,
+      );
+    }
+  } catch {
+    // Folder may not exist yet — that's fine
+  }
+}
+
+/**
+ * Reorders items within a folder by updating sort_order values.
+ * Uses gap-based ordering (multiples of 1000) to allow cheap insertions.
+ */
+function reorderInFolder(
+  organizationId: number,
+  sourcePath: string,
+  targetPath: string,
+  operation: "reorder-before" | "reorder-after",
+  folderPath: string,
+) {
+  // Build the LIKE pattern for direct children of folderPath
+  const likePattern = folderPath === "/" ? "/%" : `${folderPath}/%`;
+  const notLikePattern = folderPath === "/" ? "/%/%" : `${folderPath}/%/%`;
+
+  // Get all siblings in this folder
+  const siblings = documentQueries.getSiblingsInFolder
+    .all(organizationId, likePattern, notLikePattern)
+    .filter((s) => s.path !== sourcePath);
+
+  // If all sort_orders are 0, initialize them with gaps
+  const allZero = siblings.every((s) => s.sort_order === 0);
+  if (allZero) {
+    siblings.forEach((s, i) => {
+      s.sort_order = (i + 1) * 1000;
+      documentQueries.updateSortOrder.run(s.sort_order, organizationId, s.path);
+    });
+  }
+
+  // Find the target in the list
+  const targetIndex = siblings.findIndex((s) => s.path === targetPath);
+  if (targetIndex === -1) return;
+
+  let newSortOrder: number;
+
+  if (operation === "reorder-before") {
+    const targetOrder = siblings[targetIndex].sort_order;
+    const prevOrder =
+      targetIndex > 0 ? siblings[targetIndex - 1].sort_order : 0;
+    newSortOrder = Math.floor((prevOrder + targetOrder) / 2);
+
+    // If there's no gap left, renumber everything
+    if (newSortOrder === prevOrder || newSortOrder === targetOrder) {
+      renumberSiblings(
+        organizationId,
+        siblings,
+        targetIndex,
+        sourcePath,
+        likePattern,
+        notLikePattern,
+      );
+      return;
+    }
+  } else {
+    // reorder-after
+    const targetOrder = siblings[targetIndex].sort_order;
+    const nextOrder =
+      targetIndex < siblings.length - 1
+        ? siblings[targetIndex + 1].sort_order
+        : targetOrder + 1000;
+    newSortOrder = Math.floor((targetOrder + nextOrder) / 2);
+
+    // If there's no gap left, renumber everything
+    if (newSortOrder === targetOrder || newSortOrder === nextOrder) {
+      renumberSiblings(
+        organizationId,
+        siblings,
+        targetIndex + 1,
+        sourcePath,
+        likePattern,
+        notLikePattern,
+      );
+      return;
+    }
+  }
+
+  documentQueries.updateSortOrder.run(newSortOrder, organizationId, sourcePath);
+}
+
+/**
+ * Renumber all siblings with fresh gaps, inserting source at insertIndex.
+ */
+function renumberSiblings(
+  organizationId: number,
+  siblings: { path: string; sort_order: number }[],
+  insertIndex: number,
+  sourcePath: string,
+  _likePattern: string,
+  _notLikePattern: string,
+) {
+  // Insert source at the desired position
+  const ordered = [...siblings];
+  ordered.splice(insertIndex, 0, { path: sourcePath, sort_order: 0 });
+
+  // Assign fresh sort orders with gaps
+  ordered.forEach((item, i) => {
+    const newOrder = (i + 1) * 1000;
+    documentQueries.updateSortOrder.run(newOrder, organizationId, item.path);
+  });
+}
 
 export { documentsRouter };

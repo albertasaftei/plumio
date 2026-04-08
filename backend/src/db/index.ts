@@ -304,6 +304,27 @@ export const documentQueries = {
 
     return transaction();
   },
+  // Sort order queries for drag & drop reordering
+  getSortOrder: db.prepare<[number, string], { sort_order: number }>(
+    "SELECT sort_order FROM documents WHERE organization_id = ? AND path = ?",
+  ),
+  updateSortOrder: db.prepare<[number, number, string]>(
+    "UPDATE documents SET sort_order = ?, updated_at = CURRENT_TIMESTAMP WHERE organization_id = ? AND path = ?",
+  ),
+  ensureExists: db.prepare<[number, number, string, string, number]>(`
+    INSERT INTO documents (organization_id, user_id, path, title, size)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(organization_id, path) DO NOTHING
+  `),
+  getSiblingsInFolder: db.prepare<
+    [number, string, string],
+    { path: string; sort_order: number }
+  >(`
+    SELECT path, sort_order FROM documents
+    WHERE organization_id = ? AND archived = 0 AND (deleted = 0 OR deleted IS NULL)
+      AND path LIKE ? AND path NOT LIKE ?
+    ORDER BY sort_order ASC, path ASC
+  `),
 };
 
 // === Attachment Queries ===

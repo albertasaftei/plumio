@@ -72,3 +72,9 @@ export const permanentlyDeleteDocumentSchema = z.object({
 export const duplicateItemSchema = z.object({
   path: z.string().min(1),
 });
+
+export const reorderDocumentSchema = z.object({
+  sourcePath: z.string().min(1),
+  targetPath: z.string().min(1),
+  operation: z.enum(["reorder-before", "reorder-after", "make-child"]),
+});

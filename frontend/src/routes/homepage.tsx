@@ -9,26 +9,12 @@ export default function HomePageRoute() {
   const [allDocuments, setAllDocuments] = createSignal<Document[]>([]);
   const [loading, setLoading] = createSignal(true);
 
-  // Load all documents recursively
+  // Load all documents in a single recursive API call
   const loadAllDocuments = async () => {
-    const loadFolder = async (path: string): Promise<Document[]> => {
-      const result = await api.listDocuments(path);
-      const items: Document[] = [];
-
-      for (const item of result.items) {
-        items.push(item);
-        if (item.type === "folder") {
-          const children = await loadFolder(item.path);
-          items.push(...children);
-        }
-      }
-      return items;
-    };
-
     setLoading(true);
     try {
-      const items = await loadFolder("/");
-      setAllDocuments(items);
+      const result = await api.listAllDocuments();
+      setAllDocuments(result.items);
     } catch (error) {
       console.error("Failed to load documents:", error);
     } finally {

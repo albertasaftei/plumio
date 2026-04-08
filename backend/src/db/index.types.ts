@@ -50,6 +50,7 @@ export interface Document {
   deleted: number; // SQLite uses 0/1 for boolean
   deleted_at: string | null;
   deleted_by: number | null;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }

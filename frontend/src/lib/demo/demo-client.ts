@@ -132,6 +132,7 @@ export const demoClient = {
       color?: string;
       favorite?: boolean;
       archived_at?: string;
+      sort_order: number;
     }> = docs
       .filter((d) => {
         if (d.deleted) return false;
@@ -151,6 +152,7 @@ export const demoClient = {
         color: d.color,
         favorite: d.favorite || false,
         archived_at: d.archived_at,
+        sort_order: 0,
       }));
 
     // Add folders (extract unique parent directories)
@@ -192,9 +194,28 @@ export const demoClient = {
         size: 0,
         ...(folderColor && { color: folderColor }),
         favorite: folderFavorite,
+        sort_order: 0,
       });
     });
 
+    return { items };
+  },
+
+  async listAllDocuments() {
+    // In demo mode, recursively collect all documents using listDocuments
+    const collect = async (path: string): Promise<any[]> => {
+      const { items } = await this.listDocuments(path);
+      const all: any[] = [];
+      for (const item of items) {
+        all.push(item);
+        if (item.type === "folder") {
+          const children = await collect(item.path);
+          all.push(...children);
+        }
+      }
+      return all;
+    };
+    const items = await collect("/");
     return { items };
   },
   async getAllDocuments() {
@@ -878,5 +899,40 @@ export const demoClient = {
     );
     const entry = stored.find((a) => a.filename === filename);
     return entry?.dataUrl || "";
+  },
+
+  async reorderItem(
+    sourcePath: string,
+    targetPath: string,
+    operation: "reorder-before" | "reorder-after" | "make-child",
+  ) {
+    await ensureReady();
+    // Demo mode: make-child delegates to moveItem; reorder is a no-op (sort_order not persisted)
+    if (operation === "make-child") {
+      return this.moveItem(sourcePath, targetPath);
+    }
+    // Reordering in demo mode is visual-only (sort_order = 0 for all items)
+    return { message: "Reordered" };
+  },
+
+  async checkVersion() {
+    return { updateAvailable: false, latestVersion: null, releaseUrl: null };
+  },
+
+  async duplicateItem(path: string) {
+    await ensureReady();
+    const docs = getDemoDocuments();
+    const doc = docs.find((d) => d.path === path && !d.deleted);
+    if (!doc) throw new Error("Document not found");
+    const ext = path.endsWith(".md") ? ".md" : "";
+    const base = path.slice(0, path.length - ext.length);
+    let newPath = `${base} (copy)${ext}`;
+    let i = 2;
+    while (docs.some((d) => d.path === newPath && !d.deleted)) {
+      newPath = `${base} (copy ${i++})${ext}`;
+    }
+    docs.push({ ...doc, path: newPath, modified: new Date().toISOString() });
+    saveDemoDocuments(docs);
+    return { message: "Duplicated", newPath };
   },
 };

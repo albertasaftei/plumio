@@ -8,6 +8,18 @@ import {
   onMount,
 } from "solid-js";
 import { Popover } from "@kobalte/core/popover";
+import {
+  draggable,
+  dropTargetForElements,
+  monitorForElements,
+} from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
+import {
+  attachInstruction,
+  extractInstruction,
+  type Instruction,
+} from "@atlaskit/pragmatic-drag-and-drop-hitbox/list-item";
+import DropIndicator from "./DropIndicator";
 import ColorPicker from "./ColorPicker";
 import Button from "./Button";
 import type { SidebarProps, TreeNode } from "~/types/Sidebar.types";
@@ -103,6 +115,38 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
       .catch(() => {});
   });
 
+  // Drag & drop monitor — handles all drop events at the sidebar level
+  onMount(() => {
+    const cleanup = monitorForElements({
+      onDrop: ({ source, location }) => {
+        const target = location.current.dropTargets[0];
+        if (!target) return;
+
+        const sourceData = source.data as {
+          path: string;
+          name: string;
+          type: string;
+        };
+        const inst = extractInstruction(target.data);
+        if (!inst || inst.blocked) return;
+
+        const targetPath = target.data.path as string;
+        const targetType = target.data.type as string;
+
+        // Map instruction to reorder operation
+        if (
+          inst.operation === "reorder-before" ||
+          inst.operation === "reorder-after"
+        ) {
+          props.onReorderItem?.(sourceData.path, targetPath, inst.operation);
+        } else if (inst.operation === "combine" && targetType === "folder") {
+          props.onReorderItem?.(sourceData.path, targetPath, "make-child");
+        }
+      },
+    });
+    onCleanup(cleanup);
+  });
+
   // Auto-focus inputs when modals open
   createEffect(() => {
     if (showNewDocModal() && newDocInputRef) {
@@ -178,9 +222,103 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         : undefined;
     };
 
+    let rowRef: HTMLDivElement | undefined;
+    const [instruction, setInstruction] = createSignal<Instruction | null>(
+      null,
+    );
+    const [isDragging, setIsDragging] = createSignal(false);
+    let autoExpandTimer: number | undefined;
+
+    onMount(() => {
+      if (!rowRef) return;
+      const el = rowRef;
+
+      const cleanup = combine(
+        draggable({
+          element: el,
+          getInitialData: () => ({
+            path: nodeProps.node.path,
+            name: nodeProps.node.name,
+            type: nodeProps.node.type,
+          }),
+          onDragStart: () => setIsDragging(true),
+          onDrop: () => setIsDragging(false),
+        }),
+        dropTargetForElements({
+          element: el,
+          canDrop: ({ source }) => {
+            const sourcePath = source.data.path as string;
+            // Prevent dropping onto self
+            if (sourcePath === nodeProps.node.path) return false;
+            // Prevent dropping a parent into its own descendant
+            if (nodeProps.node.path.startsWith(sourcePath + "/")) return false;
+            return true;
+          },
+          getData: ({ input, element }) => {
+            const isFolder = nodeProps.node.type === "folder";
+            const isExpandedFolder = isFolder && isExpanded();
+
+            return attachInstruction(
+              {
+                path: nodeProps.node.path,
+                name: nodeProps.node.name,
+                type: nodeProps.node.type,
+              },
+              {
+                input,
+                element,
+                operations: {
+                  "reorder-before": "available",
+                  "reorder-after": isExpandedFolder
+                    ? "not-available"
+                    : "available",
+                  combine: isFolder ? "available" : "not-available",
+                },
+              },
+            );
+          },
+          getIsSticky: () => true,
+          onDrag: ({ self }) => {
+            setInstruction(extractInstruction(self.data));
+          },
+          onDragEnter: ({ self }) => {
+            setInstruction(extractInstruction(self.data));
+            // Auto-expand folders after a delay
+            if (nodeProps.node.type === "folder" && !isExpanded()) {
+              autoExpandTimer = window.setTimeout(() => {
+                props.onExpandFolder(nodeProps.node.path);
+              }, 500);
+            }
+          },
+          onDragLeave: () => {
+            setInstruction(null);
+            if (autoExpandTimer) {
+              clearTimeout(autoExpandTimer);
+              autoExpandTimer = undefined;
+            }
+          },
+          onDrop: () => {
+            setInstruction(null);
+            if (autoExpandTimer) {
+              clearTimeout(autoExpandTimer);
+              autoExpandTimer = undefined;
+            }
+          },
+        }),
+      );
+
+      onCleanup(() => {
+        cleanup();
+        if (autoExpandTimer) {
+          clearTimeout(autoExpandTimer);
+        }
+      });
+    });
+
     return (
       <>
         <div
+          ref={rowRef}
           class={`group relative hover:bg-[var(--color-bg-elevated)] border-l-4 transition-colors rounded-md m-2 ${
             nodeProps.node.path === props.currentPath
               ? "border-l-primary"
@@ -194,8 +332,13 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
                 ? `${parseInt(paddingLeft()) + 16}px`
                 : paddingLeft(),
             "background-color": getBackgroundColor(),
+            opacity: isDragging() ? 0.4 : 1,
           }}
         >
+          <DropIndicator
+            instruction={instruction()}
+            indent={nodeProps.node.depth}
+          />
           <div
             onClick={() => {
               if (nodeProps.node.type === "file") {
