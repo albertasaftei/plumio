@@ -11,7 +11,11 @@ import { Popover } from "@kobalte/core/popover";
 import ColorPicker from "./ColorPicker";
 import Button from "./Button";
 import type { SidebarProps, TreeNode } from "~/types/Sidebar.types";
-import { buildDocumentTree, COLOR_PALETTE } from "~/utils/sidebar.utils";
+import {
+  buildDocumentTree,
+  buildFolderTree,
+  COLOR_PALETTE,
+} from "~/utils/sidebar.utils";
 import { getDisplayName } from "~/utils/document.utils";
 import { useNavigate } from "@solidjs/router";
 import AlertDialog from "./AlertDialog";
@@ -63,6 +67,22 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
   };
 
   const filteredTree = () => buildTree();
+
+  const folderOptions = createMemo(() => {
+    const result: { path: string; label: string }[] = [
+      { path: "/", label: "/ (root)" },
+    ];
+    const flatten = (nodes: ReturnType<typeof buildFolderTree>) => {
+      for (const node of nodes) {
+        const indent = "\u00A0\u00A0\u00A0\u00A0".repeat(node.depth);
+        const prefix = node.depth > 0 ? `${indent}└─ ` : "";
+        result.push({ path: node.path, label: `${prefix}${node.name}` });
+        if (node.children.length > 0) flatten(node.children);
+      }
+    };
+    flatten(buildFolderTree(props.documents));
+    return result;
+  });
 
   // Detect mobile view after mount to prevent hydration mismatch
   onMount(() => {
@@ -142,6 +162,10 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
   const TreeNode = (nodeProps: { node: TreeNode }) => {
     const isExpanded = () => props.expandedFolders.has(nodeProps.node.path);
     const paddingLeft = () => `${nodeProps.node.depth * 8}px`;
+    const isAncestorOfCurrent = () =>
+      nodeProps.node.type === "folder" &&
+      props.currentPath !== null &&
+      props.currentPath.startsWith(nodeProps.node.path + "/");
     const getBackgroundColor = () => {
       if (nodeProps.node.path === props.currentPath) {
         return (
@@ -160,7 +184,9 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           class={`group relative hover:bg-[var(--color-bg-elevated)] border-l-4 transition-colors rounded-md m-2 ${
             nodeProps.node.path === props.currentPath
               ? "border-l-primary"
-              : "border-l-transparent"
+              : isAncestorOfCurrent()
+                ? "border-l-primary/40"
+                : "border-l-transparent"
           } ${nodeProps.node.depth === 0 ? "mb-0" : ""}`}
           style={{
             "padding-left":
@@ -533,12 +559,10 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         onConfirm={handleCreateDocument}
         onCancel={() => {
           setNewDocName(getDefaultDocName());
+          setTargetFolder("/");
           setShowNewDocModal(false);
         }}
       >
-        <p class="text-[var(--color-text-secondary)] mb-3">
-          Creating in: {targetFolder()}
-        </p>
         <input
           ref={newDocInputRef}
           type="text"
@@ -546,8 +570,20 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           value={newDocName()}
           onInput={(e) => setNewDocName(e.currentTarget.value)}
           onKeyPress={(e) => e.key === "Enter" && handleCreateDocument()}
-          class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] mb-4"
+          class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] mb-3"
         />
+        <label class="block text-sm text-[var(--color-text-secondary)] mb-1">
+          Create in
+        </label>
+        <select
+          value={targetFolder()}
+          onChange={(e) => setTargetFolder(e.currentTarget.value)}
+          class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] mb-4 cursor-pointer"
+        >
+          <For each={folderOptions()}>
+            {(opt) => <option value={opt.path}>{opt.label}</option>}
+          </For>
+        </select>
       </AlertDialog>
 
       {/* New Folder Modal */}
