@@ -18,6 +18,7 @@ overrides:
   picomatch: ^4.0.4
   brace-expansion: ^2.0.3
   vite: ^6.4.2
+  defu: ^6.1.5
 
 importers:
 
@@ -2341,8 +2342,8 @@ packages:
     resolution: {integrity: sha512-Ds09qNh8yw3khSjiJjiUInaGX9xlqZDY7JVryGxdxV7NPeuqQfplOpQ66yJFZut3jLa5zOwkXw1g9EI2uKh4Og==}
     engines: {node: '>=8'}
 
-  defu@6.1.4:
-    resolution: {integrity: sha512-mEQCMmwJu317oSz8CwdIOdwf3xMif1ttiM8LTufzc3g6kR+9Pe236twL8j3IYT1F7GfRgGcW6MWxzZjLIkuHIg==}
+  defu@6.1.7:
+    resolution: {integrity: sha512-7z22QmUWiQ/2d0KkdYmANbRUVABpZ9SNYyH5vx6PZ+nE5bcC0l7uFvEfHlyld/HcGBFTL536ClDt3DEcSlEJAQ==}
 
   delaunator@5.0.1:
     resolution: {integrity: sha512-8nvh+XBe96aCESrGOqMp/84b13H9cdKbG5P2ejQCh4d4sK9RL4371qou9drQjMhvnPmhWl5hnmqbEE0fXr9Xnw==}
@@ -5411,7 +5412,7 @@ snapshots:
       '@vinxi/plugin-directives': 0.5.1(vinxi@0.5.11(db0@0.3.4)(ioredis@5.8.1)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
       '@vinxi/server-components': 0.5.1(vinxi@0.5.11(db0@0.3.4)(ioredis@5.8.1)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
       cookie-es: 2.0.0
-      defu: 6.1.4
+      defu: 6.1.7
       error-stack-parser: 2.1.4
       html-to-image: 1.11.13
       radix3: 1.1.2
@@ -5827,7 +5828,7 @@ snapshots:
       citty: 0.1.6
       clipboardy: 4.0.0
       consola: 3.4.2
-      defu: 6.1.4
+      defu: 6.1.7
       get-port-please: 3.2.0
       h3: 1.15.10
       http-shutdown: 1.2.2
@@ -6039,7 +6040,7 @@ snapshots:
     dependencies:
       chokidar: 4.0.3
       confbox: 0.2.2
-      defu: 6.1.4
+      defu: 6.1.7
       dotenv: 17.2.3
       exsolve: 1.0.7
       giget: 2.0.0
@@ -6405,7 +6406,7 @@ snapshots:
 
   define-lazy-prop@2.0.0: {}
 
-  defu@6.1.4: {}
+  defu@6.1.7: {}
 
   delaunator@5.0.1:
     dependencies:
@@ -6634,7 +6635,7 @@ snapshots:
     dependencies:
       citty: 0.1.6
       consola: 3.4.2
-      defu: 6.1.4
+      defu: 6.1.7
       node-fetch-native: 1.6.7
       nypm: 0.6.2
       pathe: 2.0.3
@@ -6675,7 +6676,7 @@ snapshots:
     dependencies:
       cookie-es: 1.2.2
       crossws: 0.3.5
-      defu: 6.1.4
+      defu: 6.1.7
       destr: 2.0.5
       iron-webcrypto: 1.2.1
       node-mock-http: 1.0.4
@@ -6905,7 +6906,7 @@ snapshots:
       clipboardy: 4.0.0
       consola: 3.4.2
       crossws: 0.3.5
-      defu: 6.1.4
+      defu: 6.1.7
       get-port-please: 3.2.0
       h3: 1.15.10
       http-shutdown: 1.2.2
@@ -7429,7 +7430,7 @@ snapshots:
       croner: 9.1.0
       crossws: 0.3.5
       db0: 0.3.4
-      defu: 6.1.4
+      defu: 6.1.7
       destr: 2.0.5
       dot-prop: 10.1.0
       esbuild: 0.25.11
@@ -7798,7 +7799,7 @@ snapshots:
 
   rc9@2.1.2:
     dependencies:
-      defu: 6.1.4
+      defu: 6.1.7
       destr: 2.0.5
 
   readable-stream@2.3.8:
@@ -8045,7 +8046,7 @@ snapshots:
 
   serve-placeholder@2.0.2:
     dependencies:
-      defu: 6.1.4
+      defu: 6.1.7
 
   serve-static@1.16.2:
     dependencies:
@@ -8304,7 +8305,7 @@ snapshots:
   unconfig@7.5.0:
     dependencies:
       '@quansync/fs': 1.0.0
-      defu: 6.1.4
+      defu: 6.1.7
       jiti: 2.6.1
       quansync: 1.0.0
       unconfig-core: 7.5.0
@@ -8323,14 +8324,14 @@ snapshots:
   unenv@1.10.0:
     dependencies:
       consola: 3.4.2
-      defu: 6.1.4
+      defu: 6.1.7
       mime: 3.0.0
       node-fetch-native: 1.6.7
       pathe: 1.1.2
 
   unenv@2.0.0-rc.21:
     dependencies:
-      defu: 6.1.4
+      defu: 6.1.7
       exsolve: 1.0.7
       ohash: 2.0.11
       pathe: 2.0.3
@@ -8457,7 +8458,7 @@ snapshots:
   untyped@2.0.0:
     dependencies:
       citty: 0.1.6
-      defu: 6.1.4
+      defu: 6.1.7
       jiti: 2.6.1
       knitwork: 1.2.0
       scule: 1.3.0
@@ -8519,7 +8520,7 @@ snapshots:
       consola: 3.4.2
       crossws: 0.3.5
       dax-sh: 0.43.2
-      defu: 6.1.4
+      defu: 6.1.7
       es-module-lexer: 1.7.0
       esbuild: 0.25.11
       get-port-please: 3.2.0
