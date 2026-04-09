@@ -78,7 +78,7 @@ Ready to get started? Head over to the [Self-Hosting Guide](/docs/self-hosting) 
 - [Hono](https://hono.dev/) - Ultra-fast web framework
 - [SQLite](https://www.sqlite.org/) via better-sqlite3
 - [Jose](https://github.com/panva/jose) for JWT handling
-- Node.js 22+
+- Node.js 22
 
 **Frontend**
 

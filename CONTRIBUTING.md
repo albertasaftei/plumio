@@ -38,7 +38,6 @@ docker-compose up -d
 
 - Frontend: 3000
 - Backend: 3001
-- Nginx (if enabled): 80, 443
 
 ### Data Storage
 
@@ -59,88 +58,11 @@ docker-compose up -d
 ### Backend
 
 - **Framework**: Hono (fast web framework)
-- **Runtime**: Node.js 22+
+- **Runtime**: Node.js 22
 - **Language**: TypeScript
 - **Authentication**: jose (JWT) + bcrypt
 - **Encryption**: Node.js crypto (AES-256-CBC)
 - **Build**: TypeScript compiler
-
-## Key Features
-
-### Frontend
-
-- **Authentication UI** ([src/routes/index.tsx](src/routes/index.tsx))
-  - Login/setup screen
-  - JWT token management
-
-- **Main Editor** ([src/routes/editor.tsx](src/routes/editor.tsx))
-  - Document management
-  - Auto-save functionality (1 second debounce)
-  - Save status indicators
-
-- **Markdown Editor Component** ([src/components/Editor.tsx](src/components/Editor.tsx))
-  - Live markdown preview as you type
-  - Syntax highlighting for code blocks (JavaScript, TypeScript, Python, CSS, JSON)
-  - Tab key support in editor
-
-- **Sidebar Component** ([src/components/Sidebar.tsx](src/components/Sidebar.tsx))
-  - File browser with folder support
-  - Search functionality
-  - Create new documents/folders
-  - Delete documents/folders
-  - File metadata display (modified date)
-  - Sorted display (folders first, alphabetical)
-
-### Backend
-
-- **Main Server** ([backend/src/index.ts](backend/src/index.ts))
-  - Hono framework setup
-  - CORS middleware
-  - Route mounting
-  - Auto-creates documents directory
-
-- **Authentication Routes** ([backend/src/routes/auth.ts](backend/src/routes/auth.ts))
-  - `/api/auth/check-setup` - Check if initial setup needed
-  - `/api/auth/setup` - Create first admin user
-  - `/api/auth/login` - Login and receive JWT
-  - Password hashing with bcrypt
-  - JWT token generation and verification
-  - Stores users in `auth.json`
-
-- **Document Routes** ([backend/src/routes/documents.ts](backend/src/routes/documents.ts))
-  - `/api/documents/list` - List files and folders
-  - `/api/documents/content` - Get document content (decrypted)
-  - `/api/documents/save` - Save document (encrypted)
-  - `/api/documents/folder` - Create folder
-  - `/api/documents/delete` - Delete file/folder
-  - `/api/documents/rename` - Rename/move file/folder
-  - AES-256-CBC encryption for all documents
-  - Path traversal protection
-  - JWT authentication middleware
-
-### Security Features
-
-1. **Encryption**
-   - All documents encrypted at rest with AES-256-CBC
-   - Unique initialization vector (IV) per document
-   - Configurable encryption key
-
-2. **Authentication**
-   - Bcrypt password hashing (10 rounds)
-   - JWT tokens with 7-day expiration
-   - Secure secret key
-   - Token verification on all protected endpoints
-
-3. **API Security**
-   - CORS protection
-   - Path sanitization (prevents directory traversal)
-   - Authentication middleware
-   - Input validation
-
-4. **Transport Security**
-   - Optional HTTPS via nginx reverse proxy
-   - SSL/TLS certificate support
-   - Security headers (HSTS, X-Frame-Options, etc.)
 
 ### Deployment Configuration
 
