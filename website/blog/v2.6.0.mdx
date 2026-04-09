@@ -1,0 +1,32 @@
+---
+slug: v2.6.0
+title: v2.6.0
+authors: [alburt]
+date: 2026-04-09
+tags: [release, minor]
+---
+
+Version <span style={{color: "#2a9d8f", fontWeight: "bold"}}>2.6.0</span> of plumio is here!
+
+{/* truncate */}
+
+This release includes:
+
+### Major highlights
+
+- Added <span style={{color: "#2a9d8f", fontWeight: "bold"}}>drag-and-drop</span> support for reordering documents and folders in the sidebar.
+- <span style={{color: "#2a9d8f", fontWeight: "bold"}}>Mermaid diagrams</span> now have an <span style={{color: "#2a9d8f", fontWeight: "bold"}}>interactive preview mode</span> in the editor, allowing you to pan and zoom the diagram for better readability. You can also open the diagram in a <span style={{color: "#2a9d8f", fontWeight: "bold"}}>fullscreen viewer</span> for an even more immersive experience.
+- Enforced filename sanitization to prevent issues with user-typed names containing slashes (e.g. dates like "01/04/2026") creating unintended subdirectories. All slashes in document and folder names are now replaced with dashes.
+- Added a <span style={{color: "#2a9d8f", fontWeight: "bold"}}>notification badge</span> to the settings icon when a new version is available, making it easier for users to stay up-to-date with the latest features and improvements.
+  - This requires an api call to check for the latest version. If the environment is isolated, blocking outbound requests, the badge won't be shown.
+- <span style={{color: "#2a9d8f", fontWeight: "bold"}}>Right clicking on sidebar items</span> now opens the options menu for that item, providing a more intuitive way to access item-specific actions.
+- New note modal now allows users to select which folder to create the note in.
+- Users can now export their documents unencrypted as well.
+- Restyled sidebar list items to be more compact.
+- Added default document name with date and time.
+
+### Security
+
+- Updated dependencies to fix security vulnerabilities.
+
+Thank you for using plumio! 🎉
