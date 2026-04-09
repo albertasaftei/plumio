@@ -17,6 +17,7 @@ overrides:
   serialize-javascript: ^7.0.5
   picomatch: ^4.0.4
   brace-expansion: ^2.0.3
+  vite: ^6.4.2
 
 importers:
 
@@ -84,7 +85,7 @@ importers:
         version: 0.15.4(solid-js@1.9.11)
       '@solidjs/start':
         specifier: ^1.3.2
-        version: 1.3.2(solid-js@1.9.11)(vinxi@0.5.11(db0@0.3.4)(ioredis@5.8.1)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))(vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
+        version: 1.3.2(solid-js@1.9.11)(vinxi@0.5.11(db0@0.3.4)(ioredis@5.8.1)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))(vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
       '@types/lodash-es':
         specifier: ^4.17.12
         version: 4.17.12
@@ -107,8 +108,8 @@ importers:
         specifier: ^0.16.40
         version: 0.16.40
       lodash-es:
-        specifier: ^4.17.23
-        version: 4.17.23
+        specifier: ^4.18.1
+        version: 4.18.1
       mdast-util-from-markdown:
         specifier: ^2.0.2
         version: 2.0.2
@@ -141,7 +142,7 @@ importers:
         version: 5.1.0
       unocss:
         specifier: ^66.6.6
-        version: 66.6.6(vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
+        version: 66.6.6(vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
       vinxi:
         specifier: ^0.5.11
         version: 0.5.11(db0@0.3.4)(ioredis@5.8.1)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)
@@ -1509,7 +1510,7 @@ packages:
     resolution: {integrity: sha512-B9z/HbF7gJBaRHieyX7f2uQ4LpLLAVAEutBZipH6w+CYD6RHRJvSVPzECGHF7icFhNWTiJQL2QR6K07s59yzEw==}
     engines: {node: '>=12'}
     peerDependencies:
-      vite: '>=6.0.0'
+      vite: ^6.4.2
 
   '@tanstack/router-utils@1.133.3':
     resolution: {integrity: sha512-miPFlt0aG6ID5VDolYuRXgLS7cofvbZGMvHwf2Wmyxjo6GLp/kxxpkQrfM4T1I5cwjwYZZAQmdUKbVHwFZz9sQ==}
@@ -1748,7 +1749,7 @@ packages:
   '@unocss/vite@66.6.6':
     resolution: {integrity: sha512-DgG7KcUUMtoDhPOlFf2l4dR+66xZ23SdZvTYpikk5nZfLCzZd62vedutD7x0bTR6VpK2YRq39B+F+Z6TktNY/w==}
     peerDependencies:
-      vite: ^2.9.0 || ^3.0.0-0 || ^4.0.0 || ^5.0.0-0 || ^6.0.0-0 || ^7.0.0-0 || ^8.0.0-0
+      vite: ^6.4.2
 
   '@upsetjs/venn.js@2.0.0':
     resolution: {integrity: sha512-WbBhLrooyePuQ1VZxrJjtLvTc4NVfpOyKx0sKqioq9bX1C1m7Jgykkn8gLrtwumBioXIqam8DLxp88Adbue6Hw==}
@@ -2574,8 +2575,8 @@ packages:
     resolution: {integrity: sha512-VaUJspBffn/LMCJVoMvSAdmscJyS1auj5Zulnn5UoYcY531UWmdwhRWkcGKnGU93m5HSXP9LP2usOryrBtQowA==}
     engines: {node: '>=16'}
 
-  get-tsconfig@4.13.6:
-    resolution: {integrity: sha512-shZT/QMiSHc/YBLxxOkMtgSid5HFoauqCE3/exfsEcwg1WkeqjG+V40yBbBrsD+jW2HDXcs28xOfcbm2jI8Ddw==}
+  get-tsconfig@4.13.7:
+    resolution: {integrity: sha512-7tN6rFgBlMgpBML5j8typ92BKFi2sFQvIdpAqLA2beia5avZDrMs0FLZiM5etShWq5irVyGcGMEA1jcDaK7A/Q==}
 
   giget@2.0.0:
     resolution: {integrity: sha512-L5bGsVkxJbJgdnwyuheIunkGatUF/zssUoxxjACCseZYAVbaqdh9Tsmmlkl8vYan09H7sbvKt4pS8GqKLBrEzA==}
@@ -2851,14 +2852,17 @@ packages:
   lodash-es@4.17.23:
     resolution: {integrity: sha512-kVI48u3PZr38HdYz98UmfPnXl2DXrpdctLrFLCd3kOx1xUkOmpFPx7gCWWM5MPkL/fD8zb+Ph0QzjGFs4+hHWg==}
 
+  lodash-es@4.18.1:
+    resolution: {integrity: sha512-J8xewKD/Gk22OZbhpOVSwcs60zhd95ESDwezOFuA3/099925PdHJ7OFHNTGtajL3AlZkykD32HykiMo+BIBI8A==}
+
   lodash.defaults@4.2.0:
     resolution: {integrity: sha512-qjxPLHd3r5DnsdGacqOMU6pb/avJzdh9tFX2ymgoZE27BmjXrNy/y4LoaiTeAb+O3gL8AfpJGtqfX/ae2leYYQ==}
 
   lodash.isarguments@3.1.0:
     resolution: {integrity: sha512-chi4NHZlZqZD18a0imDHnZPrDeBbTtVN7GXMwuGdRH9qotxAjYs3aVLKc7zNOG9eddR5Ksd8rvFEBc9SsggPpg==}
 
-  lodash@4.17.23:
-    resolution: {integrity: sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==}
+  lodash@4.18.1:
+    resolution: {integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==}
 
   longest-streak@3.1.0:
     resolution: {integrity: sha512-9Ri+o0JYgehTaVBBDoMqIl8GXtbWg711O3srftcHhZ0dqnETqLaoIK0x17fUw9rFSlK/0NlsKe0Ahhyl5pXE2g==}
@@ -3978,13 +3982,13 @@ packages:
     peerDependencies:
       '@testing-library/jest-dom': ^5.16.6 || ^5.17.0 || ^6.*
       solid-js: ^1.7.2
-      vite: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0
+      vite: ^6.4.2
     peerDependenciesMeta:
       '@testing-library/jest-dom':
         optional: true
 
-  vite@6.4.1:
-    resolution: {integrity: sha512-+Oxm7q9hDoLMyJOYfUYBuHQo+dkAloi33apOPP56pzj+vsdJDzr+j1NISE5pyaAuKL4A3UD34qd0lx5+kfKp2g==}
+  vite@6.4.2:
+    resolution: {integrity: sha512-2N/55r4JDJ4gdrCvGgINMy+HH3iRpNIz8K6SFwVsA+JbQScLiC+clmAxBgwiSPgcG9U15QmvqCGWzMbqda5zGQ==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
     peerDependencies:
@@ -4026,7 +4030,7 @@ packages:
   vitefu@1.1.2:
     resolution: {integrity: sha512-zpKATdUbzbsycPFBN71nS2uzBUQiVnFoOrr2rvqv34S1lcAgMKKkjWleLGeiJlZ8lwCXvtWaRn7R3ZC16SYRuw==}
     peerDependencies:
-      vite: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-beta.0
+      vite: ^6.4.2
     peerDependenciesMeta:
       vite:
         optional: true
@@ -4803,7 +4807,7 @@ snapshots:
       '@milkdown/ctx': 7.18.0
       '@milkdown/prose': 7.18.0
       '@types/lodash-es': 4.17.12
-      lodash-es: 4.17.23
+      lodash-es: 4.18.1
     transitivePeerDependencies:
       - supports-color
 
@@ -4839,7 +4843,7 @@ snapshots:
       '@milkdown/prose': 7.18.0
       '@milkdown/utils': 7.18.0
       '@types/lodash-es': 4.17.12
-      lodash-es: 4.17.23
+      lodash-es: 4.18.1
     transitivePeerDependencies:
       - supports-color
 
@@ -5401,9 +5405,9 @@ snapshots:
     dependencies:
       solid-js: 1.9.11
 
-  '@solidjs/start@1.3.2(solid-js@1.9.11)(vinxi@0.5.11(db0@0.3.4)(ioredis@5.8.1)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))(vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))':
+  '@solidjs/start@1.3.2(solid-js@1.9.11)(vinxi@0.5.11(db0@0.3.4)(ioredis@5.8.1)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))(vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))':
     dependencies:
-      '@tanstack/server-functions-plugin': 1.121.21(vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
+      '@tanstack/server-functions-plugin': 1.121.21(vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
       '@vinxi/plugin-directives': 0.5.1(vinxi@0.5.11(db0@0.3.4)(ioredis@5.8.1)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
       '@vinxi/server-components': 0.5.1(vinxi@0.5.11(db0@0.3.4)(ioredis@5.8.1)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
       cookie-es: 2.0.0
@@ -5418,7 +5422,7 @@ snapshots:
       terracotta: 1.0.6(solid-js@1.9.11)
       tinyglobby: 0.2.15
       vinxi: 0.5.11(db0@0.3.4)(ioredis@5.8.1)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)
-      vite-plugin-solid: 2.11.10(solid-js@1.9.11)(vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
+      vite-plugin-solid: 2.11.10(solid-js@1.9.11)(vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
     transitivePeerDependencies:
       - '@testing-library/jest-dom'
       - solid-js
@@ -5431,7 +5435,7 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@tanstack/directive-functions-plugin@1.121.21(vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))':
+  '@tanstack/directive-functions-plugin@1.121.21(vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))':
     dependencies:
       '@babel/code-frame': 7.26.2
       '@babel/core': 7.28.4
@@ -5440,7 +5444,7 @@ snapshots:
       '@tanstack/router-utils': 1.133.3
       babel-dead-code-elimination: 1.0.10
       tiny-invariant: 1.3.3
-      vite: 6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)
+      vite: 6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)
     transitivePeerDependencies:
       - supports-color
 
@@ -5457,7 +5461,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tanstack/server-functions-plugin@1.121.21(vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))':
+  '@tanstack/server-functions-plugin@1.121.21(vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))':
     dependencies:
       '@babel/code-frame': 7.26.2
       '@babel/core': 7.28.4
@@ -5466,7 +5470,7 @@ snapshots:
       '@babel/template': 7.27.2
       '@babel/traverse': 7.28.4
       '@babel/types': 7.28.4
-      '@tanstack/directive-functions-plugin': 1.121.21(vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
+      '@tanstack/directive-functions-plugin': 1.121.21(vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
       babel-dead-code-elimination: 1.0.10
       tiny-invariant: 1.3.3
     transitivePeerDependencies:
@@ -5779,7 +5783,7 @@ snapshots:
     dependencies:
       '@unocss/core': 66.6.6
 
-  '@unocss/vite@66.6.6(vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))':
+  '@unocss/vite@66.6.6(vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))':
     dependencies:
       '@jridgewell/remapping': 2.3.5
       '@unocss/config': 66.6.6
@@ -5790,7 +5794,7 @@ snapshots:
       pathe: 2.0.3
       tinyglobby: 0.2.15
       unplugin-utils: 0.3.1
-      vite: 6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)
+      vite: 6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)
 
   '@upsetjs/venn.js@2.0.0':
     optionalDependencies:
@@ -5915,7 +5919,7 @@ snapshots:
       graceful-fs: 4.2.11
       is-stream: 2.0.1
       lazystream: 1.0.1
-      lodash: 4.17.23
+      lodash: 4.18.1
       normalize-path: 3.0.0
       readable-stream: 4.7.0
 
@@ -6071,7 +6075,7 @@ snapshots:
   chevrotain-allstar@0.3.1(chevrotain@11.1.2):
     dependencies:
       chevrotain: 11.1.2
-      lodash-es: 4.17.23
+      lodash-es: 4.18.1
 
   chevrotain@11.1.2:
     dependencies:
@@ -6374,7 +6378,7 @@ snapshots:
   dagre-d3-es@7.0.14:
     dependencies:
       d3: 7.9.0
-      lodash-es: 4.17.23
+      lodash-es: 4.18.1
 
   dax-sh@0.43.2:
     dependencies:
@@ -6526,7 +6530,6 @@ snapshots:
       '@esbuild/win32-arm64': 0.25.12
       '@esbuild/win32-ia32': 0.25.12
       '@esbuild/win32-x64': 0.25.12
-    optional: true
 
   escalade@3.2.0: {}
 
@@ -6622,7 +6625,7 @@ snapshots:
 
   get-stream@8.0.1: {}
 
-  get-tsconfig@4.13.6:
+  get-tsconfig@4.13.7:
     dependencies:
       resolve-pkg-maps: 1.0.0
     optional: true
@@ -6923,11 +6926,13 @@ snapshots:
 
   lodash-es@4.17.23: {}
 
+  lodash-es@4.18.1: {}
+
   lodash.defaults@4.2.0: {}
 
   lodash.isarguments@3.1.0: {}
 
-  lodash@4.17.23: {}
+  lodash@4.18.1: {}
 
   longest-streak@3.1.0: {}
 
@@ -7130,7 +7135,7 @@ snapshots:
       dompurify: 3.3.3
       katex: 0.16.40
       khroma: 2.1.0
-      lodash-es: 4.17.23
+      lodash-es: 4.18.1
       marked: 16.4.2
       roughjs: 4.6.6
       stylis: 4.3.6
@@ -8272,7 +8277,7 @@ snapshots:
   tsx@4.20.6:
     dependencies:
       esbuild: 0.25.12
-      get-tsconfig: 4.13.6
+      get-tsconfig: 4.13.7
     optionalDependencies:
       fsevents: 2.3.3
     optional: true
@@ -8388,7 +8393,7 @@ snapshots:
       unist-util-is: 6.0.1
       unist-util-visit-parents: 6.0.2
 
-  unocss@66.6.6(vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)):
+  unocss@66.6.6(vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)):
     dependencies:
       '@unocss/cli': 66.6.6
       '@unocss/core': 66.6.6
@@ -8406,7 +8411,7 @@ snapshots:
       '@unocss/transformer-compile-class': 66.6.6
       '@unocss/transformer-directives': 66.6.6
       '@unocss/transformer-variant-group': 66.6.6
-      '@unocss/vite': 66.6.6(vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
+      '@unocss/vite': 66.6.6(vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
     transitivePeerDependencies:
       - vite
 
@@ -8535,7 +8540,7 @@ snapshots:
       unctx: 2.4.1
       unenv: 1.10.0
       unstorage: 1.17.1(db0@0.3.4)(ioredis@5.8.1)
-      vite: 6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)
+      vite: 6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)
       zod: 4.3.6
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -8582,7 +8587,7 @@ snapshots:
       - xml2js
       - yaml
 
-  vite-plugin-solid@2.11.10(solid-js@1.9.11)(vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)):
+  vite-plugin-solid@2.11.10(solid-js@1.9.11)(vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)):
     dependencies:
       '@babel/core': 7.29.0
       '@types/babel__core': 7.20.5
@@ -8590,14 +8595,14 @@ snapshots:
       merge-anything: 5.1.7
       solid-js: 1.9.11
       solid-refresh: 0.6.3(solid-js@1.9.11)
-      vite: 6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)
-      vitefu: 1.1.2(vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
+      vite: 6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)
+      vitefu: 1.1.2(vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6))
     transitivePeerDependencies:
       - supports-color
 
-  vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6):
+  vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6):
     dependencies:
-      esbuild: 0.25.11
+      esbuild: 0.25.12
       fdir: 6.5.0(picomatch@4.0.4)
       picomatch: 4.0.4
       postcss: 8.5.8
@@ -8609,9 +8614,9 @@ snapshots:
       terser: 5.44.0
       tsx: 4.20.6
 
-  vitefu@1.1.2(vite@6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)):
+  vitefu@1.1.2(vite@6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)):
     optionalDependencies:
-      vite: 6.4.1(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)
+      vite: 6.4.2(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)
 
   vscode-jsonrpc@8.2.0: {}
 
