@@ -4,6 +4,8 @@ import presetIcons from "@unocss/preset-icons";
 import presetTypography from "@unocss/preset-typography";
 
 export default defineConfig({
+  // Icon classes only used as JS string args (not in class="...") need safelisting
+  safelist: ["i-carbon-fit-to-screen"],
   shortcuts: {
     // ─── Semantic background tokens ──────────────────────────────
     "bg-base": "bg-[var(--color-bg-base)]",
@@ -28,7 +30,6 @@ export default defineConfig({
       },
     }),
   ],
-  darkMode: "class", // Enable class-based dark mode
   theme: {
     colors: {
       // Brand colors — driven by CSS custom properties so themes can override
