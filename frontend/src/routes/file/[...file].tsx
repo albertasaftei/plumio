@@ -1,4 +1,11 @@
-import { createSignal, Show, lazy, Suspense, createEffect } from "solid-js";
+import {
+  createSignal,
+  Show,
+  lazy,
+  Suspense,
+  createEffect,
+  onCleanup,
+} from "solid-js";
 import { useParams, useNavigate } from "@solidjs/router";
 import { api } from "~/lib/api";
 import Editor from "~/components/Editor";
@@ -19,6 +26,7 @@ export default function DocumentPage() {
   >("saved");
 
   let saveTimeout: ReturnType<typeof setTimeout>;
+  onCleanup(() => clearTimeout(saveTimeout));
 
   // Get the full path from params
   const getDocumentPath = () => {

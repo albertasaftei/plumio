@@ -70,7 +70,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
 
   // Validate session and load documents on mount
   onMount(async () => {
-    setSidebarOpen(!isMobile());
+    setSidebarOpen(!isMobile(1024));
 
     // In demo mode, skip session validation
     if (!isDemoMode) {
@@ -103,6 +103,25 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     return decodeURIComponent(pathname.replace(/^\/file/, ""));
   });
 
+  // #5: Encode a filesystem path into a URL-safe /file/... path
+  const encodePath = (path: string) =>
+    path.split("/").map(encodeURIComponent).join("/");
+
+  // #6: Navigate to a new path only when that path is currently being viewed
+  const navigateIfViewing = (oldPath: string, newPath: string) => {
+    if (window.location.pathname === `/file${encodePath(oldPath)}`) {
+      navigate(`/file${encodePath(newPath)}`);
+    }
+  };
+
+  // #7: Navigate and auto-close sidebar on mobile
+  const navigateAndClose = (route: string) => {
+    navigate(route);
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
+  };
+
   const createNewDocument = async (name: string, folderPath = "/") => {
     try {
       const result = await api.saveDocument(
@@ -113,12 +132,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
         name,
       );
       await loadAllDocuments();
-      // Navigate to the new document
-      const encodedPath = result.path
-        .split("/")
-        .map(encodeURIComponent)
-        .join("/");
-      navigate(`/file${encodedPath}`);
+      navigate(`/file${encodePath(result.path)}`);
     } catch (error) {
       console.error("Failed to create document:", error);
     }
@@ -150,11 +164,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     try {
       await api.deleteItem(path);
       await loadAllDocuments();
-      // If we're viewing the deleted item, go to homepage
-      const encodedPath = path.split("/").map(encodeURIComponent).join("/");
-      if (window.location.pathname === `/file${encodedPath}`) {
-        navigate(routes.homepage);
-      }
+      navigateIfViewing(path, routes.homepage);
     } catch (error) {
       console.error("Failed to delete item:", error);
     } finally {
@@ -166,19 +176,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     try {
       const result = await api.renameItem(oldPath, newName);
       await loadAllDocuments();
-
-      // If we're viewing the renamed item, navigate to the new path
-      const oldEncodedPath = oldPath
-        .split("/")
-        .map(encodeURIComponent)
-        .join("/");
-      if (window.location.pathname === `/file${oldEncodedPath}`) {
-        const newEncodedPath = result.newPath
-          .split("/")
-          .map(encodeURIComponent)
-          .join("/");
-        navigate(`/file${newEncodedPath}`);
-      }
+      navigateIfViewing(oldPath, result.newPath);
     } catch (error) {
       console.error("Failed to rename item:", error);
       const message =
@@ -191,11 +189,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     try {
       await api.archiveDocument(path);
       await loadAllDocuments();
-      // If we're viewing the archived item, go to homepage
-      const encodedPath = path.split("/").map(encodeURIComponent).join("/");
-      if (window.location.pathname === `/file${encodedPath}`) {
-        navigate(routes.homepage);
-      }
+      navigateIfViewing(path, routes.homepage);
     } catch (error) {
       console.error("Failed to archive item:", error);
     }
@@ -205,19 +199,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     try {
       const result = await api.moveItem(sourcePath, destinationFolder);
       await loadAllDocuments();
-
-      // If we're viewing the moved item, navigate to its new path
-      const oldEncodedPath = sourcePath
-        .split("/")
-        .map(encodeURIComponent)
-        .join("/");
-      if (window.location.pathname === `/file${oldEncodedPath}`) {
-        const newEncodedPath = result.newPath
-          .split("/")
-          .map(encodeURIComponent)
-          .join("/");
-        navigate(`/file${newEncodedPath}`);
-      }
+      navigateIfViewing(sourcePath, result.newPath);
     } catch (error) {
       console.error("Failed to move item:", error);
     }
@@ -240,20 +222,8 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     try {
       const result = await api.reorderItem(sourcePath, targetPath, operation);
       await loadAllDocuments();
-
-      // If the item was moved (make-child or cross-folder), navigate if we're viewing it
       if (result.newPath) {
-        const oldEncodedPath = sourcePath
-          .split("/")
-          .map(encodeURIComponent)
-          .join("/");
-        if (window.location.pathname === `/file${oldEncodedPath}`) {
-          const newEncodedPath = result.newPath
-            .split("/")
-            .map(encodeURIComponent)
-            .join("/");
-          navigate(`/file${newEncodedPath}`);
-        }
+        navigateIfViewing(sourcePath, result.newPath);
       }
     } catch (error) {
       console.error("Failed to reorder item:", error);
@@ -326,17 +296,9 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
               setSidebarOpen={setSidebarOpen}
               saveStatus="saved"
               expandedFolders={expandedFolders()}
-              onSelectDocument={(path) => {
-                // Encode the path to handle spaces and special characters
-                const encodedPath = path
-                  .split("/")
-                  .map(encodeURIComponent)
-                  .join("/");
-                navigate(`/file${encodedPath}`);
-                if (window.innerWidth < 1024) {
-                  setSidebarOpen(false);
-                }
-              }}
+              onSelectDocument={(path) =>
+                navigateAndClose(`/file${encodePath(path)}`)
+              }
               onCreateDocument={createNewDocument}
               onCreateFolder={createNewFolder}
               onDeleteItem={deleteItem}
@@ -349,36 +311,11 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
               onArchiveItem={archiveItem}
               onDuplicateItem={duplicateItem}
               onReorderItem={reorderItem}
-              onViewHome={() => {
-                navigate(routes.homepage);
-                if (window.innerWidth < 1024) {
-                  setSidebarOpen(false);
-                }
-              }}
-              onViewArchive={() => {
-                navigate(routes.archive);
-                if (window.innerWidth < 1024) {
-                  setSidebarOpen(false);
-                }
-              }}
-              onViewDeleted={() => {
-                navigate(routes.deleted);
-                if (window.innerWidth < 1024) {
-                  setSidebarOpen(false);
-                }
-              }}
-              onViewSearch={() => {
-                navigate(routes.search);
-                if (window.innerWidth < 1024) {
-                  setSidebarOpen(false);
-                }
-              }}
-              onViewTags={() => {
-                navigate(routes.tags);
-                if (window.innerWidth < 1024) {
-                  setSidebarOpen(false);
-                }
-              }}
+              onViewHome={() => navigateAndClose(routes.homepage)}
+              onViewArchive={() => navigateAndClose(routes.archive)}
+              onViewDeleted={() => navigateAndClose(routes.deleted)}
+              onViewSearch={() => navigateAndClose(routes.search)}
+              onViewTags={() => navigateAndClose(routes.tags)}
             />
           )}
 

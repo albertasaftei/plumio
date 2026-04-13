@@ -123,13 +123,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     onCleanup(() => window.removeEventListener("resize", checkMobile));
   });
 
-  onMount(() => {
-    api
-      .checkVersion()
-      .then(setVersionInfo)
-      .catch(() => {});
-  });
-
   const refreshTags = async () => {
     try {
       const [tagsResult, mappingsResult] = await Promise.all([
@@ -144,6 +137,10 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
   };
 
   onMount(() => {
+    api
+      .checkVersion()
+      .then(setVersionInfo)
+      .catch(() => {});
     refreshTags();
   });
 
@@ -238,7 +235,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     setShowRenameModal(false);
   };
 
-  const modalActions: any = {
+  const modalActions = {
     setShowNewDocModal,
     setShowNewFolderModal,
     setShowRenameModal,
