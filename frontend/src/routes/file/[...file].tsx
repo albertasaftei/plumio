@@ -36,12 +36,18 @@ export default function DocumentPage() {
       }
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
-    onCleanup(() => window.removeEventListener("beforeunload", handleBeforeUnload));
+    onCleanup(() =>
+      window.removeEventListener("beforeunload", handleBeforeUnload),
+    );
   });
 
   useBeforeLeave((e) => {
     if (saveStatus() === "unsaved" || saveStatus() === "saving") {
-      if (!window.confirm("You have unsaved changes that may be lost. Leave anyway?")) {
+      if (
+        !window.confirm(
+          "You have unsaved changes that may be lost. Leave anyway?",
+        )
+      ) {
         e.preventDefault();
       }
     }

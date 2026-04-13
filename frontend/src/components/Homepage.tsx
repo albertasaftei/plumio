@@ -1,10 +1,13 @@
 import { For, Show, createSignal, onMount } from "solid-js";
 import { api, type Document } from "~/lib/api";
+import type { Tag } from "~/types/Tag.types";
 import { getDisplayName } from "~/utils/document.utils";
 import { formatRelativeDate } from "~/utils/date.utils";
 
 interface HomepageProps {
   documents: Document[];
+  tags: Tag[];
+  tagMappings: Record<string, number[]>;
   onSelectDocument: (path: string) => void;
 }
 
@@ -126,6 +129,8 @@ export default function Homepage(props: HomepageProps) {
               onSelect={props.onSelectDocument}
               formatDate={formatRelativeDate}
               formatSize={formatSize}
+              tags={props.tags}
+              tagMappings={props.tagMappings}
             />
           }
         >
@@ -188,6 +193,8 @@ export default function Homepage(props: HomepageProps) {
               onSelect={props.onSelectDocument}
               formatDate={formatRelativeDate}
               formatSize={formatSize}
+              tags={props.tags}
+              tagMappings={props.tagMappings}
             />
           </div>
         </Show>
@@ -224,7 +231,18 @@ function RecentSection(props: {
   onSelect: (path: string) => void;
   formatDate: (d: string) => string;
   formatSize: (b: number) => string;
+  tags: Tag[];
+  tagMappings: Record<string, number[]>;
 }) {
+  const MAX_VISIBLE = 3;
+
+  const getDocTags = (path: string): Tag[] => {
+    const ids = props.tagMappings[path] || [];
+    return ids
+      .map((id) => props.tags.find((t) => t.id === id))
+      .filter((t): t is Tag => t !== undefined);
+  };
+
   return (
     <section>
       <SectionLabel icon="i-carbon-recently-viewed" label="Recently edited" />
@@ -278,6 +296,36 @@ function RecentSection(props: {
                       <span>{parentFolder((doc as any).path)}</span>
                     </div>
                   </Show>
+                  {/* Tags */}
+                  {(() => {
+                    const docTags = getDocTags((doc as any).path);
+                    if (docTags.length === 0) return null;
+                    const visible = docTags.slice(0, MAX_VISIBLE);
+                    const overflow = docTags.length - visible.length;
+                    return (
+                      <div class="flex flex-wrap items-center gap-1 mt-1.5 pl-5">
+                        <For each={visible}>
+                          {(tag) => (
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] border border-[var(--color-border)]">
+                              <span
+                                class="w-2 h-2 rounded-full flex-shrink-0"
+                                style={{
+                                  "background-color":
+                                    tag.color ?? "var(--color-text-muted)",
+                                }}
+                              />
+                              {tag.name}
+                            </span>
+                          )}
+                        </For>
+                        {overflow > 0 && (
+                          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] text-[var(--color-text-muted)] bg-[var(--color-bg-elevated)] border border-[var(--color-border)]">
+                            +{overflow}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Size — hidden on mobile */}
