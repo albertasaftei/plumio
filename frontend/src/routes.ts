@@ -7,4 +7,5 @@ export const routes = {
   deleted: "/deleted",
   search: "/search",
   settings: "/settings",
+  tags: "/tags",
 } as const;

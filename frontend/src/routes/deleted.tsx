@@ -142,8 +142,9 @@ export default function DeletedPage() {
                       </Button>
                       <Button
                         onClick={() => setDeleteConfirm(doc.path)}
-                        variant="danger"
+                        variant="secondary"
                         size="sm"
+                        class="text-red-500 hover:text-red-400"
                       >
                         <div class="i-carbon-trash-can w-4 h-4" />
                       </Button>

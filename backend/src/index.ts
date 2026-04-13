@@ -11,6 +11,7 @@ import { attachmentsRouter } from "./routes/attachments/index.js";
 import { authRouter } from "./routes/auth/index.js";
 import { adminRouter } from "./routes/admin/index.js";
 import { organizationsRouter } from "./routes/organizations/index.js";
+import { tagsRouter } from "./routes/tags/index.js";
 import { UserJWTPayload } from "./middlewares/auth.types.js";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -150,6 +151,7 @@ app.route("/api/auth/admin", adminRouter);
 app.route("/api/organizations", organizationsRouter);
 app.route("/api/documents", documentsRouter);
 app.route("/api/attachments", attachmentsRouter);
+app.route("/api/tags", tagsRouter);
 
 // Initialize documents directory
 const documentsPath = process.env.DOCUMENTS_PATH || "./documents";

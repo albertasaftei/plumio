@@ -740,6 +740,92 @@ export class ApiClient {
       releaseUrl: result.releaseUrl,
     };
   }
+
+  // Tags
+  async listTags() {
+    return this.request<{
+      tags: Array<{
+        id: number;
+        name: string;
+        color: string | null;
+        description: string | null;
+        created_at: string;
+        updated_at: string;
+        document_count: number;
+      }>;
+    }>("/api/tags");
+  }
+
+  async createTag(
+    name: string,
+    color?: string | null,
+    description?: string | null,
+  ) {
+    return this.request<{
+      tag: {
+        id: number;
+        name: string;
+        color: string | null;
+        description: string | null;
+      };
+    }>("/api/tags", {
+      method: "POST",
+      body: JSON.stringify({ name, color, description }),
+    });
+  }
+
+  async updateTag(
+    id: number,
+    data: { name?: string; color?: string | null; description?: string | null },
+  ) {
+    return this.request<{
+      tag: {
+        id: number;
+        name: string;
+        color: string | null;
+        description: string | null;
+      };
+    }>(`/api/tags/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteTag(id: number) {
+    return this.request(`/api/tags/${id}`, { method: "DELETE" });
+  }
+
+  async getDocumentTags(path: string) {
+    return this.request<{
+      tags: Array<{ id: number; name: string; color: string | null }>;
+    }>(`/api/tags/document?path=${encodeURIComponent(path)}`);
+  }
+
+  async setDocumentTags(path: string, tagIds: number[]) {
+    return this.request<{
+      tags: Array<{ id: number; name: string; color: string | null }>;
+    }>("/api/tags/document", {
+      method: "POST",
+      body: JSON.stringify({ path, tagIds }),
+    });
+  }
+
+  async bulkTag(
+    documentPaths: string[],
+    tagId: number,
+    action: "add" | "remove",
+  ) {
+    return this.request<{ message: string }>("/api/tags/bulk", {
+      method: "POST",
+      body: JSON.stringify({ documentPaths, tagId, action }),
+    });
+  }
+
+  async getTagMappings() {
+    return this.request<{ mappings: Record<string, number[]> }>(
+      "/api/tags/mappings",
+    );
+  }
 }
 
 // Conditional API client - uses demo client in demo mode, otherwise real API client

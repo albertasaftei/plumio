@@ -373,6 +373,12 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
                   setSidebarOpen(false);
                 }
               }}
+              onViewTags={() => {
+                navigate(routes.tags);
+                if (window.innerWidth < 1024) {
+                  setSidebarOpen(false);
+                }
+              }}
             />
           )}
 

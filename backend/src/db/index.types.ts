@@ -59,3 +59,25 @@ export interface DocumentMetadata {
   color?: string;
   favorite?: boolean;
 }
+
+export interface Tag {
+  id: number;
+  user_id: number;
+  organization_id: number;
+  name: string;
+  color: string | null;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DocumentTag {
+  id: number;
+  document_id: number;
+  tag_id: number;
+  created_at: string;
+}
+
+export interface TagWithCount extends Tag {
+  document_count: number;
+}

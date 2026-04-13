@@ -28,6 +28,7 @@ export interface SidebarProps {
   onViewArchive: () => void;
   onViewDeleted: () => void;
   onViewSearch: () => void;
+  onViewTags: () => void;
 }
 
 export interface TreeNode extends Document {

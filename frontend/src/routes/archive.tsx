@@ -109,9 +109,10 @@ export default function ArchivePage() {
 
                   <Button
                     onClick={() => setDeleteConfirm(doc.path)}
-                    variant="danger"
+                    variant="secondary"
                     size="sm"
                     title="Delete permanently"
+                    class="text-red-500 hover:text-red-400"
                   >
                     <div class="i-carbon-trash-can w-4 h-4" />
                   </Button>

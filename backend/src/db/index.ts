@@ -9,6 +9,8 @@ import {
   Organization,
   OrganizationMember,
   Session,
+  Tag,
+  TagWithCount,
   User,
 } from "./index.types.js";
 import fsp from "fs/promises";
@@ -376,6 +378,100 @@ export const settingsQueries = {
   getAll: db.prepare<[], { key: string; value: string }>(
     "SELECT key, value FROM settings ORDER BY key ASC",
   ),
+};
+
+// === Tag Queries ===
+export const tagQueries = {
+  create: db.prepare<[number, number, string, string | null, string | null]>(
+    "INSERT INTO tags (user_id, organization_id, name, color, description) VALUES (?, ?, ?, ?, ?)",
+  ),
+  update: db.prepare<[string, string | null, string | null, number, number]>(
+    "UPDATE tags SET name = ?, color = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?",
+  ),
+  delete: db.prepare<[number, number]>(
+    "DELETE FROM tags WHERE id = ? AND user_id = ?",
+  ),
+  findById: db.prepare<[number, number], Tag>(
+    "SELECT * FROM tags WHERE id = ? AND user_id = ?",
+  ),
+  findByName: db.prepare<[number, number, string], Tag>(
+    "SELECT * FROM tags WHERE user_id = ? AND organization_id = ? AND name = ?",
+  ),
+  listByUserAndOrg: db.prepare<[number, number], TagWithCount>(`
+    SELECT t.*, COALESCE(c.document_count, 0) as document_count
+    FROM tags t
+    LEFT JOIN (
+      SELECT tag_id, COUNT(*) as document_count
+      FROM document_tags
+      GROUP BY tag_id
+    ) c ON t.id = c.tag_id
+    WHERE t.user_id = ? AND t.organization_id = ?
+    ORDER BY t.name ASC
+  `),
+  addTagToDocument: db.prepare<[number, number]>(
+    "INSERT OR IGNORE INTO document_tags (document_id, tag_id) VALUES (?, ?)",
+  ),
+  removeTagFromDocument: db.prepare<[number, number]>(
+    "DELETE FROM document_tags WHERE document_id = ? AND tag_id = ?",
+  ),
+  getTagsForDocument: db.prepare<
+    [number, number],
+    { id: number; name: string; color: string | null }
+  >(`
+    SELECT t.id, t.name, t.color
+    FROM tags t
+    JOIN document_tags dt ON t.id = dt.tag_id
+    WHERE dt.document_id = ? AND t.user_id = ?
+    ORDER BY t.name ASC
+  `),
+  getDocumentIdsForTag: db.prepare<[number], { document_id: number }>(
+    "SELECT document_id FROM document_tags WHERE tag_id = ?",
+  ),
+  setDocumentTags: (documentId: number, tagIds: number[]) => {
+    const transaction = db.transaction(() => {
+      db.prepare("DELETE FROM document_tags WHERE document_id = ?").run(
+        documentId,
+      );
+      const insert = db.prepare(
+        "INSERT OR IGNORE INTO document_tags (document_id, tag_id) VALUES (?, ?)",
+      );
+      for (const tagId of tagIds) {
+        insert.run(documentId, tagId);
+      }
+    });
+    transaction();
+  },
+  bulkAddTag: (documentIds: number[], tagId: number) => {
+    const transaction = db.transaction(() => {
+      const insert = db.prepare(
+        "INSERT OR IGNORE INTO document_tags (document_id, tag_id) VALUES (?, ?)",
+      );
+      for (const docId of documentIds) {
+        insert.run(docId, tagId);
+      }
+    });
+    transaction();
+  },
+  bulkRemoveTag: (documentIds: number[], tagId: number) => {
+    const transaction = db.transaction(() => {
+      const del = db.prepare(
+        "DELETE FROM document_tags WHERE document_id = ? AND tag_id = ?",
+      );
+      for (const docId of documentIds) {
+        del.run(docId, tagId);
+      }
+    });
+    transaction();
+  },
+  getAllDocumentTagMappings: db.prepare<
+    [number, number],
+    { document_id: number; tag_id: number }
+  >(`
+    SELECT dt.document_id, dt.tag_id
+    FROM document_tags dt
+    JOIN tags t ON dt.tag_id = t.id
+    WHERE t.user_id = ? AND t.organization_id = ?
+  `),
 };
 
 // Cleanup expired sessions periodically

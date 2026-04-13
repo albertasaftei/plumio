@@ -1,45 +1,25 @@
 import {
   createSignal,
-  For,
   Show,
   createMemo,
   createEffect,
   onCleanup,
   onMount,
 } from "solid-js";
-import { Popover } from "@kobalte/core/popover";
-import {
-  draggable,
-  dropTargetForElements,
-  monitorForElements,
-} from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
-import {
-  attachInstruction,
-  extractInstruction,
-  type Instruction,
-} from "@atlaskit/pragmatic-drag-and-drop-hitbox/list-item";
-import DropIndicator from "./DropIndicator";
-import ColorPicker from "./ColorPicker";
-import Button from "./Button";
-import type { SidebarProps, TreeNode } from "~/types/Sidebar.types";
-import {
-  buildDocumentTree,
-  buildFolderTree,
-  COLOR_PALETTE,
-} from "~/utils/sidebar.utils";
-import { getDisplayName } from "~/utils/document.utils";
-import { useNavigate } from "@solidjs/router";
+import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import { extractInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/list-item";
 import AlertDialog from "./AlertDialog";
-import OrganizationSelector from "./OrganizationSelector";
-import PopoverItem from "./PopoverItem";
 import MoveDialog from "./MoveDialog";
-import { routes } from "~/routes";
 import { ResizableContainer } from "./ResizableContainer";
 import { api } from "~/lib/api";
+import type { SidebarProps, TreeNode } from "~/types/Sidebar.types";
+import { buildDocumentTree, buildFolderTree } from "~/utils/sidebar.utils";
+import { getDisplayName } from "~/utils/document.utils";
+import type { Tag } from "~/types/Tag.types";
+import FilterNotesBody from "./Sidebar/FilterNotesBody";
+import SidebarContent from "./Sidebar/SidebarContent";
 
 export default function Sidebar(props: Readonly<SidebarProps>) {
-  const navigate = useNavigate();
   const [versionInfo, setVersionInfo] = createSignal<{
     updateAvailable: boolean;
     latestVersion: string | null;
@@ -48,42 +28,80 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
   const [showNewDocModal, setShowNewDocModal] = createSignal(false);
   const [showNewFolderModal, setShowNewFolderModal] = createSignal(false);
   const [showRenameModal, setShowRenameModal] = createSignal(false);
+  const [showMoveModal, setShowMoveModal] = createSignal(false);
+  const [showFilterModal, setShowFilterModal] = createSignal(false);
+
   const getDefaultDocName = () => {
     const now = new Date();
     return `Note (${now.toLocaleDateString()}  ${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")})`;
   };
+
   const [newDocName, setNewDocName] = createSignal(getDefaultDocName());
   const [newFolderName, setNewFolderName] = createSignal("");
   const [newItemName, setNewItemName] = createSignal(getDefaultDocName());
   const [targetFolder, setTargetFolder] = createSignal<string>("/");
   const [itemToRename, setItemToRename] = createSignal<string | null>(null);
-  const [openMenuPath, setOpenMenuPath] = createSignal<string | null>(null);
-  const [showMoveModal, setShowMoveModal] = createSignal(false);
   const [itemToMove, setItemToMove] = createSignal<{
     path: string;
     name: string;
     type: "file" | "folder";
   } | null>(null);
-  // Start with false to match SSR, update after mount
+  const [openMenuPath, setOpenMenuPath] = createSignal<string | null>(null);
+
   const [isMobile, setIsMobile] = createSignal(false);
   const [isMounted, setIsMounted] = createSignal(false);
+
+  const [tags, setTags] = createSignal<Tag[]>([]);
+  const [selectedFilterTags, setSelectedFilterTags] = createSignal<number[]>(
+    [],
+  );
+  const [filterMode, setFilterMode] = createSignal<"any" | "all">("any");
+  const [tagMappings, setTagMappings] = createSignal<Record<string, number[]>>(
+    {},
+  );
 
   let newDocInputRef: HTMLInputElement | undefined;
   let newFolderInputRef: HTMLInputElement | undefined;
   let renameInputRef: HTMLInputElement | undefined;
 
-  const buildTree = createMemo(() => buildDocumentTree(props.documents));
+  const tree = createMemo(() => buildDocumentTree(props.documents));
 
-  const toggleFolder = (path: string) => {
-    props.onExpandFolder(path);
-  };
+  const filteredTree = createMemo(() => {
+    const currentTree = tree();
+    const filterTags = selectedFilterTags();
+    if (filterTags.length === 0) return currentTree;
 
-  const filteredTree = () => buildTree();
+    const mappings = tagMappings();
+    const mode = filterMode();
+
+    const filterNode = (node: TreeNode): TreeNode | null => {
+      if (node.type === "file") {
+        const docTags = mappings[node.path] || [];
+        const matches =
+          mode === "any"
+            ? filterTags.some((t) => docTags.includes(t))
+            : filterTags.every((t) => docTags.includes(t));
+        return matches ? node : null;
+      }
+
+      const filteredChildren = node.children
+        .map(filterNode)
+        .filter((n): n is TreeNode => n !== null);
+
+      if (filteredChildren.length > 0) {
+        return { ...node, children: filteredChildren };
+      }
+      return null;
+    };
+
+    return currentTree.map(filterNode).filter((n): n is TreeNode => n !== null);
+  });
 
   const folderOptions = createMemo(() => {
     const result: { path: string; label: string }[] = [
       { path: "/", label: "/ (root)" },
     ];
+
     const flatten = (nodes: ReturnType<typeof buildFolderTree>) => {
       for (const node of nodes) {
         const indent = "\u00A0\u00A0\u00A0\u00A0".repeat(node.depth);
@@ -92,22 +110,19 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         if (node.children.length > 0) flatten(node.children);
       }
     };
+
     flatten(buildFolderTree(props.documents));
     return result;
   });
 
-  // Detect mobile view after mount to prevent hydration mismatch
   onMount(() => {
     setIsMounted(true);
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024); // lg breakpoint
-    };
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     onCleanup(() => window.removeEventListener("resize", checkMobile));
   });
 
-  // Check for updates client-side only to avoid SSR hydration mismatch
   onMount(() => {
     api
       .checkVersion()
@@ -115,7 +130,29 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
       .catch(() => {});
   });
 
-  // Drag & drop monitor — handles all drop events at the sidebar level
+  const refreshTags = async () => {
+    try {
+      const [tagsResult, mappingsResult] = await Promise.all([
+        api.listTags(),
+        api.getTagMappings(),
+      ]);
+      setTags(tagsResult.tags);
+      setTagMappings(mappingsResult.mappings);
+    } catch {
+      // Tags might not be available yet.
+    }
+  };
+
+  onMount(() => {
+    refreshTags();
+  });
+
+  createEffect(() => {
+    if (showFilterModal()) {
+      refreshTags();
+    }
+  });
+
   onMount(() => {
     const cleanup = monitorForElements({
       onDrop: ({ source, location }) => {
@@ -133,7 +170,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         const targetPath = target.data.path as string;
         const targetType = target.data.type as string;
 
-        // Map instruction to reorder operation
         if (
           inst.operation === "reorder-before" ||
           inst.operation === "reorder-after"
@@ -144,10 +180,10 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         }
       },
     });
+
     onCleanup(cleanup);
   });
 
-  // Auto-focus inputs when modals open
   createEffect(() => {
     if (showNewDocModal() && newDocInputRef) {
       setTimeout(() => newDocInputRef?.focus(), 0);
@@ -168,507 +204,56 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
 
   const handleCreateDocument = () => {
     const name = newDocName().trim();
-    if (name) {
-      props.onCreateDocument(name, targetFolder());
-      setNewDocName(getDefaultDocName());
-      setTargetFolder("/");
-      setShowNewDocModal(false);
-    }
+    if (!name) return;
+
+    props.onCreateDocument(name, targetFolder());
+    setNewDocName(getDefaultDocName());
+    setTargetFolder("/");
+    setShowNewDocModal(false);
   };
 
   const handleCreateFolder = () => {
     const name = newFolderName().trim();
     const parent = targetFolder();
-    if (name) {
-      props.onCreateFolder(name, parent);
-      // Auto-expand the parent folder to show the new subfolder
-      if (parent !== "/") {
-        props.onExpandFolder(parent);
-      }
-      setNewFolderName("");
-      setTargetFolder("/");
-      setShowNewFolderModal(false);
+    if (!name) return;
+
+    props.onCreateFolder(name, parent);
+    if (parent !== "/") {
+      props.onExpandFolder(parent);
     }
+
+    setNewFolderName("");
+    setTargetFolder("/");
+    setShowNewFolderModal(false);
   };
 
   const handleRename = () => {
     const name = newItemName().trim();
     const oldPath = itemToRename();
-    if (name && oldPath && props.onRenameItem) {
-      props.onRenameItem(oldPath, name);
-      setNewItemName("");
-      setItemToRename(null);
-      setShowRenameModal(false);
-    }
+    if (!name || !oldPath || !props.onRenameItem) return;
+
+    props.onRenameItem(oldPath, name);
+    setNewItemName("");
+    setItemToRename(null);
+    setShowRenameModal(false);
   };
 
-  // Recursive tree node component
-  const TreeNode = (nodeProps: { node: TreeNode }) => {
-    const isExpanded = () => props.expandedFolders.has(nodeProps.node.path);
-    const paddingLeft = () => `${nodeProps.node.depth * 8}px`;
-    const isAncestorOfCurrent = () =>
-      nodeProps.node.type === "folder" &&
-      props.currentPath !== null &&
-      props.currentPath.startsWith(nodeProps.node.path + "/");
-    const getBackgroundColor = () => {
-      if (nodeProps.node.path === props.currentPath) {
-        return (
-          COLOR_PALETTE.find((c) => c.value === nodeProps.node.color)?.bg ||
-          "var(--color-bg-elevated)"
-        );
-      }
-      return nodeProps.node.color
-        ? COLOR_PALETTE.find((c) => c.value === nodeProps.node.color)?.bg
-        : undefined;
-    };
-
-    let rowRef: HTMLDivElement | undefined;
-    const [instruction, setInstruction] = createSignal<Instruction | null>(
-      null,
-    );
-    const [isDragging, setIsDragging] = createSignal(false);
-    let autoExpandTimer: number | undefined;
-
-    onMount(() => {
-      if (!rowRef) return;
-      const el = rowRef;
-
-      const cleanup = combine(
-        draggable({
-          element: el,
-          getInitialData: () => ({
-            path: nodeProps.node.path,
-            name: nodeProps.node.name,
-            type: nodeProps.node.type,
-          }),
-          onDragStart: () => setIsDragging(true),
-          onDrop: () => setIsDragging(false),
-        }),
-        dropTargetForElements({
-          element: el,
-          canDrop: ({ source }) => {
-            const sourcePath = source.data.path as string;
-            // Prevent dropping onto self
-            if (sourcePath === nodeProps.node.path) return false;
-            // Prevent dropping a parent into its own descendant
-            if (nodeProps.node.path.startsWith(sourcePath + "/")) return false;
-            return true;
-          },
-          getData: ({ input, element }) => {
-            const isFolder = nodeProps.node.type === "folder";
-            const isExpandedFolder = isFolder && isExpanded();
-
-            return attachInstruction(
-              {
-                path: nodeProps.node.path,
-                name: nodeProps.node.name,
-                type: nodeProps.node.type,
-              },
-              {
-                input,
-                element,
-                operations: {
-                  "reorder-before": "available",
-                  "reorder-after": isExpandedFolder
-                    ? "not-available"
-                    : "available",
-                  combine: isFolder ? "available" : "not-available",
-                },
-              },
-            );
-          },
-          getIsSticky: () => true,
-          onDrag: ({ self }) => {
-            setInstruction(extractInstruction(self.data));
-          },
-          onDragEnter: ({ self }) => {
-            setInstruction(extractInstruction(self.data));
-            // Auto-expand folders after a delay
-            if (nodeProps.node.type === "folder" && !isExpanded()) {
-              autoExpandTimer = window.setTimeout(() => {
-                props.onExpandFolder(nodeProps.node.path);
-              }, 500);
-            }
-          },
-          onDragLeave: () => {
-            setInstruction(null);
-            if (autoExpandTimer) {
-              clearTimeout(autoExpandTimer);
-              autoExpandTimer = undefined;
-            }
-          },
-          onDrop: () => {
-            setInstruction(null);
-            if (autoExpandTimer) {
-              clearTimeout(autoExpandTimer);
-              autoExpandTimer = undefined;
-            }
-          },
-        }),
-      );
-
-      onCleanup(() => {
-        cleanup();
-        if (autoExpandTimer) {
-          clearTimeout(autoExpandTimer);
-        }
-      });
-    });
-
-    return (
-      <>
-        <div
-          ref={rowRef}
-          class={`group relative hover:bg-[var(--color-bg-elevated)] border-l-4 transition-colors rounded-md m-2 ${
-            nodeProps.node.path === props.currentPath
-              ? "border-l-primary"
-              : isAncestorOfCurrent()
-                ? "border-l-primary/40"
-                : "border-l-transparent"
-          } ${nodeProps.node.depth === 0 ? "mb-0" : ""}`}
-          style={{
-            "padding-left":
-              nodeProps.node.depth === 0
-                ? `${parseInt(paddingLeft()) + 16}px`
-                : paddingLeft(),
-            "background-color": getBackgroundColor(),
-            opacity: isDragging() ? 0.4 : 1,
-          }}
-        >
-          <DropIndicator
-            instruction={instruction()}
-            indent={nodeProps.node.depth}
-          />
-          <div
-            onClick={() => {
-              if (nodeProps.node.type === "file") {
-                props.onSelectDocument(nodeProps.node.path);
-              } else {
-                toggleFolder(nodeProps.node.path);
-              }
-            }}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              setOpenMenuPath(nodeProps.node.path);
-            }}
-            class="flex items-center gap-2 py-1 pr-2"
-          >
-            <div
-              class={`w-4 h-4 flex-shrink-0 ${
-                nodeProps.node.type === "folder"
-                  ? "i-carbon-folder text-blue-400"
-                  : "i-carbon-document text-[var(--color-text-muted)]"
-              }`}
-            />
-
-            <button class="flex-1 text-left text-[var(--color-text-primary)] truncate cursor-pointer">
-              {nodeProps.node.type === "file"
-                ? getDisplayName(nodeProps.node.name)
-                : nodeProps.node.name}
-            </button>
-
-            <Show when={nodeProps.node.favorite}>
-              <div class="i-carbon-star-filled w-4 h-4 text-yellow-400 flex-shrink-0" />
-            </Show>
-
-            <div
-              class="flex items-center gap-1 transition-opacity opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
-              classList={{
-                "lg:!opacity-100": openMenuPath() === nodeProps.node.path,
-              }}
-            >
-              <Popover
-                open={openMenuPath() === nodeProps.node.path}
-                onOpenChange={(isOpen) => {
-                  setOpenMenuPath(isOpen ? nodeProps.node.path : null);
-                }}
-              >
-                <Popover.Trigger
-                  as={(props: any) => (
-                    <Button
-                      {...props}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        props.onClick?.(e);
-                      }}
-                      variant="icon"
-                      size="sm"
-                      title="More options"
-                    >
-                      <div class="i-carbon-overflow-menu-vertical w-5 h-5 text-[var(--color-text-muted)]" />
-                    </Button>
-                  )}
-                />
-                <Popover.Portal>
-                  <Popover.Content class="mt-1 mb-1 max-w-36 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg shadow-lg z-50 py-1 animate-slide-down">
-                    {/* Add file/folder actions (folders only) */}
-                    <Show when={nodeProps.node.type === "folder"}>
-                      <PopoverItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setTargetFolder(nodeProps.node.path);
-                          setNewDocName(getDefaultDocName());
-                          setShowNewDocModal(true);
-                          setOpenMenuPath(null);
-                        }}
-                      >
-                        <div class="i-carbon-document-add w-4 h-4" />
-                        Add file
-                      </PopoverItem>
-                      <PopoverItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setTargetFolder(nodeProps.node.path);
-                          setNewFolderName("");
-                          setShowNewFolderModal(true);
-                          setOpenMenuPath(null);
-                        }}
-                      >
-                        <div class="i-carbon-folder-add w-4 h-4" />
-                        Add folder
-                      </PopoverItem>
-                      <div class="h-px bg-[var(--color-border)] my-1" />
-                    </Show>
-
-                    <Show when={props.onToggleFavorite}>
-                      <PopoverItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          props.onToggleFavorite?.(
-                            nodeProps.node.path,
-                            !nodeProps.node.favorite,
-                          );
-                          setOpenMenuPath(null);
-                        }}
-                      >
-                        <div
-                          class={`w-4 h-4 ${
-                            nodeProps.node.favorite
-                              ? "i-carbon-star-filled text-yellow-400"
-                              : "i-carbon-star"
-                          }`}
-                        />
-                        {nodeProps.node.favorite ? "Unfavorite" : "Favorite"}
-                      </PopoverItem>
-                      <div class="h-px bg-[var(--color-border)] my-1" />
-                    </Show>
-
-                    {/* Archive action (files only) */}
-                    <Show when={nodeProps.node.type === "file"}>
-                      <PopoverItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          props.onArchiveItem(nodeProps.node.path);
-                          setOpenMenuPath(null);
-                        }}
-                      >
-                        <div class="i-carbon-archive w-4 h-4" />
-                        Archive
-                      </PopoverItem>
-                    </Show>
-
-                    <PopoverItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const fileName = getDisplayName(nodeProps.node.name);
-                        setItemToRename(nodeProps.node.path);
-                        setNewItemName(fileName);
-                        setShowRenameModal(true);
-                        setOpenMenuPath(null);
-                      }}
-                    >
-                      <div class="i-carbon-edit w-4 h-4" />
-                      Rename
-                    </PopoverItem>
-                    <Show when={props.onMoveItem}>
-                      <PopoverItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setItemToMove({
-                            path: nodeProps.node.path,
-                            name: getDisplayName(nodeProps.node.name),
-                            type: nodeProps.node.type,
-                          });
-                          setShowMoveModal(true);
-                          setOpenMenuPath(null);
-                        }}
-                      >
-                        <div class="i-carbon-move w-4 h-4" />
-                        Move
-                      </PopoverItem>
-                    </Show>
-                    <Show when={props.onDuplicateItem}>
-                      <PopoverItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          props.onDuplicateItem?.(nodeProps.node.path);
-                          setOpenMenuPath(null);
-                        }}
-                      >
-                        <div class="i-carbon-copy w-4 h-4" />
-                        Duplicate
-                      </PopoverItem>
-                    </Show>
-                    <div class="h-px bg-[var(--color-border)] my-1" />
-
-                    {/* Delete action */}
-                    <PopoverItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        props.onDeleteItem(nodeProps.node.path);
-                        setOpenMenuPath(null);
-                      }}
-                    >
-                      <div class="i-carbon-trash-can w-4 h-4" />
-                      Delete
-                    </PopoverItem>
-
-                    {/* Color picker */}
-                    <Show when={props.onSetColor}>
-                      <div class="h-px bg-[var(--color-border)] my-1" />
-                      <ColorPicker
-                        currentColor={nodeProps.node.color}
-                        onColorSelect={(color) => {
-                          props.onSetColor?.(nodeProps.node.path, color);
-                          setOpenMenuPath(null);
-                        }}
-                      />
-                    </Show>
-                  </Popover.Content>
-                </Popover.Portal>
-              </Popover>
-            </div>
-          </div>
-        </div>
-
-        <Show when={nodeProps.node.type === "folder" && isExpanded()}>
-          <div
-            class={`${nodeProps.node.depth === 0 ? "mb-1" : ""} ml-8 mr-2 border-l-2 border-[var(--color-border-subtle)]`}
-          >
-            <For each={nodeProps.node.children}>
-              {(child) => <TreeNode node={child} />}
-            </For>
-          </div>
-        </Show>
-      </>
-    );
+  const modalActions: any = {
+    setShowNewDocModal,
+    setShowNewFolderModal,
+    setShowRenameModal,
+    setShowMoveModal,
+    setTargetFolder,
+    setNewDocName,
+    setNewFolderName,
+    setItemToRename,
+    setNewItemName,
+    setItemToMove,
+    getDefaultDocName,
   };
-
-  const SidebarContent = () => (
-    <div class="flex h-full w-full">
-      {/* Small Sidebar */}
-      <div class="w-14 flex-shrink-0 border-r border-[var(--color-border)] bg-[var(--color-bg-base)] flex flex-col items-center py-4 gap-4">
-        <Button
-          onClick={() => props.onViewHome()}
-          variant="icon"
-          size="md"
-          title="Homepage"
-        >
-          <div class="i-carbon-home w-5 h-5 flex-shrink-0" />
-        </Button>
-        <Button
-          onClick={() => props.onViewSearch()}
-          variant="icon"
-          size="md"
-          title="Full-text Search"
-        >
-          <div class="i-carbon-search w-5 h-5 flex-shrink-0" />
-        </Button>
-        <Button
-          onClick={() => props.onViewArchive()}
-          variant="icon"
-          size="md"
-          title="View Archive"
-        >
-          <div class="i-carbon-archive w-5 h-5 flex-shrink-0" />
-        </Button>
-        <Button
-          onClick={() => props.onViewDeleted()}
-          variant="icon"
-          size="md"
-          title="Recently Deleted"
-        >
-          <div class="i-carbon-trash-can w-5 h-5 flex-shrink-0" />
-        </Button>
-        <div class="flex-1" />
-        <div class="relative">
-          <Button
-            onClick={() => navigate(routes.settings)}
-            variant="icon"
-            size="md"
-            title={
-              versionInfo()?.updateAvailable
-                ? `Settings — Update available (${versionInfo()?.latestVersion})`
-                : "Settings"
-            }
-          >
-            <div class="i-carbon-settings w-5 h-5 flex-shrink-0" />
-          </Button>
-          <Show when={versionInfo()?.updateAvailable}>
-            <span class="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-amber-400 pointer-events-none" />
-          </Show>
-        </div>
-      </div>
-
-      {/* Big Sidebar */}
-      <div class="flex-1 flex flex-col min-w-0 bg-[var(--color-bg-base)]">
-        {/* Sidebar Header */}
-        <div class="p-4 sm:p-4 border-b border-[var(--color-border)]">
-          <div class="w-full flex items-center justify-end pb-4 lg:hidden">
-            <Button
-              onClick={() => props.setSidebarOpen(false)}
-              variant="icon"
-              size="md"
-              title="Close sidebar"
-            >
-              <div class="i-carbon-close w-5 h-5" />
-            </Button>
-          </div>
-          <div class="pb-4">
-            <OrganizationSelector onSwitch={props.onOrgSwitch} fullWidth />
-          </div>
-
-          <div class="flex gap-2">
-            <Button
-              onClick={() => {
-                setTargetFolder("/");
-                setNewDocName(getDefaultDocName());
-                setShowNewDocModal(true);
-              }}
-              variant="primary"
-              size="md"
-              fullWidth
-              class="justify-center"
-            >
-              <div class="i-carbon-document-add w-4 h-4" />
-              New file
-            </Button>
-            <Button
-              onClick={() => {
-                setTargetFolder("/");
-                setNewFolderName("");
-                setShowNewFolderModal(true);
-              }}
-              variant="secondary"
-              size="md"
-              title="New folder"
-            >
-              <div class="i-carbon-folder-add w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Documents Tree */}
-        <div class="flex-1 overflow-y-auto scrollbar-none pb-4">
-          <For each={filteredTree()}>{(node) => <TreeNode node={node} />}</For>
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <>
-      {/* Mobile: Simple aside with fixed positioning */}
       <Show when={isMounted() && isMobile()}>
         <aside
           class="w-80 h-full border-r border-[var(--color-border)] bg-[var(--color-bg-base)] flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out"
@@ -677,12 +262,55 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             "translate-x-0": props.sidebarOpen,
           }}
         >
-          <SidebarContent />
+          <SidebarContent
+            filteredTree={filteredTree}
+            expandedFolders={props.expandedFolders}
+            currentPath={props.currentPath}
+            onSelectDocument={props.onSelectDocument}
+            onExpandFolder={props.onExpandFolder}
+            documents={props.documents}
+            onViewHome={props.onViewHome}
+            onViewSearch={props.onViewSearch}
+            onViewArchive={props.onViewArchive}
+            onViewDeleted={props.onViewDeleted}
+            onViewTags={props.onViewTags}
+            onOrgSwitch={props.onOrgSwitch}
+            saveStatus={props.saveStatus}
+            setSidebarOpen={props.setSidebarOpen}
+            onCreateDocument={props.onCreateDocument}
+            onCreateFolder={props.onCreateFolder}
+            onDeleteItem={props.onDeleteItem}
+            onArchiveItem={props.onArchiveItem}
+            onRenameItem={props.onRenameItem}
+            onMoveItem={props.onMoveItem}
+            onDuplicateItem={props.onDuplicateItem}
+            onToggleFavorite={props.onToggleFavorite}
+            onSetColor={props.onSetColor}
+            versionInfo={versionInfo}
+            showNewDocModal={showNewDocModal}
+            setShowNewDocModal={setShowNewDocModal}
+            showNewFolderModal={showNewFolderModal}
+            setShowNewFolderModal={setShowNewFolderModal}
+            showFilterModal={showFilterModal}
+            setShowFilterModal={setShowFilterModal}
+            selectedFilterTags={selectedFilterTags}
+            tags={tags}
+            openMenuPath={openMenuPath}
+            setOpenMenuPath={setOpenMenuPath}
+            tagMappings={tagMappings}
+            onToggleTag={async (path: string, tagId: number, add: boolean) => {
+              const currentTags = tagMappings()[path] || [];
+              const newTags = add
+                ? [...currentTags, tagId]
+                : currentTags.filter((t) => t !== tagId);
+              await api.setDocumentTags(path, newTags);
+              refreshTags();
+            }}
+            onModalOpen={modalActions}
+          />
         </aside>
       </Show>
 
-      {/* Desktop: ResizableContainer for drag-to-resize functionality */}
-      {/* Show by default (SSR) and after mount when not mobile */}
       <Show when={!isMounted() || !isMobile()}>
         <ResizableContainer
           initialSize={350}
@@ -691,11 +319,55 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           resizeFrom="right"
           class="h-full border-r border-[var(--color-border)] bg-[var(--color-bg-base)] flex flex-col relative"
         >
-          <SidebarContent />
+          <SidebarContent
+            filteredTree={filteredTree}
+            expandedFolders={props.expandedFolders}
+            currentPath={props.currentPath}
+            onSelectDocument={props.onSelectDocument}
+            onExpandFolder={props.onExpandFolder}
+            documents={props.documents}
+            onViewHome={props.onViewHome}
+            onViewSearch={props.onViewSearch}
+            onViewArchive={props.onViewArchive}
+            onViewDeleted={props.onViewDeleted}
+            onViewTags={props.onViewTags}
+            onOrgSwitch={props.onOrgSwitch}
+            saveStatus={props.saveStatus}
+            setSidebarOpen={props.setSidebarOpen}
+            onCreateDocument={props.onCreateDocument}
+            onCreateFolder={props.onCreateFolder}
+            onDeleteItem={props.onDeleteItem}
+            onArchiveItem={props.onArchiveItem}
+            onRenameItem={props.onRenameItem}
+            onMoveItem={props.onMoveItem}
+            onDuplicateItem={props.onDuplicateItem}
+            onToggleFavorite={props.onToggleFavorite}
+            onSetColor={props.onSetColor}
+            versionInfo={versionInfo}
+            showNewDocModal={showNewDocModal}
+            setShowNewDocModal={setShowNewDocModal}
+            showNewFolderModal={showNewFolderModal}
+            setShowNewFolderModal={setShowNewFolderModal}
+            showFilterModal={showFilterModal}
+            setShowFilterModal={setShowFilterModal}
+            selectedFilterTags={selectedFilterTags}
+            tags={tags}
+            openMenuPath={openMenuPath}
+            setOpenMenuPath={setOpenMenuPath}
+            tagMappings={tagMappings}
+            onToggleTag={async (path: string, tagId: number, add: boolean) => {
+              const currentTags = tagMappings()[path] || [];
+              const newTags = add
+                ? [...currentTags, tagId]
+                : currentTags.filter((t) => t !== tagId);
+              await api.setDocumentTags(path, newTags);
+              refreshTags();
+            }}
+            onModalOpen={modalActions}
+          />
         </ResizableContainer>
       </Show>
 
-      {/* New Document Modal */}
       <AlertDialog
         isOpen={showNewDocModal()}
         title="New Document"
@@ -723,13 +395,12 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           onChange={(e) => setTargetFolder(e.currentTarget.value)}
           class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] mb-4 cursor-pointer"
         >
-          <For each={folderOptions()}>
-            {(opt) => <option value={opt.path}>{opt.label}</option>}
-          </For>
+          {folderOptions().map((opt) => (
+            <option value={opt.path}>{opt.label}</option>
+          ))}
         </select>
       </AlertDialog>
 
-      {/* New Folder Modal */}
       <AlertDialog
         isOpen={showNewFolderModal()}
         title="New Folder"
@@ -753,7 +424,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         />
       </AlertDialog>
 
-      {/* Rename Modal */}
       <AlertDialog
         isOpen={showRenameModal()}
         title="Rename"
@@ -774,7 +444,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         />
       </AlertDialog>
 
-      {/* Move Dialog */}
       <MoveDialog
         isOpen={showMoveModal()}
         itemPath={itemToMove()?.path ?? ""}
@@ -794,6 +463,23 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           setItemToMove(null);
         }}
       />
+
+      <AlertDialog
+        isOpen={showFilterModal()}
+        title="Filter Notes"
+        showActions={false}
+        showCloseIcon
+        onConfirm={() => setShowFilterModal(false)}
+        onCancel={() => setShowFilterModal(false)}
+      >
+        <FilterNotesBody
+          filterMode={filterMode}
+          setFilterMode={setFilterMode}
+          selectedFilterTags={selectedFilterTags}
+          setSelectedFilterTags={setSelectedFilterTags}
+          tags={tags}
+        />
+      </AlertDialog>
     </>
   );
 }

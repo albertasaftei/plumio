@@ -4,7 +4,7 @@ import { api } from "~/lib/api";
 import Editor from "~/components/Editor";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
-import { getDisplayName } from "~/utils/document.utils";
+import DocumentTagBar from "~/components/DocumentTagBar";
 
 const MarkdownEditor = lazy(() => import("~/components/MarkdownEditor"));
 
@@ -85,17 +85,6 @@ export default function DocumentPage() {
 
   return (
     <>
-      {/* Current File Breadcrumb */}
-      <div class="px-4 py-2 border-b border-subtle bg-base">
-        <div class="flex items-center gap-2">
-          <div class="i-carbon-document w-4 h-4 text-muted-body" />
-          <span class="text-xs text-muted-body">Current file:</span>
-          <span class="text-sm text-secondary-body truncate">
-            {getDisplayName(getDocumentPath())}
-          </span>
-        </div>
-      </div>
-
       {/* Document Actions Toolbar */}
       <div class="h-12 border-b border-subtle flex items-center justify-between p-2 sm:px-4 bg-base">
         {/* View Mode Toggle */}
@@ -141,6 +130,8 @@ export default function DocumentPage() {
         </div>
       </div>
 
+      {/* Document Tags */}
+      <DocumentTagBar documentPath={getDocumentPath()} />
       {/* Editor Content */}
       <Show
         when={!loading()}
