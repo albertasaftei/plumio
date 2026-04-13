@@ -5,8 +5,9 @@ import {
   Suspense,
   createEffect,
   onCleanup,
+  onMount,
 } from "solid-js";
-import { useParams, useNavigate } from "@solidjs/router";
+import { useParams, useNavigate, useBeforeLeave } from "@solidjs/router";
 import { api } from "~/lib/api";
 import Editor from "~/components/Editor";
 import Button from "~/components/Button";
@@ -27,6 +28,24 @@ export default function DocumentPage() {
 
   let saveTimeout: ReturnType<typeof setTimeout>;
   onCleanup(() => clearTimeout(saveTimeout));
+
+  onMount(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (saveStatus() === "unsaved" || saveStatus() === "saving") {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    onCleanup(() => window.removeEventListener("beforeunload", handleBeforeUnload));
+  });
+
+  useBeforeLeave((e) => {
+    if (saveStatus() === "unsaved" || saveStatus() === "saving") {
+      if (!window.confirm("You have unsaved changes that may be lost. Leave anyway?")) {
+        e.preventDefault();
+      }
+    }
+  });
 
   // Get the full path from params
   const getDocumentPath = () => {
