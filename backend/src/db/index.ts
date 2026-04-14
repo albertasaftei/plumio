@@ -474,175 +474,179 @@ export const tagQueries = {
   `),
 };
 
-// Cleanup expired sessions periodically
-setInterval(
-  () => {
-    const now = new Date().toISOString();
-    sessionQueries.deleteExpired.run(now);
-  },
-  60 * 60 * 1000,
-); // Every hour
+// Cleanup expired sessions periodically (skip during tests)
+if (process.env.NODE_ENV !== "test") {
+  setInterval(
+    () => {
+      const now = new Date().toISOString();
+      sessionQueries.deleteExpired.run(now);
+    },
+    60 * 60 * 1000,
+  ); // Every hour
+} // end test guard for session cleanup
 
-// Cleanup old deleted documents (30+ days old) - runs daily
-setInterval(
-  async () => {
+// Cleanup old deleted documents (30+ days old) - runs daily (skip during tests)
+if (process.env.NODE_ENV !== "test") {
+  setInterval(
+    async () => {
+      try {
+        // Calculate date 30 days ago
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const cutoffDate = thirtyDaysAgo.toISOString();
+
+        // Find all documents deleted more than 30 days ago
+        const oldDeleted =
+          documentQueries.findOldDeletedDocuments.all(cutoffDate);
+
+        console.log(
+          `🧹 Cleanup job: Found ${oldDeleted.length} documents to permanently delete`,
+        );
+
+        // Import fs for file deletion
+        const fs = await import("fs/promises");
+        const path = await import("path");
+
+        for (const doc of oldDeleted) {
+          try {
+            // Delete from database with FTS cleanup
+            documentQueries.permanentlyDeleteWithFtsCleanup(
+              doc.organization_id,
+              doc.path,
+            );
+
+            // Delete physical file
+            const DOCUMENTS_PATH = process.env.DOCUMENTS_PATH || "./documents";
+            const orgPath = path.join(
+              DOCUMENTS_PATH,
+              `org-${doc.organization_id}`,
+            );
+            const filePath = path.join(orgPath, doc.path);
+
+            try {
+              await fs.unlink(filePath);
+              console.log(`  ✅ Deleted: ${doc.path}`);
+            } catch (err) {
+              console.log(`  ⚠️  File already deleted: ${doc.path}`);
+            }
+          } catch (error) {
+            console.error(`  ❌ Failed to delete ${doc.path}:`, error);
+          }
+        }
+
+        if (oldDeleted.length > 0) {
+          console.log(
+            `✅ Cleanup job completed: ${oldDeleted.length} documents permanently deleted`,
+          );
+        }
+      } catch (error) {
+        console.error("❌ Cleanup job failed:", error);
+      }
+    },
+    24 * 60 * 60 * 1000,
+  ); // Every 24 hours
+
+  // Reconcile DB records against physical files - runs daily
+  async function reconcileDocuments() {
     try {
-      // Calculate date 30 days ago
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const cutoffDate = thirtyDaysAgo.toISOString();
+      let orgDirs: string[];
+      try {
+        const entries = await fsp.readdir(DOCUMENTS_PATH, {
+          withFileTypes: true,
+        });
 
-      // Find all documents deleted more than 30 days ago
-      const oldDeleted =
-        documentQueries.findOldDeletedDocuments.all(cutoffDate);
+        orgDirs = entries
+          .filter((e) => e.isDirectory() && e.name.startsWith("org-"))
+          .map((e) => e.name);
+      } catch {
+        return; // Documents directory doesn't exist yet
+      }
 
-      console.log(
-        `🧹 Cleanup job: Found ${oldDeleted.length} documents to permanently delete`,
+      const findAnyRecord = db.prepare<[number, string], { id: number }>(
+        "SELECT id FROM documents WHERE organization_id = ? AND path = ? LIMIT 1",
       );
 
-      // Import fs for file deletion
-      const fs = await import("fs/promises");
-      const path = await import("path");
+      const activeRecords = db.prepare<[number], { id: number; path: string }>(
+        "SELECT id, path FROM documents WHERE organization_id = ? AND (deleted = 0 OR deleted IS NULL) AND (archived = 0 OR archived IS NULL)",
+      );
 
-      for (const doc of oldDeleted) {
-        try {
-          // Delete from database with FTS cleanup
-          documentQueries.permanentlyDeleteWithFtsCleanup(
-            doc.organization_id,
-            doc.path,
-          );
+      let removedRecords = 0;
+      let removedFiles = 0;
+      let checked = 0;
 
-          // Delete physical file
-          const DOCUMENTS_PATH = process.env.DOCUMENTS_PATH || "./documents";
-          const orgPath = path.join(
-            DOCUMENTS_PATH,
-            `org-${doc.organization_id}`,
-          );
-          const filePath = path.join(orgPath, doc.path);
+      for (const orgDir of orgDirs) {
+        const orgId = parseInt(orgDir.replace("org-", ""), 10);
+        if (isNaN(orgId)) continue;
 
+        const orgPath = pathMod.join(DOCUMENTS_PATH, orgDir);
+
+        // 1. DB records with no physical file → purge the record
+        const records = activeRecords.all(orgId);
+        for (const record of records) {
+          checked++;
+          const filePath = pathMod.join(orgPath, record.path);
           try {
-            await fs.unlink(filePath);
-            console.log(`  ✅ Deleted: ${doc.path}`);
-          } catch (err) {
-            console.log(`  ⚠️  File already deleted: ${doc.path}`);
+            await fsp.access(filePath);
+          } catch {
+            console.log(
+              `  🗑️  Reconciliation: orphaned record removed [org-${orgId}] ${record.path}`,
+            );
+            documentQueries.permanentlyDeleteWithFtsCleanup(orgId, record.path);
+            removedRecords++;
           }
-        } catch (error) {
-          console.error(`  ❌ Failed to delete ${doc.path}:`, error);
+        }
+
+        // 2. Physical .md files with no DB record (any status) → delete the file
+        let diskFiles: string[];
+        try {
+          diskFiles = await fsp.readdir(orgPath);
+        } catch {
+          continue;
+        }
+
+        for (const fileName of diskFiles) {
+          // Only consider plain .md files; skip meta, deleted, archived variants
+          if (!fileName.endsWith(".md")) continue;
+          if (/\.(deleted|archived)-\d+\.md$/.test(fileName)) continue;
+
+          // Normalize to the path stored in DB (leading slash)
+          const docPath = `/${fileName}`;
+          const existing = findAnyRecord.get(orgId, docPath);
+          if (!existing) {
+            const filePath = pathMod.join(orgPath, fileName);
+            try {
+              await fsp.unlink(filePath);
+              console.log(
+                `  🗑️  Reconciliation: untracked file deleted [org-${orgId}] ${fileName}`,
+              );
+              removedFiles++;
+            } catch (err) {
+              console.error(
+                `  ❌  Reconciliation: failed to delete untracked file [org-${orgId}] ${fileName}:`,
+                err,
+              );
+            }
+          }
         }
       }
 
-      if (oldDeleted.length > 0) {
+      const total = removedRecords + removedFiles;
+      if (total > 0) {
         console.log(
-          `✅ Cleanup job completed: ${oldDeleted.length} documents permanently deleted`,
+          `✅ Reconciliation complete: checked ${checked} records, removed ${removedRecords} orphaned DB entries and ${removedFiles} untracked files`,
+        );
+      } else {
+        console.log(
+          `✅ Reconciliation complete: checked ${checked} records, no issues found`,
         );
       }
     } catch (error) {
-      console.error("❌ Cleanup job failed:", error);
+      console.error("❌ Reconciliation job failed:", error);
     }
-  },
-  24 * 60 * 60 * 1000,
-); // Every 24 hours
-
-// Reconcile DB records against physical files - runs daily
-async function reconcileDocuments() {
-  try {
-    let orgDirs: string[];
-    try {
-      const entries = await fsp.readdir(DOCUMENTS_PATH, {
-        withFileTypes: true,
-      });
-
-      orgDirs = entries
-        .filter((e) => e.isDirectory() && e.name.startsWith("org-"))
-        .map((e) => e.name);
-    } catch {
-      return; // Documents directory doesn't exist yet
-    }
-
-    const findAnyRecord = db.prepare<[number, string], { id: number }>(
-      "SELECT id FROM documents WHERE organization_id = ? AND path = ? LIMIT 1",
-    );
-
-    const activeRecords = db.prepare<[number], { id: number; path: string }>(
-      "SELECT id, path FROM documents WHERE organization_id = ? AND (deleted = 0 OR deleted IS NULL) AND (archived = 0 OR archived IS NULL)",
-    );
-
-    let removedRecords = 0;
-    let removedFiles = 0;
-    let checked = 0;
-
-    for (const orgDir of orgDirs) {
-      const orgId = parseInt(orgDir.replace("org-", ""), 10);
-      if (isNaN(orgId)) continue;
-
-      const orgPath = pathMod.join(DOCUMENTS_PATH, orgDir);
-
-      // 1. DB records with no physical file → purge the record
-      const records = activeRecords.all(orgId);
-      for (const record of records) {
-        checked++;
-        const filePath = pathMod.join(orgPath, record.path);
-        try {
-          await fsp.access(filePath);
-        } catch {
-          console.log(
-            `  🗑️  Reconciliation: orphaned record removed [org-${orgId}] ${record.path}`,
-          );
-          documentQueries.permanentlyDeleteWithFtsCleanup(orgId, record.path);
-          removedRecords++;
-        }
-      }
-
-      // 2. Physical .md files with no DB record (any status) → delete the file
-      let diskFiles: string[];
-      try {
-        diskFiles = await fsp.readdir(orgPath);
-      } catch {
-        continue;
-      }
-
-      for (const fileName of diskFiles) {
-        // Only consider plain .md files; skip meta, deleted, archived variants
-        if (!fileName.endsWith(".md")) continue;
-        if (/\.(deleted|archived)-\d+\.md$/.test(fileName)) continue;
-
-        // Normalize to the path stored in DB (leading slash)
-        const docPath = `/${fileName}`;
-        const existing = findAnyRecord.get(orgId, docPath);
-        if (!existing) {
-          const filePath = pathMod.join(orgPath, fileName);
-          try {
-            await fsp.unlink(filePath);
-            console.log(
-              `  🗑️  Reconciliation: untracked file deleted [org-${orgId}] ${fileName}`,
-            );
-            removedFiles++;
-          } catch (err) {
-            console.error(
-              `  ❌  Reconciliation: failed to delete untracked file [org-${orgId}] ${fileName}:`,
-              err,
-            );
-          }
-        }
-      }
-    }
-
-    const total = removedRecords + removedFiles;
-    if (total > 0) {
-      console.log(
-        `✅ Reconciliation complete: checked ${checked} records, removed ${removedRecords} orphaned DB entries and ${removedFiles} untracked files`,
-      );
-    } else {
-      console.log(
-        `✅ Reconciliation complete: checked ${checked} records, no issues found`,
-      );
-    }
-  } catch (error) {
-    console.error("❌ Reconciliation job failed:", error);
   }
-}
 
-reconcileDocuments();
-setInterval(reconcileDocuments, 24 * 60 * 60 * 1000); // Every 24 hours
+  reconcileDocuments();
+  setInterval(reconcileDocuments, 24 * 60 * 60 * 1000); // Every 24 hours
+} // end test guard for cleanup/reconciliation
 
 export default db;
