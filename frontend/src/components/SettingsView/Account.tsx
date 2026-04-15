@@ -8,6 +8,7 @@ import Toast from "~/components/Toast";
 
 export default function Account() {
   const [username, setUsername] = createSignal<string | null>(null);
+  const [email, setEmail] = createSignal<string | null>(null);
   const [theme, setTheme] = useTheme();
   const [editingUsername, setEditingUsername] = createSignal(false);
   const [newUsername, setNewUsername] = createSignal("");
@@ -29,6 +30,21 @@ export default function Account() {
     createSignal(false);
   const [passwordError, setPasswordError] = createSignal("");
   const [savingPassword, setSavingPassword] = createSignal(false);
+
+  // Change email modal state
+  const [changingEmail, setChangingEmail] = createSignal(false);
+  const [newEmailInput, setNewEmailInput] = createSignal("");
+  const [emailChangeError, setEmailChangeError] = createSignal("");
+  const [emailChangeSending, setEmailChangeSending] = createSignal(false);
+  const [emailChangeSent, setEmailChangeSent] = createSignal(false);
+
+  const resetEmailModal = () => {
+    setNewEmailInput("");
+    setEmailChangeError("");
+    setEmailChangeSending(false);
+    setEmailChangeSent(false);
+    setChangingEmail(false);
+  };
 
   const resetPasswordModal = () => {
     setCurrentPassword("");
@@ -71,7 +87,23 @@ export default function Account() {
     initializeTheme();
     const currentUsername = await api.getUsername();
     setUsername(currentUsername);
+    const currentEmail = await api.getEmail();
+    setEmail(currentEmail);
   });
+
+  const handleChangeEmail = async (e: Event) => {
+    e.preventDefault();
+    setEmailChangeError("");
+    setEmailChangeSending(true);
+    try {
+      await api.requestEmailChange(newEmailInput().trim());
+      setEmailChangeSent(true);
+    } catch (err: any) {
+      setEmailChangeError(err.message || "Failed to send confirmation email");
+    } finally {
+      setEmailChangeSending(false);
+    }
+  };
 
   const handleRenameUsername = async (e: Event) => {
     e.preventDefault();
@@ -356,6 +388,140 @@ export default function Account() {
                     </Button>
                   </div>
                 </form>
+              </div>
+            </div>
+          </Show>
+
+          <div class="p-4 bg-elevated/50 border border-base rounded-lg">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-xs font-medium text-muted-body uppercase tracking-wider mb-1">
+                  Email
+                </p>
+                <p class="text-base font-semibold text-body">
+                  {email() || "Loading..."}
+                </p>
+                <p class="text-sm text-muted-body mt-1">
+                  A confirmation link will be sent to your new address.
+                </p>
+              </div>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setChangingEmail(true)}
+              >
+                <div class="i-carbon-email w-4 h-4 mr-1.5" />
+                Change
+              </Button>
+            </div>
+          </div>
+
+          {/* Change Email Modal */}
+          <Show when={changingEmail()}>
+            <div
+              class="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4 animate-dialog-fade-in"
+              onClick={resetEmailModal}
+            >
+              <div
+                class="bg-surface border border-base rounded-lg shadow-xl light:shadow-2xl max-w-md w-full p-6 animate-dialog-scale-in relative"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Button
+                  onClick={resetEmailModal}
+                  variant="icon"
+                  size="md"
+                  title="Close"
+                  class="absolute top-4 right-4"
+                >
+                  <div class="i-carbon-close w-5 h-5" />
+                </Button>
+
+                <h2 class="text-xl font-semibold text-body mb-1">
+                  Change Email
+                </h2>
+
+                <Show when={!emailChangeSent()}>
+                  <p class="text-sm text-secondary-body mb-5">
+                    Enter your new email address. We'll send a confirmation link
+                    there.
+                  </p>
+
+                  <Show when={emailChangeError()}>
+                    <div class="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+                      {emailChangeError()}
+                    </div>
+                  </Show>
+
+                  <form
+                    onSubmit={handleChangeEmail}
+                    class="flex flex-col gap-4"
+                  >
+                    <div>
+                      <label class="block text-xs font-medium text-muted-body uppercase tracking-wider mb-1.5">
+                        New Email Address
+                      </label>
+                      <input
+                        type="email"
+                        value={newEmailInput()}
+                        onInput={(e) => {
+                          setNewEmailInput(e.currentTarget.value);
+                          setEmailChangeError("");
+                        }}
+                        required
+                        autofocus
+                        disabled={emailChangeSending()}
+                        class="w-full px-3 py-1.5 bg-base border border-subtle rounded-lg text-body text-sm focus:outline-none focus:border-neutral-500 disabled:opacity-50"
+                        placeholder="new@example.com"
+                      />
+                    </div>
+
+                    <div class="flex gap-3 justify-end mt-1">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="md"
+                        onClick={resetEmailModal}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        size="md"
+                        disabled={emailChangeSending()}
+                      >
+                        {emailChangeSending()
+                          ? "Sending…"
+                          : "Send Confirmation"}
+                      </Button>
+                    </div>
+                  </form>
+                </Show>
+
+                <Show when={emailChangeSent()}>
+                  <p class="text-sm text-secondary-body mb-5">
+                    Check your inbox at{" "}
+                    <span class="font-semibold text-body">
+                      {newEmailInput()}
+                    </span>{" "}
+                    for a confirmation link.
+                  </p>
+                  <p class="text-sm text-muted-body mb-5">
+                    The link expires in 1 hour. Your email won't change until
+                    you click it.
+                  </p>
+                  <div class="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="md"
+                      onClick={resetEmailModal}
+                    >
+                      Done
+                    </Button>
+                  </div>
+                </Show>
               </div>
             </div>
           </Show>

@@ -3,6 +3,7 @@ export const routes = {
   register: "/register",
   forgotPassword: "/forgot-password",
   resetPassword: "/reset-password",
+  confirmEmailChange: "/confirm-email-change",
   homepage: "/homepage",
   file: "/file/*",
   archive: "/archive",

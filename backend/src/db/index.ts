@@ -71,6 +71,9 @@ export const userQueries = {
   updateUsername: db.prepare<[string, number]>(
     "UPDATE users SET username = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
   ),
+  updateEmail: db.prepare<[string, number]>(
+    "UPDATE users SET email = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+  ),
 };
 
 // === Organization Queries ===
@@ -502,6 +505,35 @@ export const passwordResetQueries = {
   ),
 };
 
+// === Email Change Token Queries ===
+export interface EmailChangeToken {
+  id: number;
+  user_id: number;
+  new_email: string;
+  token: string;
+  expires_at: string;
+  used: number;
+  created_at: string;
+}
+
+export const emailChangeQueries = {
+  create: db.prepare<[number, string, string, string]>(
+    "INSERT INTO email_change_tokens (user_id, new_email, token, expires_at) VALUES (?, ?, ?, ?)",
+  ),
+  findByToken: db.prepare<[string], EmailChangeToken>(
+    "SELECT * FROM email_change_tokens WHERE token = ?",
+  ),
+  markUsed: db.prepare<[string]>(
+    "UPDATE email_change_tokens SET used = 1 WHERE token = ?",
+  ),
+  deleteByUserId: db.prepare<[number]>(
+    "DELETE FROM email_change_tokens WHERE user_id = ?",
+  ),
+  deleteExpired: db.prepare<[string]>(
+    "DELETE FROM email_change_tokens WHERE expires_at < ?",
+  ),
+};
+
 // Cleanup expired sessions periodically (skip during tests)
 if (process.env.NODE_ENV !== "test") {
   setInterval(
@@ -509,6 +541,7 @@ if (process.env.NODE_ENV !== "test") {
       const now = new Date().toISOString();
       sessionQueries.deleteExpired.run(now);
       passwordResetQueries.deleteExpired.run(now);
+      emailChangeQueries.deleteExpired.run(now);
     },
     60 * 60 * 1000,
   ); // Every hour

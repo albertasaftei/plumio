@@ -53,3 +53,33 @@ export async function sendPasswordResetEmail(
     `,
   });
 }
+
+export async function sendEmailChangeConfirmationEmail(
+  to: string,
+  confirmToken: string,
+): Promise<void> {
+  if (!isSmtpConfigured()) {
+    throw new Error("Email service is not configured");
+  }
+
+  const confirmUrl = `${APP_URL}/confirm-email-change?token=${confirmToken}`;
+  const transporter = createTransporter();
+
+  await transporter.sendMail({
+    from: SMTP_FROM,
+    to,
+    subject: "Confirm your plumio email change",
+    text: `You requested an email address change for your plumio account.\n\nClick the link below to confirm your new email address. The link expires in 1 hour.\n\n${confirmUrl}\n\nIf you did not request this, you can ignore this email.`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <p>You requested an email address change for your plumio account. Click the button below to confirm your new email address.</p>
+        <p>The link expires in <strong>1 hour</strong>.</p>
+        <a href="${confirmUrl}" style="display:inline-block;margin:16px 0;padding:12px 24px;background:#2a9d8f;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;">
+          Confirm Email Change
+        </a>
+        <p style="color:#888;font-size:13px;">If the button doesn't work, copy this link into your browser:<br>${confirmUrl}</p>
+        <p style="color:#888;font-size:13px;">If you did not request this, you can safely ignore this email.</p>
+      </div>
+    `,
+  });
+}

@@ -9,6 +9,7 @@ const PUBLIC_ROUTES = [
   routes.register,
   routes.forgotPassword,
   routes.resetPassword,
+  routes.confirmEmailChange,
 ] as string[];
 const ROUTES_WITHOUT_SIDEBAR = [routes.settings] as string[];
 

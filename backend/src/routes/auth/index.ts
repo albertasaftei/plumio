@@ -10,6 +10,7 @@ import {
   memberQueries,
   settingsQueries,
   passwordResetQueries,
+  emailChangeQueries,
 } from "../../db/index.js";
 import { UserJWTPayload } from "../../middlewares/auth.types.js";
 import { authMiddleware } from "../../middlewares/auth.js";
@@ -19,7 +20,10 @@ import {
   registerSchema,
   updateProfileSchema,
 } from "./helpers/schemas.js";
-import { sendPasswordResetEmail } from "../../utils/email.js";
+import {
+  sendPasswordResetEmail,
+  sendEmailChangeConfirmationEmail,
+} from "../../utils/email.js";
 import { SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_FROM } from "../../config.js";
 
 type Variables = {
@@ -442,6 +446,123 @@ authRouter.post("/reset-password", async (c) => {
   } catch (error) {
     console.error("Reset password error:", error);
     return c.json({ error: "Failed to reset password" }, 500);
+  }
+});
+
+// Get own profile (email)
+authRouter.get("/profile", authMiddleware, async (c) => {
+  try {
+    const user = c.get("user");
+    const dbUser = userQueries.findById.get(user.userId);
+    if (!dbUser) {
+      return c.json({ error: "User not found" }, 404);
+    }
+    return c.json({ email: dbUser.email });
+  } catch (error) {
+    console.error("Get profile error:", error);
+    return c.json({ error: "Failed to get profile" }, 500);
+  }
+});
+
+// Request email change - sends confirmation link to new email
+authRouter.post("/request-email-change", authMiddleware, async (c) => {
+  try {
+    if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || !SMTP_FROM) {
+      return c.json({ error: "Email service is not configured" }, 503);
+    }
+
+    const user = c.get("user");
+    const body = await c.req.json().catch(() => ({}));
+    const newEmailSchema = z.string().email();
+    const newEmail =
+      typeof body?.newEmail === "string" ? body.newEmail.trim() : "";
+
+    if (!newEmail) {
+      return c.json({ error: "New email address is required" }, 400);
+    }
+
+    const emailParsed = newEmailSchema.safeParse(newEmail);
+    if (!emailParsed.success) {
+      return c.json({ error: "Invalid email address" }, 400);
+    }
+
+    // Check if email is already taken by another user
+    const existing = userQueries.findByEmail.get(newEmail);
+    if (existing && existing.id !== user.userId) {
+      return c.json({ error: "Email address is already in use" }, 400);
+    }
+
+    // Check it's not the same as the current email
+    const dbUser = userQueries.findById.get(user.userId);
+    if (dbUser && dbUser.email.toLowerCase() === newEmail.toLowerCase()) {
+      return c.json(
+        { error: "New email is the same as your current email" },
+        400,
+      );
+    }
+
+    // Delete any existing pending tokens for this user
+    emailChangeQueries.deleteByUserId.run(user.userId);
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+
+    emailChangeQueries.create.run(user.userId, newEmail, token, expiresAt);
+
+    await sendEmailChangeConfirmationEmail(newEmail, token);
+
+    return c.json({
+      message: "Confirmation email sent to your new address.",
+    });
+  } catch (error) {
+    console.error("Request email change error:", error);
+    return c.json({ error: "Failed to send confirmation email" }, 500);
+  }
+});
+
+// Confirm email change - consumes token and updates email
+authRouter.post("/confirm-email-change", async (c) => {
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const token = typeof body?.token === "string" ? body.token.trim() : "";
+
+    if (!token) {
+      return c.json({ error: "Token is required" }, 400);
+    }
+
+    const changeToken = emailChangeQueries.findByToken.get(token);
+
+    if (!changeToken) {
+      return c.json({ error: "Invalid or expired confirmation token" }, 400);
+    }
+
+    if (changeToken.used === 1) {
+      return c.json(
+        { error: "This confirmation link has already been used" },
+        400,
+      );
+    }
+
+    if (new Date(changeToken.expires_at) < new Date()) {
+      return c.json({ error: "Confirmation link has expired" }, 400);
+    }
+
+    // Check the new email hasn't been taken since the request was made
+    const existing = userQueries.findByEmail.get(changeToken.new_email);
+    if (existing && existing.id !== changeToken.user_id) {
+      return c.json(
+        { error: "This email address is no longer available" },
+        400,
+      );
+    }
+
+    userQueries.updateEmail.run(changeToken.new_email, changeToken.user_id);
+    emailChangeQueries.markUsed.run(token);
+
+    return c.json({ message: "Email updated successfully." });
+  } catch (error) {
+    console.error("Confirm email change error:", error);
+    return c.json({ error: "Failed to confirm email change" }, 500);
   }
 });
 

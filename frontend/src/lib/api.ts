@@ -259,6 +259,29 @@ export class ApiClient {
     return decoded?.username ?? null;
   }
 
+  async getEmail(): Promise<string | null> {
+    try {
+      const result = await this.request<{ email: string }>("/api/auth/profile");
+      return result.email;
+    } catch {
+      return null;
+    }
+  }
+
+  async requestEmailChange(newEmail: string) {
+    return this.request<{ message: string }>("/api/auth/request-email-change", {
+      method: "POST",
+      body: JSON.stringify({ newEmail }),
+    });
+  }
+
+  async confirmEmailChange(token: string) {
+    return this.request<{ message: string }>("/api/auth/confirm-email-change", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    });
+  }
+
   async updateUsername(username: string) {
     const result = await this.request<{ message: string; token: string }>(
       "/api/auth/profile",
