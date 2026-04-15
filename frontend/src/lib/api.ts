@@ -431,6 +431,60 @@ export class ApiClient {
     });
   }
 
+  async adminListAllOrgs() {
+    return this.request<{
+      organizations: Array<{
+        id: number;
+        name: string;
+        slug: string;
+        createdAt: string;
+      }>;
+    }>("/api/auth/admin/organizations");
+  }
+
+  async adminGetUserOrgs(userId: number) {
+    return this.request<{
+      organizations: Array<{
+        orgId: number;
+        orgName: string;
+        orgSlug: string;
+        role: string;
+        joinedAt: string;
+        isOwner: boolean;
+      }>;
+    }>(`/api/auth/admin/users/${userId}/organizations`);
+  }
+
+  async adminAddUserToOrg(
+    userId: number,
+    orgId: number,
+    role: string = "member",
+  ) {
+    return this.request(`/api/auth/admin/users/${userId}/organizations`, {
+      method: "POST",
+      body: JSON.stringify({ orgId, role }),
+    });
+  }
+
+  async adminUpdateUserOrgRole(userId: number, orgId: number, role: string) {
+    return this.request(
+      `/api/auth/admin/users/${userId}/organizations/${orgId}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ role }),
+      },
+    );
+  }
+
+  async adminRemoveUserFromOrg(userId: number, orgId: number) {
+    return this.request(
+      `/api/auth/admin/users/${userId}/organizations/${orgId}`,
+      {
+        method: "DELETE",
+      },
+    );
+  }
+
   // App Config
   async getConfig() {
     return this.request<Record<string, boolean | string>>("/api/config");

@@ -97,6 +97,9 @@ export const organizationQueries = {
     "UPDATE organizations SET name = ?, slug = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
   ),
   delete: db.prepare<[number]>("DELETE FROM organizations WHERE id = ?"),
+  listAll: db.prepare<[], Organization>(
+    "SELECT * FROM organizations ORDER BY name ASC",
+  ),
 };
 
 // === Organization Member Queries ===
@@ -122,6 +125,23 @@ export const memberQueries = {
   isAdmin: db.prepare<[number, number], { count: number }>(
     "SELECT COUNT(*) as count FROM organization_members WHERE organization_id = ? AND user_id = ? AND role = 'admin'",
   ),
+  listByUser: db.prepare<
+    [number],
+    {
+      id: number;
+      name: string;
+      slug: string;
+      role: string;
+      joined_at: string;
+      owner_id: number;
+    }
+  >(`
+    SELECT o.id, o.name, o.slug, o.owner_id, om.role, om.joined_at
+    FROM organization_members om
+    JOIN organizations o ON o.id = om.organization_id
+    WHERE om.user_id = ?
+    ORDER BY o.name ASC
+  `),
 };
 
 // === Session Queries ===

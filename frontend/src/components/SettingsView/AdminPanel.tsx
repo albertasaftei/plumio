@@ -1,4 +1,4 @@
-import { createSignal, For, Show, onMount, createEffect } from "solid-js";
+import { createSignal, For, Show, createEffect } from "solid-js";
 import { api } from "~/lib/api";
 import Button from "../Button";
 import AlertDialog from "../AlertDialog";
@@ -11,6 +11,21 @@ interface User {
   email: string;
   createdAt: string;
   isAdmin: boolean;
+}
+
+interface OrgMembership {
+  orgId: number;
+  orgName: string;
+  orgSlug: string;
+  role: string;
+  joinedAt: string;
+  isOwner: boolean;
+}
+
+interface OrgListItem {
+  id: number;
+  name: string;
+  slug: string;
 }
 
 interface AdminPanelProps {
@@ -40,6 +55,18 @@ export default function AdminPanel(props: AdminPanelProps) {
     type: "success" | "error" | "info" | "warning";
   } | null>(null);
 
+  // Per-user org expansion state
+  const [expandedUserId, setExpandedUserId] = createSignal<number | null>(null);
+  const [userOrgsCache, setUserOrgsCache] = createSignal<
+    Record<number, OrgMembership[]>
+  >({});
+  const [allOrgs, setAllOrgs] = createSignal<OrgListItem[]>([]);
+  const [orgLoadingFor, setOrgLoadingFor] = createSignal<number | null>(null);
+  // Per-user "add to org" form state: { orgId, role }
+  const [addOrgForm, setAddOrgForm] = createSignal<
+    Record<number, { orgId: number; role: string }>
+  >({});
+
   const loadUsers = async () => {
     setLoading(true);
     try {
@@ -59,6 +86,12 @@ export default function AdminPanel(props: AdminPanelProps) {
         const currentUserId = await api.getCurrentUserId();
         setIsOwner(currentUserId === 1);
         await loadUsers();
+        try {
+          const result = await api.adminListAllOrgs();
+          setAllOrgs(result.organizations);
+        } catch (err) {
+          console.error("Failed to load organizations:", err);
+        }
       })();
     }
   });
@@ -114,6 +147,83 @@ export default function AdminPanel(props: AdminPanelProps) {
       console.error("Failed to delete user:", err);
       setError(err.message || "Failed to delete user");
       setDeleteDialog({ isOpen: false, user: null });
+    }
+  };
+
+  const toggleUserExpand = async (userId: number) => {
+    if (expandedUserId() === userId) {
+      setExpandedUserId(null);
+      return;
+    }
+    setExpandedUserId(userId);
+    if (userOrgsCache()[userId]) return; // already loaded
+    setOrgLoadingFor(userId);
+    try {
+      const result = await api.adminGetUserOrgs(userId);
+      setUserOrgsCache((prev) => ({ ...prev, [userId]: result.organizations }));
+    } catch (err) {
+      console.error("Failed to load user orgs:", err);
+    } finally {
+      setOrgLoadingFor(null);
+    }
+  };
+
+  const refreshUserOrgs = async (userId: number) => {
+    try {
+      const result = await api.adminGetUserOrgs(userId);
+      setUserOrgsCache((prev) => ({ ...prev, [userId]: result.organizations }));
+    } catch (err) {
+      console.error("Failed to refresh user orgs:", err);
+    }
+  };
+
+  const handleOrgRoleChange = async (
+    userId: number,
+    orgId: number,
+    role: string,
+  ) => {
+    try {
+      await api.adminUpdateUserOrgRole(userId, orgId, role);
+      setToast({ message: "Role updated", type: "success" });
+      await refreshUserOrgs(userId);
+    } catch (err: any) {
+      setToast({
+        message: err.message || "Failed to update role",
+        type: "error",
+      });
+    }
+  };
+
+  const handleRemoveFromOrg = async (userId: number, orgId: number) => {
+    try {
+      await api.adminRemoveUserFromOrg(userId, orgId);
+      setToast({ message: "Removed from organization", type: "success" });
+      await refreshUserOrgs(userId);
+    } catch (err: any) {
+      setToast({
+        message: err.message || "Failed to remove from organization",
+        type: "error",
+      });
+    }
+  };
+
+  const handleAddToOrg = async (userId: number) => {
+    const form = addOrgForm()[userId];
+    if (!form?.orgId) return;
+    try {
+      await api.adminAddUserToOrg(userId, form.orgId, form.role || "member");
+      setToast({ message: "Added to organization", type: "success" });
+      setAddOrgForm((prev) => {
+        const next = { ...prev };
+        delete next[userId];
+        return next;
+      });
+      await refreshUserOrgs(userId);
+    } catch (err: any) {
+      setToast({
+        message: err.message || "Failed to add to organization",
+        type: "error",
+      });
     }
   };
 
@@ -261,61 +371,237 @@ export default function AdminPanel(props: AdminPanelProps) {
             <tbody class="divide-y divide-neutral-700 dark:divide-neutral-700 light:divide-neutral-300">
               <For each={users()}>
                 {(user) => (
-                  <tr class="hover:bg-[var(--color-bg-elevated)]">
-                    <td class="px-4 py-3 whitespace-nowrap">
-                      <div class="flex items-center">
-                        <div class="i-carbon-user-avatar w-8 h-8 text-muted-body mr-3" />
-                        <div class="text-sm font-medium text-body">
-                          {user.username}
+                  <>
+                    <tr
+                      class="hover:bg-[var(--color-bg-elevated)] cursor-pointer"
+                      onClick={() => toggleUserExpand(user.id)}
+                    >
+                      <td class="px-4 py-3 whitespace-nowrap">
+                        <div class="flex items-center">
+                          <div
+                            class={`w-4 h-4 mr-2 text-muted-body transition-transform ${expandedUserId() === user.id ? "i-carbon-chevron-down" : "i-carbon-chevron-right"}`}
+                          />
+                          <div class="i-carbon-user-avatar w-8 h-8 text-muted-body mr-3" />
+                          <div class="text-sm font-medium text-body">
+                            {user.username}
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-secondary-body">
-                      {user.email}
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap">
-                      <Show
-                        when={user.id !== 1 && (isOwner() || !user.isAdmin)}
-                        fallback={
-                          <span class="px-2 py-1 text-xs font-medium bg-blue-500/20 text-blue-400 rounded border border-blue-500/30">
-                            Admin
-                          </span>
-                        }
-                      >
-                        <select
-                          value={user.isAdmin ? "admin" : "member"}
-                          onChange={(e) =>
-                            handleRoleChange(
-                              user,
-                              e.currentTarget.value === "admin",
-                            )
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-secondary-body">
+                        {user.email}
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap">
+                        <Show
+                          when={user.id !== 1 && (isOwner() || !user.isAdmin)}
+                          fallback={
+                            <span class="px-2 py-1 text-xs font-medium bg-blue-500/20 text-blue-400 rounded border border-blue-500/30">
+                              Admin
+                            </span>
                           }
-                          class="px-2 py-1 text-xs font-medium bg-elevated border border-base rounded text-body focus:outline-none focus:border-neutral-600 dark:focus:border-neutral-600 light:focus:border-neutral-500"
                         >
-                          <option value="member">Member</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                      </Show>
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-muted-body">
-                      {formatAbsoluteDate(user.createdAt)}
-                    </td>
-                    <td class="flex items-center justify-end px-4 py-3 whitespace-nowrap text-right text-sm">
-                      <Show
-                        when={user.id !== 1 && (isOwner() || !user.isAdmin)}
-                      >
-                        <Button
-                          onClick={() => handleDeleteUser(user)}
-                          variant="icon"
-                          size="sm"
-                          title="Delete user"
-                          class="text-red-400 hover:text-red-300"
+                          <select
+                            value={user.isAdmin ? "admin" : "member"}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) =>
+                              handleRoleChange(
+                                user,
+                                e.currentTarget.value === "admin",
+                              )
+                            }
+                            class="px-2 py-1 text-xs font-medium bg-elevated border border-base rounded text-body focus:outline-none focus:border-neutral-600 dark:focus:border-neutral-600 light:focus:border-neutral-500"
+                          >
+                            <option value="member">Member</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        </Show>
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-muted-body">
+                        {formatAbsoluteDate(user.createdAt)}
+                      </td>
+                      <td class="flex items-center justify-end px-4 py-3 whitespace-nowrap text-right text-sm">
+                        <Show
+                          when={user.id !== 1 && (isOwner() || !user.isAdmin)}
                         >
-                          <div class="i-carbon-trash-can w-5 h-5" />
-                        </Button>
-                      </Show>
-                    </td>
-                  </tr>
+                          <Button
+                            onClick={(e: MouseEvent) => {
+                              e.stopPropagation();
+                              handleDeleteUser(user);
+                            }}
+                            variant="icon"
+                            size="sm"
+                            title="Delete user"
+                            class="text-red-400 hover:text-red-300"
+                          >
+                            <div class="i-carbon-trash-can w-5 h-5" />
+                          </Button>
+                        </Show>
+                      </td>
+                    </tr>
+                    <Show when={expandedUserId() === user.id}>
+                      <tr>
+                        <td colspan="5" class="bg-base/40 px-6 py-4">
+                          <div class="text-xs font-semibold text-muted-body uppercase tracking-wider mb-3">
+                            Organization Memberships
+                          </div>
+                          <Show
+                            when={orgLoadingFor() !== user.id}
+                            fallback={
+                              <div class="flex items-center gap-2 text-sm text-muted-body py-2">
+                                <div class="i-carbon-circle-dash animate-spin w-4 h-4" />
+                                Loading…
+                              </div>
+                            }
+                          >
+                            <Show
+                              when={(userOrgsCache()[user.id] ?? []).length > 0}
+                              fallback={
+                                <p class="text-sm text-muted-body mb-3">
+                                  No organization memberships.
+                                </p>
+                              }
+                            >
+                              <table class="w-full mb-4 text-sm">
+                                <thead>
+                                  <tr class="text-xs text-muted-body uppercase">
+                                    <th class="text-left pb-2 pr-4">
+                                      Organization
+                                    </th>
+                                    <th class="text-left pb-2 pr-4">Role</th>
+                                    <th class="text-left pb-2 pr-4">Joined</th>
+                                    <th class="text-right pb-2" />
+                                  </tr>
+                                </thead>
+                                <tbody class="divide-y divide-neutral-700/40 dark:divide-neutral-700/40 light:divide-neutral-300/60">
+                                  <For each={userOrgsCache()[user.id] ?? []}>
+                                    {(mem) => (
+                                      <tr>
+                                        <td class="py-2 pr-4 text-body font-medium">
+                                          {mem.orgName}
+                                          <Show when={mem.isOwner}>
+                                            <span class="ml-2 text-xs text-amber-400">
+                                              owner
+                                            </span>
+                                          </Show>
+                                        </td>
+                                        <td class="py-2 pr-4">
+                                          <Show
+                                            when={!mem.isOwner}
+                                            fallback={
+                                              <span class="px-2 py-1 text-xs bg-amber-500/20 text-amber-400 rounded border border-amber-500/30">
+                                                owner
+                                              </span>
+                                            }
+                                          >
+                                            <select
+                                              value={mem.role}
+                                              onChange={(e) =>
+                                                handleOrgRoleChange(
+                                                  user.id,
+                                                  mem.orgId,
+                                                  e.currentTarget.value,
+                                                )
+                                              }
+                                              class="px-2 py-1 text-xs bg-elevated border border-base rounded text-body focus:outline-none"
+                                            >
+                                              <option value="member">
+                                                Member
+                                              </option>
+                                              <option value="admin">
+                                                Admin
+                                              </option>
+                                            </select>
+                                          </Show>
+                                        </td>
+                                        <td class="py-2 pr-4 text-muted-body text-xs">
+                                          {formatAbsoluteDate(mem.joinedAt)}
+                                        </td>
+                                        <td class="py-2 text-right">
+                                          <Show when={!mem.isOwner}>
+                                            <Button
+                                              onClick={() =>
+                                                handleRemoveFromOrg(
+                                                  user.id,
+                                                  mem.orgId,
+                                                )
+                                              }
+                                              variant="icon"
+                                              size="sm"
+                                              title="Remove from organization"
+                                              class="text-red-400 hover:text-red-300"
+                                            >
+                                              <div class="i-carbon-close w-4 h-4" />
+                                            </Button>
+                                          </Show>
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </For>
+                                </tbody>
+                              </table>
+                            </Show>
+                            {/* Add to organization */}
+                            <div class="flex items-center gap-2 flex-wrap">
+                              <span class="text-xs text-muted-body">
+                                Add to organization:
+                              </span>
+                              <select
+                                value={addOrgForm()[user.id]?.orgId ?? ""}
+                                onChange={(e) => {
+                                  const val = parseInt(e.currentTarget.value);
+                                  setAddOrgForm((prev) => ({
+                                    ...prev,
+                                    [user.id]: {
+                                      orgId: val,
+                                      role: prev[user.id]?.role ?? "member",
+                                    },
+                                  }));
+                                }}
+                                class="px-2 py-1 text-xs bg-elevated border border-base rounded text-body focus:outline-none"
+                              >
+                                <option value="">Select org…</option>
+                                <For
+                                  each={allOrgs().filter(
+                                    (o) =>
+                                      !(userOrgsCache()[user.id] ?? []).some(
+                                        (m) => m.orgId === o.id,
+                                      ),
+                                  )}
+                                >
+                                  {(org) => (
+                                    <option value={org.id}>{org.name}</option>
+                                  )}
+                                </For>
+                              </select>
+                              <select
+                                value={addOrgForm()[user.id]?.role ?? "member"}
+                                onChange={(e) => {
+                                  setAddOrgForm((prev) => ({
+                                    ...prev,
+                                    [user.id]: {
+                                      orgId: prev[user.id]?.orgId ?? 0,
+                                      role: e.currentTarget.value,
+                                    },
+                                  }));
+                                }}
+                                class="px-2 py-1 text-xs bg-elevated border border-base rounded text-body focus:outline-none"
+                              >
+                                <option value="member">Member</option>
+                                <option value="admin">Admin</option>
+                              </select>
+                              <Button
+                                onClick={() => handleAddToOrg(user.id)}
+                                variant="primary"
+                                size="sm"
+                                disabled={!addOrgForm()[user.id]?.orgId}
+                              >
+                                Add
+                              </Button>
+                            </div>
+                          </Show>
+                        </td>
+                      </tr>
+                    </Show>
+                  </>
                 )}
               </For>
             </tbody>

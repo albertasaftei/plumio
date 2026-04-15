@@ -23,3 +23,21 @@ export const updateSettingSchema = z.object({
   key: z.string().min(1),
   value: z.string(),
 });
+
+export const adminUserParamsSchema = z.object({
+  id: z.string().transform((val) => parseInt(val)),
+});
+
+export const adminUserOrgParamsSchema = z.object({
+  id: z.string().transform((val) => parseInt(val)),
+  orgId: z.string().transform((val) => parseInt(val)),
+});
+
+export const adminAddUserToOrgSchema = z.object({
+  orgId: z.number().int().positive(),
+  role: z.enum(["admin", "member"]).default("member"),
+});
+
+export const adminUpdateUserOrgRoleSchema = z.object({
+  role: z.enum(["admin", "member"]),
+});

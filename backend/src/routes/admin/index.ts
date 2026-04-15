@@ -15,6 +15,10 @@ import {
   updateUserSchema,
   deleteUserParamsSchema,
   updateSettingSchema,
+  adminUserParamsSchema,
+  adminUserOrgParamsSchema,
+  adminAddUserToOrgSchema,
+  adminUpdateUserOrgRoleSchema,
 } from "./helpers/schemas.js";
 
 const adminRouter = new Hono<{ Variables: { user: UserJWTPayload } }>();
@@ -169,6 +173,159 @@ adminRouter.put("/settings", async (c) => {
   const { key, value } = parsed.data;
   settingsQueries.set.run(key, value);
   return c.json({ message: "Setting updated" });
+});
+
+// GET /organizations — list all organizations
+adminRouter.get("/organizations", (c) => {
+  try {
+    const orgs = organizationQueries.listAll.all();
+    return c.json({
+      organizations: orgs.map((o) => ({
+        id: o.id,
+        name: o.name,
+        slug: o.slug,
+        createdAt: o.created_at,
+      })),
+    });
+  } catch (error) {
+    console.error("Error listing organizations:", error);
+    return c.json({ error: "Failed to list organizations" }, 500);
+  }
+});
+
+// GET /users/:id/organizations — list all org memberships for a user
+adminRouter.get("/users/:id/organizations", (c) => {
+  try {
+    const parsedParams = adminUserParamsSchema.safeParse({
+      id: c.req.param("id"),
+    });
+    if (!parsedParams.success) {
+      return c.json({ error: z.treeifyError(parsedParams.error) }, 400);
+    }
+    const { id: userId } = parsedParams.data;
+    const memberships = memberQueries.listByUser.all(userId);
+    return c.json({
+      organizations: memberships.map((m) => ({
+        orgId: m.id,
+        orgName: m.name,
+        orgSlug: m.slug,
+        role: m.role,
+        joinedAt: m.joined_at,
+        isOwner: m.owner_id === userId,
+      })),
+    });
+  } catch (error) {
+    console.error("Error listing user organizations:", error);
+    return c.json({ error: "Failed to list user organizations" }, 500);
+  }
+});
+
+// POST /users/:id/organizations — add user to an organization
+adminRouter.post("/users/:id/organizations", async (c) => {
+  try {
+    const parsedParams = adminUserParamsSchema.safeParse({
+      id: c.req.param("id"),
+    });
+    if (!parsedParams.success) {
+      return c.json({ error: z.treeifyError(parsedParams.error) }, 400);
+    }
+    const { id: userId } = parsedParams.data;
+
+    const parsed = adminAddUserToOrgSchema.safeParse(await c.req.json());
+    if (!parsed.success) {
+      return c.json({ error: z.treeifyError(parsed.error) }, 400);
+    }
+    const { orgId, role } = parsed.data;
+
+    const org = organizationQueries.findById.get(orgId);
+    if (!org) {
+      return c.json({ error: "Organization not found" }, 404);
+    }
+
+    const existing = memberQueries.findMembership.get(orgId, userId);
+    if (existing) {
+      return c.json(
+        { error: "User is already a member of this organization" },
+        400,
+      );
+    }
+
+    memberQueries.add.run(orgId, userId, role);
+    return c.json({ message: "User added to organization successfully" });
+  } catch (error) {
+    console.error("Error adding user to organization:", error);
+    return c.json({ error: "Failed to add user to organization" }, 500);
+  }
+});
+
+// PUT /users/:id/organizations/:orgId — update user's role in an organization
+adminRouter.put("/users/:id/organizations/:orgId", async (c) => {
+  try {
+    const parsedParams = adminUserOrgParamsSchema.safeParse({
+      id: c.req.param("id"),
+      orgId: c.req.param("orgId"),
+    });
+    if (!parsedParams.success) {
+      return c.json({ error: z.treeifyError(parsedParams.error) }, 400);
+    }
+    const { id: userId, orgId } = parsedParams.data;
+
+    const parsed = adminUpdateUserOrgRoleSchema.safeParse(await c.req.json());
+    if (!parsed.success) {
+      return c.json({ error: z.treeifyError(parsed.error) }, 400);
+    }
+    const { role } = parsed.data;
+
+    const existing = memberQueries.findMembership.get(orgId, userId);
+    if (!existing) {
+      return c.json(
+        { error: "User is not a member of this organization" },
+        404,
+      );
+    }
+
+    memberQueries.updateRole.run(role, orgId, userId);
+    return c.json({ message: "Role updated successfully" });
+  } catch (error) {
+    console.error("Error updating user org role:", error);
+    return c.json({ error: "Failed to update role" }, 500);
+  }
+});
+
+// DELETE /users/:id/organizations/:orgId — remove user from an organization
+adminRouter.delete("/users/:id/organizations/:orgId", (c) => {
+  try {
+    const parsedParams = adminUserOrgParamsSchema.safeParse({
+      id: c.req.param("id"),
+      orgId: c.req.param("orgId"),
+    });
+    if (!parsedParams.success) {
+      return c.json({ error: z.treeifyError(parsedParams.error) }, 400);
+    }
+    const { id: userId, orgId } = parsedParams.data;
+
+    const org = organizationQueries.findById.get(orgId);
+    if (org && org.owner_id === userId) {
+      return c.json(
+        { error: "Cannot remove the owner from their organization" },
+        403,
+      );
+    }
+
+    const existing = memberQueries.findMembership.get(orgId, userId);
+    if (!existing) {
+      return c.json(
+        { error: "User is not a member of this organization" },
+        404,
+      );
+    }
+
+    memberQueries.remove.run(orgId, userId);
+    return c.json({ message: "User removed from organization successfully" });
+  } catch (error) {
+    console.error("Error removing user from organization:", error);
+    return c.json({ error: "Failed to remove user from organization" }, 500);
+  }
 });
 
 export { adminRouter };
