@@ -34,6 +34,19 @@ Access Plumio at `http://localhost:3000`
 | `DB_PATH`           | Path to SQLite database         | No (default: `/data/plumio.db`) |
 | `ENABLE_ENCRYPTION` | Enable document encryption      | No (default: `true`)            |
 
+Optional password reset email support:
+
+| Variable    | Description                                  | Required |
+| ----------- | -------------------------------------------- | -------- |
+| `SMTP_HOST` | SMTP hostname for password reset emails      | No       |
+| `SMTP_PORT` | SMTP port for password reset emails          | No       |
+| `SMTP_USER` | SMTP username                                | No       |
+| `SMTP_PASS` | SMTP password or app password                | No       |
+| `SMTP_FROM` | Sender address shown in reset emails         | No       |
+| `APP_URL`   | Public app URL used in generated reset links | No       |
+
+If these variables are omitted, plumio still works normally, but users will not be able to reset their password by email.
+
 ## Using Docker Compose
 
 For production deployments, use Docker Compose for better configuration management.
@@ -60,6 +73,12 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - ALLOWED_ORIGINS=http://${FRONTEND_URL}:${FRONTEND_PORT}
       - ENABLE_ENCRYPTION=true
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM}
+      - APP_URL=${APP_URL}
     volumes:
       - plumio-data:/data
     networks:
@@ -154,6 +173,19 @@ JWT_SECRET=$(openssl rand -base64 32)
 ENCRYPTION_KEY=$(openssl rand -base64 32)
 ENABLE_ENCRYPTION=true
 ```
+
+Optional password reset email variables:
+
+```bash
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+SMTP_FROM="Plumio <your-email@gmail.com>"
+APP_URL=http://localhost:3000
+```
+
+These are optional. Only configure them if you want users to be able to receive password reset emails.
 
 Build and start backend:
 

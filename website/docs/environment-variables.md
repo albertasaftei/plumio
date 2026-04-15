@@ -263,6 +263,120 @@ Matching is prefix-based, so `image/` allows `image/png`, `image/jpeg`, `image/w
 
 ---
 
+## Optional Email / Password Reset
+
+These variables are only needed if you want plumio to send password reset emails. If they are not configured, the app still works normally, but the forgot-password flow will be unavailable.
+
+### SMTP_HOST
+
+**Type:** `string`  
+**Required:** No  
+**Default:** None
+
+SMTP server hostname used to send password reset emails.
+
+**Example:**
+
+```env
+SMTP_HOST=smtp.gmail.com
+```
+
+---
+
+### SMTP_PORT
+
+**Type:** `number`  
+**Required:** No  
+**Default:** `587`
+
+SMTP server port used to send password reset emails.
+
+**Example:**
+
+```env
+SMTP_PORT=587
+```
+
+---
+
+### SMTP_USER
+
+**Type:** `string`  
+**Required:** No  
+**Default:** None
+
+SMTP username used for authentication with your mail provider.
+
+**Example:**
+
+```env
+SMTP_USER=your-email@gmail.com
+```
+
+---
+
+### SMTP_PASS
+
+**Type:** `string`  
+**Required:** No  
+**Default:** None
+
+SMTP password or app password used for authentication with your mail provider.
+
+**Example:**
+
+```env
+SMTP_PASS=your-app-password
+```
+
+:::tip Gmail users
+If you use Gmail, enable 2-Step Verification on your Google account and generate an App Password. Do not use your normal Gmail password here.
+:::
+
+---
+
+### SMTP_FROM
+
+**Type:** `string`  
+**Required:** No  
+**Default:** None
+
+Sender address shown in password reset emails.
+
+**Example:**
+
+```env
+SMTP_FROM="Plumio <your-email@gmail.com>"
+```
+
+---
+
+### APP_URL
+
+**Type:** `string` (URL)  
+**Required:** No  
+**Default:** `http://localhost:3000`
+
+Base URL used when generating password reset links.
+
+**Local example:**
+
+```env
+APP_URL=http://localhost:3000
+```
+
+**Production example:**
+
+```env
+APP_URL=https://notes.example.com
+```
+
+:::warning Production recommendation
+If you enable password reset emails in production, set `APP_URL` to your public plumio URL so reset links point to the correct domain.
+:::
+
+---
+
 ## Frontend Configuration
 
 ### VITE_API_URL

@@ -181,6 +181,27 @@ export class ApiClient {
     return result;
   }
 
+  async changePassword(currentPassword: string, newPassword: string) {
+    return this.request<{ message: string }>("/api/auth/change-password", {
+      method: "PUT",
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+  }
+
+  async forgotPassword(email: string) {
+    return this.request<{ message: string }>("/api/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    return this.request<{ message: string }>("/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, newPassword }),
+    });
+  }
+
   async getCurrentOrganization(): Promise<{
     id: number;
     name: string;

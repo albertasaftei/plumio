@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { SignJWT } from "jose";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { JWT_SECRET } from "../../config.js";
 import {
   userQueries,
@@ -8,8 +9,8 @@ import {
   organizationQueries,
   memberQueries,
   settingsQueries,
+  passwordResetQueries,
 } from "../../db/index.js";
-import crypto from "crypto";
 import { UserJWTPayload } from "../../middlewares/auth.types.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import * as z from "zod";
@@ -18,6 +19,8 @@ import {
   registerSchema,
   updateProfileSchema,
 } from "./helpers/schemas.js";
+import { sendPasswordResetEmail } from "../../utils/email.js";
+import { SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_FROM } from "../../config.js";
 
 type Variables = {
   user: UserJWTPayload;
@@ -295,6 +298,53 @@ authRouter.put("/profile", authMiddleware, async (c) => {
   }
 });
 
+// Change password (authenticated user changing their own password)
+authRouter.put("/change-password", authMiddleware, async (c) => {
+  try {
+    const user = c.get("user");
+    const body = await c.req.json().catch(() => ({}));
+    const currentPassword =
+      typeof body?.currentPassword === "string" ? body.currentPassword : "";
+    const newPassword =
+      typeof body?.newPassword === "string" ? body.newPassword : "";
+
+    if (!currentPassword || !newPassword) {
+      return c.json(
+        { error: "Current password and new password are required" },
+        400,
+      );
+    }
+
+    if (newPassword.length < 8) {
+      return c.json(
+        { error: "New password must be at least 8 characters" },
+        400,
+      );
+    }
+
+    const dbUser = userQueries.findById.get(user.userId);
+    if (!dbUser) {
+      return c.json({ error: "User not found" }, 404);
+    }
+
+    const passwordMatch = await bcrypt.compare(
+      currentPassword,
+      dbUser.password_hash,
+    );
+    if (!passwordMatch) {
+      return c.json({ error: "Current password is incorrect" }, 400);
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    userQueries.updatePassword.run(passwordHash, user.userId);
+
+    return c.json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error("Change password error:", error);
+    return c.json({ error: "Failed to change password" }, 500);
+  }
+});
+
 // Check if setup is needed
 authRouter.get("/check-setup", async (c) => {
   try {
@@ -303,6 +353,95 @@ authRouter.get("/check-setup", async (c) => {
   } catch (error) {
     console.error("Check setup error:", error);
     return c.json({ needsSetup: true });
+  }
+});
+
+// Forgot password - send reset email
+authRouter.post("/forgot-password", async (c) => {
+  try {
+    // Check SMTP config first
+    if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || !SMTP_FROM) {
+      return c.json({ error: "Email service is not configured" }, 503);
+    }
+
+    const body = await c.req.json().catch(() => ({}));
+    const email = typeof body?.email === "string" ? body.email.trim() : "";
+
+    if (!email) {
+      return c.json({ error: "Email is required" }, 400);
+    }
+
+    // Always return 200 to prevent email enumeration
+    const user = userQueries.findByEmail.get(email);
+    if (!user) {
+      return c.json({
+        message: "If that email exists, a reset link has been sent.",
+      });
+    }
+
+    // Delete any existing (unused or expired) tokens for this user
+    passwordResetQueries.deleteByUserId.run(user.id);
+
+    // Generate a secure random token
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+
+    passwordResetQueries.create.run(user.id, token, expiresAt);
+
+    await sendPasswordResetEmail(user.email, token);
+
+    return c.json({
+      message: "If that email exists, a reset link has been sent.",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return c.json({ error: "Failed to send reset email" }, 500);
+  }
+});
+
+// Reset password - consume token and update password
+authRouter.post("/reset-password", async (c) => {
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const token = typeof body?.token === "string" ? body.token.trim() : "";
+    const newPassword =
+      typeof body?.newPassword === "string" ? body.newPassword : "";
+
+    if (!token || !newPassword) {
+      return c.json({ error: "Token and new password are required" }, 400);
+    }
+
+    if (newPassword.length < 8) {
+      return c.json({ error: "Password must be at least 8 characters" }, 400);
+    }
+
+    const resetToken = passwordResetQueries.findByToken.get(token);
+
+    if (!resetToken) {
+      return c.json({ error: "Invalid or expired reset token" }, 400);
+    }
+
+    if (resetToken.used === 1) {
+      return c.json({ error: "Reset token has already been used" }, 400);
+    }
+
+    if (new Date(resetToken.expires_at) < new Date()) {
+      return c.json({ error: "Reset token has expired" }, 400);
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    userQueries.updatePassword.run(passwordHash, resetToken.user_id);
+
+    // Mark token as used
+    passwordResetQueries.markUsed.run(token);
+
+    // Invalidate all existing sessions for the user
+    sessionQueries.deleteByUserId.run(resetToken.user_id);
+
+    return c.json({ message: "Password reset successfully. Please log in." });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return c.json({ error: "Failed to reset password" }, 500);
   }
 });
 

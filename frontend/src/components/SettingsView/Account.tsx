@@ -18,6 +18,55 @@ export default function Account() {
     type: "success" | "error" | "info" | "warning";
   } | null>(null);
 
+  // Change password modal state
+  const [changingPassword, setChangingPassword] = createSignal(false);
+  const [currentPassword, setCurrentPassword] = createSignal("");
+  const [newPassword, setNewPassword] = createSignal("");
+  const [confirmNewPassword, setConfirmNewPassword] = createSignal("");
+  const [showCurrentPassword, setShowCurrentPassword] = createSignal(false);
+  const [showNewPassword, setShowNewPassword] = createSignal(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] =
+    createSignal(false);
+  const [passwordError, setPasswordError] = createSignal("");
+  const [savingPassword, setSavingPassword] = createSignal(false);
+
+  const resetPasswordModal = () => {
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmNewPassword(false);
+    setPasswordError("");
+    setSavingPassword(false);
+    setChangingPassword(false);
+  };
+
+  const handleChangePassword = async (e: Event) => {
+    e.preventDefault();
+    setPasswordError("");
+
+    if (newPassword() !== confirmNewPassword()) {
+      setPasswordError("New passwords do not match");
+      return;
+    }
+    if (newPassword().length < 8) {
+      setPasswordError("New password must be at least 8 characters");
+      return;
+    }
+
+    setSavingPassword(true);
+    try {
+      await api.changePassword(currentPassword(), newPassword());
+      resetPasswordModal();
+      setToast({ message: "Password changed successfully", type: "success" });
+    } catch (err: any) {
+      setPasswordError(err.message || "Failed to change password");
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
   onMount(async () => {
     initializeTheme();
     const currentUsername = await api.getUsername();
@@ -122,6 +171,194 @@ export default function Account() {
               </Show>
             </div>
           </div>
+
+          <div class="p-4 bg-elevated/50 border border-base rounded-lg">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-xs font-medium text-muted-body uppercase tracking-wider mb-1">
+                  Password
+                </p>
+                <p class="text-base font-semibold text-body">Change password</p>
+                <p class="text-sm text-muted-body mt-1">
+                  Update your password using your current one.
+                </p>
+              </div>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setChangingPassword(true)}
+              >
+                <div class="i-carbon-password w-4 h-4 mr-1.5" />
+                Change
+              </Button>
+            </div>
+          </div>
+
+          {/* Change Password Modal */}
+          <Show when={changingPassword()}>
+            <div
+              class="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4 animate-dialog-fade-in"
+              onClick={resetPasswordModal}
+            >
+              <div
+                class="bg-surface border border-base rounded-lg shadow-xl light:shadow-2xl max-w-md w-full p-6 animate-dialog-scale-in relative"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Button
+                  onClick={resetPasswordModal}
+                  variant="icon"
+                  size="md"
+                  title="Close"
+                  class="absolute top-4 right-4"
+                >
+                  <div class="i-carbon-close w-5 h-5" />
+                </Button>
+
+                <h2 class="text-xl font-semibold text-body mb-1">
+                  Change Password
+                </h2>
+                <p class="text-sm text-secondary-body mb-5">
+                  Enter your current password and choose a new one.
+                </p>
+
+                <Show when={passwordError()}>
+                  <div class="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+                    {passwordError()}
+                  </div>
+                </Show>
+
+                <form
+                  onSubmit={handleChangePassword}
+                  class="flex flex-col gap-4"
+                >
+                  {/* Current password */}
+                  <div>
+                    <label class="block text-xs font-medium text-muted-body uppercase tracking-wider mb-1.5">
+                      Current Password
+                    </label>
+                    <div class="relative">
+                      <input
+                        type={showCurrentPassword() ? "text" : "password"}
+                        value={currentPassword()}
+                        onInput={(e) =>
+                          setCurrentPassword(e.currentTarget.value)
+                        }
+                        required
+                        autofocus
+                        disabled={savingPassword()}
+                        class="w-full px-3 py-1.5 pr-10 bg-base border border-subtle rounded-lg text-body text-sm focus:outline-none focus:border-neutral-500 disabled:opacity-50"
+                        placeholder="Current password"
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() =>
+                          setShowCurrentPassword(!showCurrentPassword())
+                        }
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-body hover:text-body transition-colors cursor-pointer"
+                      >
+                        <div
+                          class={
+                            showCurrentPassword()
+                              ? "i-carbon-view-off w-4 h-4"
+                              : "i-carbon-view w-4 h-4"
+                          }
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* New password */}
+                  <div>
+                    <label class="block text-xs font-medium text-muted-body uppercase tracking-wider mb-1.5">
+                      New Password
+                    </label>
+                    <div class="relative">
+                      <input
+                        type={showNewPassword() ? "text" : "password"}
+                        value={newPassword()}
+                        onInput={(e) => setNewPassword(e.currentTarget.value)}
+                        required
+                        disabled={savingPassword()}
+                        class="w-full px-3 py-1.5 pr-10 bg-base border border-subtle rounded-lg text-body text-sm focus:outline-none focus:border-neutral-500 disabled:opacity-50"
+                        placeholder="At least 8 characters"
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() => setShowNewPassword(!showNewPassword())}
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-body hover:text-body transition-colors cursor-pointer"
+                      >
+                        <div
+                          class={
+                            showNewPassword()
+                              ? "i-carbon-view-off w-4 h-4"
+                              : "i-carbon-view w-4 h-4"
+                          }
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirm new password */}
+                  <div>
+                    <label class="block text-xs font-medium text-muted-body uppercase tracking-wider mb-1.5">
+                      Confirm New Password
+                    </label>
+                    <div class="relative">
+                      <input
+                        type={showConfirmNewPassword() ? "text" : "password"}
+                        value={confirmNewPassword()}
+                        onInput={(e) =>
+                          setConfirmNewPassword(e.currentTarget.value)
+                        }
+                        required
+                        disabled={savingPassword()}
+                        class="w-full px-3 py-1.5 pr-10 bg-base border border-subtle rounded-lg text-body text-sm focus:outline-none focus:border-neutral-500 disabled:opacity-50"
+                        placeholder="Repeat new password"
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() =>
+                          setShowConfirmNewPassword(!showConfirmNewPassword())
+                        }
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-body hover:text-body transition-colors cursor-pointer"
+                      >
+                        <div
+                          class={
+                            showConfirmNewPassword()
+                              ? "i-carbon-view-off w-4 h-4"
+                              : "i-carbon-view w-4 h-4"
+                          }
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="flex gap-3 justify-end mt-1">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="md"
+                      onClick={resetPasswordModal}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="md"
+                      disabled={savingPassword()}
+                    >
+                      {savingPassword() ? "Saving…" : "Change Password"}
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </Show>
         </div>
       </div>
 

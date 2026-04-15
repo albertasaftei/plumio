@@ -474,12 +474,41 @@ export const tagQueries = {
   `),
 };
 
+// === Password Reset Token Queries ===
+export interface PasswordResetToken {
+  id: number;
+  user_id: number;
+  token: string;
+  expires_at: string;
+  used: number;
+  created_at: string;
+}
+
+export const passwordResetQueries = {
+  create: db.prepare<[number, string, string]>(
+    "INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
+  ),
+  findByToken: db.prepare<[string], PasswordResetToken>(
+    "SELECT * FROM password_reset_tokens WHERE token = ?",
+  ),
+  markUsed: db.prepare<[string]>(
+    "UPDATE password_reset_tokens SET used = 1 WHERE token = ?",
+  ),
+  deleteByUserId: db.prepare<[number]>(
+    "DELETE FROM password_reset_tokens WHERE user_id = ?",
+  ),
+  deleteExpired: db.prepare<[string]>(
+    "DELETE FROM password_reset_tokens WHERE expires_at < ?",
+  ),
+};
+
 // Cleanup expired sessions periodically (skip during tests)
 if (process.env.NODE_ENV !== "test") {
   setInterval(
     () => {
       const now = new Date().toISOString();
       sessionQueries.deleteExpired.run(now);
+      passwordResetQueries.deleteExpired.run(now);
     },
     60 * 60 * 1000,
   ); // Every hour

@@ -17,6 +17,12 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - ALLOWED_ORIGINS=http://${FRONTEND_URL}:${FRONTEND_PORT}
       - ENABLE_ENCRYPTION=true
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM}
+      - APP_URL=${APP_URL}
     volumes:
       - plumio-data:/data
     networks:

@@ -4,7 +4,12 @@ import { AppLayout } from "./AppLayout";
 import { routes } from "~/routes";
 
 // Routes that should NOT have the AppLayout wrapper
-const PUBLIC_ROUTES = [routes.login, routes.register] as string[];
+const PUBLIC_ROUTES = [
+  routes.login,
+  routes.register,
+  routes.forgotPassword,
+  routes.resetPassword,
+] as string[];
 const ROUTES_WITHOUT_SIDEBAR = [routes.settings] as string[];
 
 export const AuthenticatedLayout: ParentComponent = (props) => {

@@ -264,6 +264,14 @@ export default function Home() {
                   Register
                 </button>
               </div>
+              <div class="mt-3 text-center">
+                <button
+                  onClick={() => navigate(routes.forgotPassword)}
+                  class="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] cursor-pointer transition-colors text-sm"
+                >
+                  Forgot password?
+                </button>
+              </div>
             </Show>
           </div>
 

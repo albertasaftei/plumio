@@ -18,6 +18,14 @@ export const ALLOWED_ATTACHMENT_MIME_PREFIXES = (
   .split(",")
   .map((s) => s.trim());
 
+// SMTP / Email settings
+export const SMTP_HOST = process.env.SMTP_HOST || "";
+export const SMTP_PORT = parseInt(process.env.SMTP_PORT || "587", 10);
+export const SMTP_USER = process.env.SMTP_USER || "";
+export const SMTP_PASS = process.env.SMTP_PASS || "";
+export const SMTP_FROM = process.env.SMTP_FROM || "";
+export const APP_URL = process.env.APP_URL || "http://localhost:3000";
+
 // Validate encryption key length (must be 32 bytes for AES-256) if encryption is enabled
 if (ENABLE_ENCRYPTION && Buffer.from(ENCRYPTION_KEY, "hex").length !== 32) {
   throw new Error(
