@@ -25,12 +25,12 @@ export const updateSettingSchema = z.object({
 });
 
 export const adminUserParamsSchema = z.object({
-  id: z.string().transform((val) => parseInt(val)),
+  id: z.coerce.number().int().positive(),
 });
 
 export const adminUserOrgParamsSchema = z.object({
-  id: z.string().transform((val) => parseInt(val)),
-  orgId: z.string().transform((val) => parseInt(val)),
+  id: z.coerce.number().int().positive(),
+  orgId: z.coerce.number().int().positive(),
 });
 
 export const adminAddUserToOrgSchema = z.object({
