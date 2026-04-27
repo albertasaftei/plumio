@@ -14,7 +14,7 @@ function HomepageHeader() {
       <div className={styles["hero-glow"]} aria-hidden="true" />
 
       <div className={styles["hero-content"]}>
-        <div className={styles["hero-badge"]}>v2.6.0 — Now Available</div>
+        <div className={styles["hero-badge"]}>v2.7.0 — Now Available</div>
         <Heading as="h1" className={styles["hero-title"]}>
           Your notes,{" "}
           <em className={styles["hero-title-accent"]}>truly private</em>

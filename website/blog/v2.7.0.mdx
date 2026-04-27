@@ -1,0 +1,31 @@
+---
+slug: v2.7.0
+title: v2.7.0
+authors: [alburt]
+date: 2026-04-27
+tags: [release, minor]
+---
+
+Version <span style={{color: "#2a9d8f", fontWeight: "bold"}}>2.7.0</span> of plumio is here!
+
+{/* truncate */}
+
+This release includes:
+
+### Major highlights
+
+- Added <span style={{color: "#2a9d8f", fontWeight: "bold"}}>reset password</span> feature using SMTP email. Users can now reset their password by receiving a reset link via email. This requires configuring SMTP settings in the backend environment variables.
+- Added <span style={{color: "#2a9d8f", fontWeight: "bold"}}>password change</span> feature in user settings, allowing users to update their password directly from the application.
+- Added <span style={{color: "#2a9d8f", fontWeight: "bold"}}>email change</span> feature in user settings, allowing users to update their email address. This requires configuring SMTP settings in the backend environment variables.
+- Added <span style={{color: "#2a9d8f", fontWeight: "bold"}}>tags system</span> to organize documents. Users can create and assign tags to their documents, making it easier to categorize and find related notes.
+- Admins can now assign/remove access to organizations for users via the admin panel.
+
+### Minor highlights
+
+- Added an alert if the user tries to leave the page while the document has unsaved changes, preventing accidental data loss.
+
+### Security
+
+- Updated dependencies to fix security vulnerabilities.
+
+Thank you for using plumio! 🎉
