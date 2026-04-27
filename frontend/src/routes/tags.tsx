@@ -289,7 +289,6 @@ export default function TagsPage() {
             <div class="flex items-center gap-2">
               <label class="relative flex items-center gap-2 h-9 px-3 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-elevated)] transition-colors cursor-pointer text-sm text-[var(--color-text-secondary)]">
                 <div class="i-carbon-color-palette w-4 h-4" />
-                <span>Custom color</span>
                 <div
                   class="w-4 h-4 rounded-sm border border-[var(--color-border)]"
                   style={{ "background-color": tagColor() || "#cccccc" }}
