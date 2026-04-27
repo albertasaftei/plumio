@@ -13,6 +13,11 @@ import {
   getCreatedFolders,
   addCreatedFolder,
   removeCreatedFolder,
+  getDemoTags,
+  saveDemoTags,
+  getDemoTagMappings,
+  saveDemoTagMappings,
+  nextTagId,
 } from "./demo-storage";
 
 // Ensure seeded before any operation
@@ -934,5 +939,113 @@ export const demoClient = {
     docs.push({ ...doc, path: newPath, modified: new Date().toISOString() });
     saveDemoDocuments(docs);
     return { message: "Duplicated", newPath };
+  },
+
+  // Tags
+  async listTags() {
+    await ensureReady();
+    const tags = getDemoTags();
+    const mappings = getDemoTagMappings();
+    const countMap: Record<number, number> = {};
+    for (const ids of Object.values(mappings)) {
+      for (const id of ids) {
+        countMap[id] = (countMap[id] || 0) + 1;
+      }
+    }
+    return {
+      tags: tags.map((t) => ({ ...t, document_count: countMap[t.id] || 0 })),
+    };
+  },
+
+  async createTag(name: string, color?: string | null, description?: string | null) {
+    await ensureReady();
+    const tags = getDemoTags();
+    if (tags.some((t) => t.name.toLowerCase() === name.toLowerCase())) {
+      throw new Error("409: Tag already exists");
+    }
+    const now = new Date().toISOString();
+    const tag = { id: nextTagId(tags), name, color: color ?? null, description: description ?? null, created_at: now, updated_at: now };
+    tags.push(tag);
+    saveDemoTags(tags);
+    return { tag };
+  },
+
+  async updateTag(id: number, data: { name?: string; color?: string | null; description?: string | null }) {
+    await ensureReady();
+    const tags = getDemoTags();
+    const tag = tags.find((t) => t.id === id);
+    if (!tag) throw new Error("Tag not found");
+    if (data.name !== undefined) tag.name = data.name;
+    if (data.color !== undefined) tag.color = data.color;
+    if (data.description !== undefined) tag.description = data.description;
+    tag.updated_at = new Date().toISOString();
+    saveDemoTags(tags);
+    return { tag };
+  },
+
+  async deleteTag(id: number) {
+    await ensureReady();
+    const tags = getDemoTags().filter((t) => t.id !== id);
+    saveDemoTags(tags);
+    // Remove from all mappings
+    const mappings = getDemoTagMappings();
+    for (const path of Object.keys(mappings)) {
+      mappings[path] = mappings[path].filter((tid) => tid !== id);
+      if (mappings[path].length === 0) delete mappings[path];
+    }
+    saveDemoTagMappings(mappings);
+    return { message: "Tag deleted" };
+  },
+
+  async getDocumentTags(path: string) {
+    await ensureReady();
+    const tags = getDemoTags();
+    const mappings = getDemoTagMappings();
+    const ids = mappings[path] || [];
+    return {
+      tags: ids
+        .map((id) => tags.find((t) => t.id === id))
+        .filter((t): t is NonNullable<typeof t> => t !== undefined)
+        .map(({ id, name, color }) => ({ id, name, color })),
+    };
+  },
+
+  async setDocumentTags(path: string, tagIds: number[]) {
+    await ensureReady();
+    const mappings = getDemoTagMappings();
+    if (tagIds.length === 0) {
+      delete mappings[path];
+    } else {
+      mappings[path] = tagIds;
+    }
+    saveDemoTagMappings(mappings);
+    const tags = getDemoTags();
+    return {
+      tags: tagIds
+        .map((id) => tags.find((t) => t.id === id))
+        .filter((t): t is NonNullable<typeof t> => t !== undefined)
+        .map(({ id, name, color }) => ({ id, name, color })),
+    };
+  },
+
+  async bulkTag(documentPaths: string[], tagId: number, action: "add" | "remove") {
+    await ensureReady();
+    const mappings = getDemoTagMappings();
+    for (const path of documentPaths) {
+      const ids = mappings[path] || [];
+      if (action === "add" && !ids.includes(tagId)) {
+        mappings[path] = [...ids, tagId];
+      } else if (action === "remove") {
+        mappings[path] = ids.filter((id) => id !== tagId);
+        if (mappings[path].length === 0) delete mappings[path];
+      }
+    }
+    saveDemoTagMappings(mappings);
+    return { message: "Bulk tag applied" };
+  },
+
+  async getTagMappings() {
+    await ensureReady();
+    return { mappings: getDemoTagMappings() };
   },
 };

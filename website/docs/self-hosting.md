@@ -34,7 +34,7 @@ Access Plumio at `http://localhost:3000`
 | `DB_PATH`           | Path to SQLite database         | No (default: `/data/plumio.db`) |
 | `ENABLE_ENCRYPTION` | Enable document encryption      | No (default: `true`)            |
 
-Optional password reset email support:
+Optional SMTP support for password reset and email change features:
 
 | Variable    | Description                                  | Required |
 | ----------- | -------------------------------------------- | -------- |

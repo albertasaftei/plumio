@@ -8,6 +8,8 @@ const DEMO_ORG_KEY = `${DEMO_PREFIX}org`;
 const DEMO_FOLDER_COLORS_KEY = `${DEMO_PREFIX}folder_colors`;
 const DEMO_FOLDER_FAVORITES_KEY = `${DEMO_PREFIX}folder_favorites`;
 const DEMO_FOLDERS_KEY = `${DEMO_PREFIX}folders`;
+const DEMO_TAGS_KEY = `${DEMO_PREFIX}tags`;
+const DEMO_TAG_MAPPINGS_KEY = `${DEMO_PREFIX}tag_mappings`;
 
 interface StoredDocument {
   path: string;
@@ -20,6 +22,15 @@ interface StoredDocument {
   archived_at?: string;
   deleted?: boolean;
   deleted_at?: string;
+}
+
+export interface StoredTag {
+  id: number;
+  name: string;
+  color: string | null;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // Simple in-memory lock to prevent concurrent seeding
@@ -43,7 +54,7 @@ export async function ensureDemoSeeded(): Promise<void> {
 
   // Start seeding
   seedingPromise = (async () => {
-    const { sampleDocuments, demoUser, demoOrg, sampleFolderColors } =
+    const { sampleDocuments, demoUser, demoOrg, sampleFolderColors, sampleTags, sampleTagMappings } =
       await import("./demo-seed");
 
     // Seed user data
@@ -62,6 +73,10 @@ export async function ensureDemoSeeded(): Promise<void> {
       size: doc.content.length,
     }));
     localStorage.setItem(DEMO_DOCS_KEY, JSON.stringify(docs));
+
+    // Seed tags
+    localStorage.setItem(DEMO_TAGS_KEY, JSON.stringify(sampleTags));
+    localStorage.setItem(DEMO_TAG_MAPPINGS_KEY, JSON.stringify(sampleTagMappings));
 
     // Mark as seeded
     localStorage.setItem(DEMO_SEEDED_KEY, "true");
@@ -179,4 +194,31 @@ export function setFolderFavorite(path: string, favorite: boolean): void {
 export function getFolderFavorite(path: string): boolean {
   const favorites = getFolderFavorites();
   return favorites[path] || false;
+}
+
+export function getDemoTags(): StoredTag[] {
+  if (typeof window === "undefined") return [];
+  const data = localStorage.getItem(DEMO_TAGS_KEY);
+  return data ? JSON.parse(data) : [];
+}
+
+export function saveDemoTags(tags: StoredTag[]): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(DEMO_TAGS_KEY, JSON.stringify(tags));
+}
+
+/** path → tagId[] */
+export function getDemoTagMappings(): Record<string, number[]> {
+  if (typeof window === "undefined") return {};
+  const data = localStorage.getItem(DEMO_TAG_MAPPINGS_KEY);
+  return data ? JSON.parse(data) : {};
+}
+
+export function saveDemoTagMappings(mappings: Record<string, number[]>): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(DEMO_TAG_MAPPINGS_KEY, JSON.stringify(mappings));
+}
+
+export function nextTagId(tags: StoredTag[]): number {
+  return tags.length > 0 ? Math.max(...tags.map((t) => t.id)) + 1 : 1;
 }

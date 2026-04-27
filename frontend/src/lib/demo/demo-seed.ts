@@ -50,3 +50,54 @@ export const demoOrg = {
   slug: "demo-org",
   role: "admin",
 };
+
+export const sampleTags = [
+  {
+    id: 1,
+    name: "example",
+    color: "#3b82f6",
+    description: "Demo example files",
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: 2,
+    name: "math",
+    color: "#a855f7",
+    description: "Mathematics and equations",
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: 3,
+    name: "code",
+    color: "#f97316",
+    description: "Code snippets and programming",
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: 4,
+    name: "diagrams",
+    color: "#a78bfa",
+    description: "Visual diagrams and charts",
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: 5,
+    name: "welcome",
+    color: "#22c55e",
+    description: "Getting started content",
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  },
+];
+
+/** path → tagId[] */
+export const sampleTagMappings: Record<string, number[]> = {
+  "/Welcome": [1, 5],
+  "/Examples/Math": [1, 2],
+  "/Examples/Code": [1, 3],
+  "/Examples/Diagrams": [1, 4],
+};
