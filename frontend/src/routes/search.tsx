@@ -95,7 +95,7 @@ export default function SearchPage() {
         <Show when={query()}>
           <button
             onClick={() => setQuery("")}
-            class="absolute right-4 top-1/2 -translate-y-1/2 i-carbon-close w-4 h-4 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+            class="absolute right-4 top-1/2 -translate-y-1/2 i-carbon-close w-4 h-4 text-muted-body hover:text-body transition-colors"
             aria-label="Clear search"
           />
         </Show>
@@ -138,12 +138,12 @@ export default function SearchPage() {
             {(result) => (
               <button
                 onClick={() => handleSelect(result.path)}
-                class="w-full text-left bg-[var(--color-bg-surface)] border border-[var(--color-border)] hover:bg-[var(--color-bg-elevated)] rounded-lg p-4 transition-colors group focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer"
+                class="w-full text-left bg-surface border border-base hover:bg-elevated rounded-lg p-4 transition-colors group focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer"
               >
                 {/* Title row */}
                 <div class="flex items-center gap-3 mb-2">
                   <div class="i-carbon-document w-4 h-4 text-secondary-body flex-shrink-0" />
-                  <span class="font-medium text-body truncate group-hover:text-[var(--color-text-primary)] transition-colors">
+                  <span class="font-medium text-body truncate group-hover:text-body transition-colors">
                     {getDisplayName(result.path)}
                   </span>
                   <span class="ml-auto text-xs text-muted-body flex-shrink-0">

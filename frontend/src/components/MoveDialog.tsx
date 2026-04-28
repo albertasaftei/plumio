@@ -110,7 +110,7 @@ export default function MoveDialog(props: Readonly<MoveDialogProps>) {
           classList={{
             "bg-[var(--color-primary)]/10 border-l-2 border-l-[var(--color-primary)]":
               isSelected(),
-            "hover:bg-[var(--color-bg-elevated)]":
+            "hover:bg-elevated":
               !isSelected() && !isDisabled(),
             "opacity-40 cursor-not-allowed": isDisabled(),
             "ring-1 ring-[var(--color-border)]":
@@ -135,11 +135,11 @@ export default function MoveDialog(props: Readonly<MoveDialogProps>) {
             <div class="w-3 h-3 flex-shrink-0" />
           </Show>
           <div class="i-carbon-folder w-4 h-4 flex-shrink-0 text-blue-400" />
-          <span class="truncate text-sm text-[var(--color-text-primary)]">
+          <span class="truncate text-sm text-body">
             {nodeProps.node.name}
           </span>
           <Show when={isCurrentParent()}>
-            <span class="text-xs text-[var(--color-text-muted)] ml-auto flex-shrink-0">
+            <span class="text-xs text-muted-body ml-auto flex-shrink-0">
               current
             </span>
           </Show>
@@ -165,13 +165,13 @@ export default function MoveDialog(props: Readonly<MoveDialogProps>) {
       onConfirm={handleConfirm}
       onCancel={props.onCancel}
     >
-      <p class="text-[var(--color-text-secondary)] mb-3 text-sm">
+      <p class="text-secondary-body mb-3 text-sm">
         Select a destination folder:
       </p>
       <div
         role="tree"
         aria-label="Folder tree"
-        class="max-h-64 overflow-y-auto border border-[var(--color-border)] rounded-lg p-2 mb-4 bg-[var(--color-bg-base)]"
+        class="max-h-64 overflow-y-auto border border-base rounded-lg p-2 mb-4 bg-base"
       >
         {/* Root option */}
         <button
@@ -183,18 +183,18 @@ export default function MoveDialog(props: Readonly<MoveDialogProps>) {
           classList={{
             "bg-[var(--color-primary)]/10 border-l-2 border-l-[var(--color-primary)]":
               resolvedSelection() === "/",
-            "hover:bg-[var(--color-bg-elevated)]": resolvedSelection() !== "/",
+            "hover:bg-elevated": resolvedSelection() !== "/",
             "ring-1 ring-[var(--color-border)]":
               currentParent() === "/" && resolvedSelection() !== "/",
           }}
         >
           <div class="w-3 h-3 flex-shrink-0" />
-          <div class="i-carbon-home w-4 h-4 flex-shrink-0 text-[var(--color-text-muted)]" />
-          <span class="text-sm text-[var(--color-text-primary)] font-medium">
+          <div class="i-carbon-home w-4 h-4 flex-shrink-0 text-muted-body" />
+          <span class="text-sm text-body font-medium">
             Root
           </span>
           <Show when={currentParent() === "/"}>
-            <span class="text-xs text-[var(--color-text-muted)] ml-auto">
+            <span class="text-xs text-muted-body ml-auto">
               current
             </span>
           </Show>

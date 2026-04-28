@@ -80,10 +80,10 @@ const ToolbarButton: Component<ToolbarButtonProps> = (props) => {
       disabled={props.disabled}
       class={`toolbar-button p-1.5 rounded transition-colors duration-150 cursor-pointer ${
         props.disabled
-          ? "text-[var(--color-text-muted)] cursor-not-allowed"
+          ? "text-muted-body cursor-not-allowed"
           : props.active
-            ? "bg-[var(--color-bg-elevated)] text-[var(--color-primary)]"
-            : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)] active:bg-[var(--color-bg-elevated)]"
+            ? "bg-elevated text-[var(--color-primary)]"
+            : "text-secondary-body hover:text-body hover:bg-elevated active:bg-elevated"
       } ${props.class || ""}`}
       title={props.title}
       onMouseDown={handleMouseDown}
@@ -114,7 +114,7 @@ export default function EditorToolbar(props: ToolbarProps) {
   };
 
   return (
-    <div class="editor-toolbar flex items-center gap-0.5 px-3 py-1.5 bg-[var(--color-bg-base)] border-b border-[var(--color-border)] overflow-x-auto shrink-0">
+    <div class="editor-toolbar flex items-center gap-0.5 px-3 py-1.5 bg-base border-b border-base overflow-x-auto shrink-0">
       {/* Undo / Redo */}
       <ToolbarButton
         icon="i-carbon-undo"
@@ -150,10 +150,10 @@ export default function EditorToolbar(props: ToolbarProps) {
               title="Font Family"
               class={`toolbar-button px-1.5 py-1 rounded transition-colors duration-150 cursor-pointer flex items-center gap-1 max-w-[80px] ${
                 !props.hasSelection && !s().fontFamily
-                  ? "text-[var(--color-text-muted)] cursor-not-allowed opacity-50"
+                  ? "text-muted-body cursor-not-allowed opacity-50"
                   : s().fontFamily
-                    ? "bg-[var(--color-bg-elevated)] text-[var(--color-primary)]"
-                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)]"
+                    ? "bg-elevated text-[var(--color-primary)]"
+                    : "text-secondary-body hover:text-body hover:bg-elevated"
               }`}
             >
               <span
@@ -167,8 +167,8 @@ export default function EditorToolbar(props: ToolbarProps) {
           )}
         />
         <Popover.Portal>
-          <Popover.Content class="mt-1 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg shadow-lg p-1.5 z-50 animate-slide-down min-w-[160px]">
-            <p class="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide mb-1 px-1.5">
+          <Popover.Content class="mt-1 bg-surface border border-base rounded-lg shadow-lg p-1.5 z-50 animate-slide-down min-w-[160px]">
+            <p class="text-[10px] text-muted-body uppercase tracking-wide mb-1 px-1.5">
               Font Family
             </p>
             {FONT_FAMILIES.map((f) => (
@@ -179,10 +179,10 @@ export default function EditorToolbar(props: ToolbarProps) {
                   props.onCommand("setFontFamily", f.value);
                   setShowFontPicker(false);
                 }}
-                class={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors cursor-pointer hover:bg-[var(--color-bg-elevated)] ${
+                class={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors cursor-pointer hover:bg-elevated ${
                   s().fontFamily === f.value
-                    ? "text-[var(--color-primary)] bg-[var(--color-bg-elevated)]"
-                    : "text-[var(--color-text-primary)]"
+                    ? "text-[var(--color-primary)] bg-elevated"
+                    : "text-body"
                 }`}
                 style={{ "font-family": f.value }}
               >
@@ -190,7 +190,7 @@ export default function EditorToolbar(props: ToolbarProps) {
               </button>
             ))}
             <Show when={!!s().fontFamily}>
-              <div class="border-t border-[var(--color-border)] mt-1 pt-1">
+              <div class="border-t border-base mt-1 pt-1">
                 <button
                   type="button"
                   onMouseDown={(e) => {
@@ -198,7 +198,7 @@ export default function EditorToolbar(props: ToolbarProps) {
                     props.onCommand("setFontFamily", null);
                     setShowFontPicker(false);
                   }}
-                  class="w-full text-[11px] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)] rounded px-2 py-1 text-left transition-colors cursor-pointer"
+                  class="w-full text-[11px] text-secondary-body hover:text-body hover:bg-elevated rounded px-2 py-1 text-left transition-colors cursor-pointer"
                 >
                   Reset to default
                 </button>
@@ -263,10 +263,10 @@ export default function EditorToolbar(props: ToolbarProps) {
               title="Text Color"
               class={`toolbar-button p-1.5 rounded transition-colors duration-150 cursor-pointer flex flex-col items-center gap-0.5 ${
                 !props.hasSelection && !s().textColor
-                  ? "text-[var(--color-text-muted)] cursor-not-allowed opacity-50"
+                  ? "text-muted-body cursor-not-allowed opacity-50"
                   : s().textColor
-                    ? "bg-[var(--color-bg-elevated)] text-[var(--color-primary)]"
-                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)]"
+                    ? "bg-elevated text-[var(--color-primary)]"
+                    : "text-secondary-body hover:text-body hover:bg-elevated"
               }`}
             >
               <span
@@ -286,8 +286,8 @@ export default function EditorToolbar(props: ToolbarProps) {
           )}
         />
         <Popover.Portal>
-          <Popover.Content class="mt-1 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg shadow-lg p-2 z-50 animate-slide-down">
-            <p class="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide mb-1.5 px-0.5">
+          <Popover.Content class="mt-1 bg-surface border border-base rounded-lg shadow-lg p-2 z-50 animate-slide-down">
+            <p class="text-[10px] text-muted-body uppercase tracking-wide mb-1.5 px-0.5">
               Text Color
             </p>
             <div class="grid grid-cols-6 gap-1 mb-1.5">
@@ -317,7 +317,7 @@ export default function EditorToolbar(props: ToolbarProps) {
                   props.onCommand("setTextColor", null);
                   setShowColorPicker(false);
                 }}
-                class="w-full text-[11px] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)] rounded px-2 py-1 text-left transition-colors cursor-pointer"
+                class="w-full text-[11px] text-secondary-body hover:text-body hover:bg-elevated rounded px-2 py-1 text-left transition-colors cursor-pointer"
               >
                 Remove color
               </button>

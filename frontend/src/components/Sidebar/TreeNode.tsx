@@ -179,7 +179,7 @@ export default function TreeNode(props: TreeNodeProps) {
     <>
       <div
         ref={rowRef}
-        class={`group relative hover:bg-[var(--color-bg-elevated)] border-l-4 transition-colors rounded-md m-2 ${
+        class={`group relative hover:bg-elevated border-l-4 transition-colors rounded-md m-2 ${
           props.node.path === props.currentPath
             ? "border-l-primary"
             : isAncestorOfCurrent()
@@ -214,11 +214,11 @@ export default function TreeNode(props: TreeNodeProps) {
             class={`w-4 h-4 flex-shrink-0 ${
               props.node.type === "folder"
                 ? "i-carbon-folder text-blue-400"
-                : "i-carbon-document text-[var(--color-text-muted)]"
+                : "i-carbon-document text-muted-body"
             }`}
           />
 
-          <button class="flex-1 text-left text-[var(--color-text-primary)] truncate cursor-pointer">
+          <button class="flex-1 text-left text-body truncate cursor-pointer">
             {props.node.type === "file"
               ? getDisplayName(props.node.name)
               : props.node.name}
@@ -252,12 +252,12 @@ export default function TreeNode(props: TreeNodeProps) {
                     size="sm"
                     title="More options"
                   >
-                    <div class="i-carbon-overflow-menu-vertical w-5 h-5 text-[var(--color-text-muted)]" />
+                    <div class="i-carbon-overflow-menu-vertical w-5 h-5 text-muted-body" />
                   </Button>
                 )}
               />
               <Popover.Portal>
-                <Popover.Content class="mt-1 mb-1 max-w-36 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg shadow-lg z-50 py-1 animate-slide-down">
+                <Popover.Content class="mt-1 mb-1 max-w-36 bg-surface border border-base rounded-lg shadow-lg z-50 py-1 animate-slide-down">
                   {/* Add file/folder actions (folders only) */}
                   <Show when={props.node.type === "folder"}>
                     <PopoverItem
@@ -337,7 +337,7 @@ export default function TreeNode(props: TreeNodeProps) {
                               e.stopPropagation();
                               triggerProps.onClick?.(e);
                             }}
-                            class="w-full px-3 py-2 text-left text-sm text-[var(--color-text-secondary)] hover:bg-neutral-600 transition-colors flex items-center gap-2 cursor-pointer"
+                            class="w-full px-3 py-2 text-left text-sm text-secondary-body hover:bg-neutral-600 transition-colors flex items-center gap-2 cursor-pointer"
                           >
                             <div class="i-carbon-tag w-4 h-4" />
                             Tags
@@ -346,7 +346,7 @@ export default function TreeNode(props: TreeNodeProps) {
                         )}
                       />
                       <Popover.Portal>
-                        <Popover.Content class="ml-1 bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-lg shadow-lg z-[60] py-1 min-w-40 animate-slide-down">
+                        <Popover.Content class="ml-1 bg-surface border border-base rounded-lg shadow-lg z-[60] py-1 min-w-40 animate-slide-down">
                           <TagContextMenu
                             documentPath={props.node.path}
                             tags={props.tags}
@@ -436,7 +436,7 @@ export default function TreeNode(props: TreeNodeProps) {
 
       <Show when={props.node.type === "folder" && isExpanded()}>
         <div
-          class={`${props.node.depth === 0 ? "mb-1" : ""} ml-8 mr-2 border-l-2 border-[var(--color-border-subtle)]`}
+          class={`${props.node.depth === 0 ? "mb-1" : ""} ml-8 mr-2 border-l-2 border-subtle`}
         >
           <For each={props.node.children}>
             {(child) => (

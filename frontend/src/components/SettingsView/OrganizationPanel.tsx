@@ -381,7 +381,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
               <tbody class="divide-y divide-neutral-700 dark:divide-neutral-700 light:divide-neutral-300">
                 <For each={members()}>
                   {(member) => (
-                    <tr class="hover:bg-[var(--color-bg-elevated)]">
+                    <tr class="hover:bg-elevated">
                       <td class="px-4 py-3 whitespace-nowrap">
                         <div class="flex items-center">
                           <div class="i-carbon-user-avatar w-8 h-8 text-muted-body mr-3" />
@@ -402,7 +402,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                                 class={`px-2 py-1 text-xs font-medium rounded capitalize ${
                                   member.role === "admin"
                                     ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                                    : "bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)]"
+                                    : "bg-elevated text-secondary-body"
                                 }`}
                               >
                                 {member.role}

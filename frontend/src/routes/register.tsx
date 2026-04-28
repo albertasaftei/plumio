@@ -251,7 +251,7 @@ export default function Register() {
           </div>
         </div>
 
-        <p class="text-center text-[var(--color-text-muted)] mt-6">
+        <p class="text-center text-muted-body mt-6">
           Your data is encrypted and stored locally on your server
         </p>
       </div>

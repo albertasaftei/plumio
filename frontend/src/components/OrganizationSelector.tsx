@@ -120,7 +120,7 @@ export default function OrganizationSelector(props: OrganizationSelectorProps) {
                         class={`px-1.5 py-0.5 rounded text-xs ${
                           org.role === "admin"
                             ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                            : "bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]"
+                            : "bg-surface text-secondary-body"
                         }`}
                       >
                         {org.role}

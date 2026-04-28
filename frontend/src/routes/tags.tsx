@@ -131,10 +131,10 @@ export default function TagsPage() {
         </Button>
       )}
       emptyState={
-        <div class="text-center py-12 text-[var(--color-text-secondary)]">
+        <div class="text-center py-12 text-secondary-body">
           <div class="i-carbon-tag w-16 h-16 mx-auto mb-4 opacity-50" />
           <p class="text-lg">No tags yet</p>
-          <p class="text-sm text-[var(--color-text-muted)] mt-2">
+          <p class="text-sm text-muted-body mt-2">
             Create your first tag to start organizing your notes
           </p>
         </div>
@@ -143,10 +143,10 @@ export default function TagsPage() {
       <Show
         when={tags().length > 0}
         fallback={
-          <div class="text-center py-12 text-[var(--color-text-secondary)]">
+          <div class="text-center py-12 text-secondary-body">
             <div class="i-carbon-tag w-16 h-16 mx-auto mb-4 opacity-50" />
             <p class="text-lg">No tags yet</p>
-            <p class="text-sm text-[var(--color-text-muted)] mt-2">
+            <p class="text-sm text-muted-body mt-2">
               Create your first tag to start organizing your notes
             </p>
           </div>
@@ -159,18 +159,18 @@ export default function TagsPage() {
                 <div class="flex items-center gap-3 flex-1 min-w-0">
                   {/* Color dot */}
                   <div
-                    class="w-5 h-5 rounded-full flex-shrink-0 border border-[var(--color-border)]"
+                    class="w-5 h-5 rounded-full flex-shrink-0 border border-base"
                     style={{
                       "background-color":
                         tag.color || "var(--color-text-muted)",
                     }}
                   />
                   <div class="min-w-0 flex-1">
-                    <p class="text-[var(--color-text-primary)] font-medium truncate mb-1">
+                    <p class="text-body font-medium truncate mb-1">
                       {tag.name}
                     </p>
                     <Show when={tag.description}>
-                      <p class="text-xs text-[var(--color-text-muted)] truncate">
+                      <p class="text-xs text-muted-body truncate">
                         {tag.description}
                       </p>
                     </Show>
@@ -179,7 +179,7 @@ export default function TagsPage() {
 
                 <div class="flex items-center gap-3 w-full sm:w-auto">
                   {/* Document count */}
-                  <div class="flex items-center gap-1 text-sm text-[var(--color-text-muted)] mr-auto sm:mr-0">
+                  <div class="flex items-center gap-1 text-sm text-muted-body mr-auto sm:mr-0">
                     <div class="i-carbon-document w-4 h-4" />
                     <span class="tabular-nums">{tag.document_count}</span>
                   </div>
@@ -225,7 +225,7 @@ export default function TagsPage() {
       >
         <div class="space-y-3">
           <div>
-            <label class="block text-sm text-[var(--color-text-secondary)] mb-1">
+            <label class="block text-sm text-secondary-body mb-1">
               Name
             </label>
             <input
@@ -239,12 +239,12 @@ export default function TagsPage() {
                 setError("");
               }}
               onKeyPress={(e) => e.key === "Enter" && handleSubmit()}
-              class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
+              class="w-full px-3 py-2 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)]"
             />
           </div>
 
           <div>
-            <label class="block text-sm text-[var(--color-text-secondary)] mb-1">
+            <label class="block text-sm text-secondary-body mb-1">
               Description (optional)
             </label>
             <input
@@ -253,12 +253,12 @@ export default function TagsPage() {
               maxLength={200}
               value={tagDescription()}
               onInput={(e) => setTagDescription(e.currentTarget.value)}
-              class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
+              class="w-full px-3 py-2 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)]"
             />
           </div>
 
           <div>
-            <label class="block text-sm text-[var(--color-text-secondary)] mb-2">
+            <label class="block text-sm text-secondary-body mb-2">
               Color
             </label>
             <div class="flex flex-wrap items-center gap-2 mb-2">
@@ -280,17 +280,17 @@ export default function TagsPage() {
               </For>
               <button
                 onClick={() => selectColor(null)}
-                class="w-7 h-7 rounded-md border-2 border-[var(--color-border)] hover:scale-110 transition-transform flex items-center justify-center cursor-pointer"
+                class="w-7 h-7 rounded-md border-2 border-base hover:scale-110 transition-transform flex items-center justify-center cursor-pointer"
                 title="Remove color"
               >
-                <div class="i-carbon-close w-4 h-4 text-[var(--color-text-muted)]" />
+                <div class="i-carbon-close w-4 h-4 text-muted-body" />
               </button>
             </div>
             <div class="flex items-center gap-2">
-              <label class="relative flex items-center gap-2 h-9 px-3 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-base)] hover:bg-[var(--color-bg-elevated)] transition-colors cursor-pointer text-sm text-[var(--color-text-secondary)]">
+              <label class="relative flex items-center gap-2 h-9 px-3 rounded-md border border-base bg-base hover:bg-elevated transition-colors cursor-pointer text-sm text-secondary-body">
                 <div class="i-carbon-color-palette w-4 h-4" />
                 <div
-                  class="w-4 h-4 rounded-sm border border-[var(--color-border)]"
+                  class="w-4 h-4 rounded-sm border border-base"
                   style={{ "background-color": tagColor() || "#cccccc" }}
                 />
                 <input
@@ -302,7 +302,7 @@ export default function TagsPage() {
                 />
               </label>
               <Show when={tagColor()}>
-                <span class="text-xs text-[var(--color-text-muted)] uppercase">
+                <span class="text-xs text-muted-body uppercase">
                   {tagColor()}
                 </span>
               </Show>

@@ -77,41 +77,41 @@ export default function Homepage(props: HomepageProps) {
       <div class="bg-base border-b border-base px-4 sm:px-8 py-4 sm:py-5">
         <div class="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-6">
           <div class="min-w-0">
-            <p class="text-[11px] font-semibold tracking-[0.14em] uppercase text-[var(--color-text-muted)] mb-0.5">
+            <p class="text-[11px] font-semibold tracking-[0.14em] uppercase text-muted-body mb-0.5">
               {greeting()}
             </p>
-            <h1 class="text-xl font-semibold text-[var(--color-text-primary)] truncate">
+            <h1 class="text-xl font-semibold text-body truncate">
               {currentOrg()?.name ?? "My Workspace"}
             </h1>
           </div>
 
           <div class="flex items-center gap-3 sm:gap-6 flex-wrap">
             {/* Inline stat pills */}
-            <div class="flex items-center gap-1 text-[var(--color-text-muted)] text-sm">
+            <div class="flex items-center gap-1 text-muted-body text-sm">
               <div class="i-carbon-document w-3.5 h-3.5" />
-              <span class="font-medium text-[var(--color-text-secondary)]">
+              <span class="font-medium text-secondary-body">
                 {props.documents.filter((d) => d.type === "file").length}
               </span>
               <span class="ml-0.5">docs</span>
             </div>
             <div class="w-px h-4 bg-[var(--color-border)]" />
-            <div class="flex items-center gap-1 text-[var(--color-text-muted)] text-sm">
+            <div class="flex items-center gap-1 text-muted-body text-sm">
               <div class="i-carbon-folder w-3.5 h-3.5" />
-              <span class="font-medium text-[var(--color-text-secondary)]">
+              <span class="font-medium text-secondary-body">
                 {props.documents.filter((d) => d.type === "folder").length}
               </span>
               <span class="ml-0.5">folders</span>
             </div>
             <div class="w-px h-4 bg-[var(--color-border)]" />
-            <div class="flex items-center gap-1 text-[var(--color-text-muted)] text-sm">
+            <div class="flex items-center gap-1 text-muted-body text-sm">
               <div class="i-carbon-star-filled w-3.5 h-3.5 text-yellow-400" />
-              <span class="font-medium text-[var(--color-text-secondary)]">
+              <span class="font-medium text-secondary-body">
                 {favoriteDocuments().length}
               </span>
               <span class="ml-0.5">starred</span>
             </div>
             <div class="hidden sm:block w-px h-4 bg-[var(--color-border)]" />
-            <span class="hidden sm:inline text-sm text-[var(--color-text-muted)]">
+            <span class="hidden sm:inline text-sm text-muted-body">
               {todayLabel()}
             </span>
           </div>
@@ -156,7 +156,7 @@ export default function Homepage(props: HomepageProps) {
                       >
                         <div class="px-3 py-3">
                           <div class="flex items-start justify-between gap-2 mb-1">
-                            <span class="text-sm font-medium text-[var(--color-text-primary)] truncate leading-snug">
+                            <span class="text-sm font-medium text-body truncate leading-snug">
                               {getDisplayName(doc.name)}
                             </span>
                             <div class="i-carbon-star-filled w-3.5 h-3.5 text-yellow-400 shrink-0 mt-0.5" />
@@ -165,17 +165,17 @@ export default function Homepage(props: HomepageProps) {
                             <Show
                               when={parentFolder(doc.path)}
                               fallback={
-                                <span class="text-[11px] text-[var(--color-text-muted)]">
+                                <span class="text-[11px] text-muted-body">
                                   Root
                                 </span>
                               }
                             >
-                              <span class="text-[11px] text-[var(--color-text-muted)] truncate flex items-center gap-1">
+                              <span class="text-[11px] text-muted-body truncate flex items-center gap-1">
                                 <div class="i-carbon-folder w-3 h-3 shrink-0" />
                                 {parentFolder(doc.path)}
                               </span>
                             </Show>
-                            <span class="text-[11px] text-[var(--color-text-muted)] shrink-0 ml-2">
+                            <span class="text-[11px] text-muted-body shrink-0 ml-2">
                               {formatRelativeDate(doc.modified)}
                             </span>
                           </div>
@@ -217,8 +217,8 @@ function parentFolder(path: string): string | null {
 function SectionLabel(props: { icon: string; label: string }) {
   return (
     <div class="flex items-center gap-2 mb-4">
-      <div class={`${props.icon} w-3.5 h-3.5 text-[var(--color-text-muted)]`} />
-      <span class="text-[11px] font-semibold tracking-[0.14em] uppercase text-[var(--color-text-muted)]">
+      <div class={`${props.icon} w-3.5 h-3.5 text-muted-body`} />
+      <span class="text-[11px] font-semibold tracking-[0.14em] uppercase text-muted-body">
         {props.label}
       </span>
       <div class="flex-1 h-px bg-[var(--color-border)]" />
@@ -249,7 +249,7 @@ function RecentSection(props: {
       <Show
         when={props.docs.length > 0}
         fallback={
-          <div class="flex flex-col items-center justify-center py-16 text-[var(--color-text-muted)]">
+          <div class="flex flex-col items-center justify-center py-16 text-muted-body">
             <div class="i-carbon-document-blank w-10 h-10 mb-3 opacity-20" />
             <p class="text-sm">No documents yet. Create one to get started!</p>
           </div>
@@ -258,7 +258,7 @@ function RecentSection(props: {
         <div class="bg-elevated rounded-lg border border-base overflow-hidden ">
           {/* Table header — hide # and Size on mobile */}
           <div
-            class="grid text-[11px] font-semibold tracking-wide uppercase text-[var(--color-text-muted)] px-4 py-2 border-b border-[var(--color-border)]"
+            class="grid text-[11px] font-semibold tracking-wide uppercase text-muted-body px-4 py-2 border-b border-base"
             style="grid-template-columns: 1fr auto auto"
           >
             <span>Name</span>
@@ -275,8 +275,8 @@ function RecentSection(props: {
               >
                 {/* Name + path */}
                 <div class="min-w-0">
-                  <div class="text-sm font-medium text-[var(--color-text-primary)] truncate flex items-center gap-1.5">
-                    <div class="i-carbon-document w-3.5 h-3.5 text-[var(--color-text-muted)] shrink-0" />
+                  <div class="text-sm font-medium text-body truncate flex items-center gap-1.5">
+                    <div class="i-carbon-document w-3.5 h-3.5 text-muted-body shrink-0" />
                     {getDisplayName((doc as any).name)}
                     <Show when={(doc as any).favorite}>
                       <div class="i-carbon-star-filled w-3 h-3 text-yellow-400 shrink-0" />
@@ -285,13 +285,13 @@ function RecentSection(props: {
                   <Show
                     when={parentFolder((doc as any).path)}
                     fallback={
-                      <div class="text-[11px] text-[var(--color-text-muted)] mt-0.5 pl-5 flex items-center gap-1">
+                      <div class="text-[11px] text-muted-body mt-0.5 pl-5 flex items-center gap-1">
                         <div class="i-carbon-folder-open w-3 h-3 shrink-0" />
                         <span>Root</span>
                       </div>
                     }
                   >
-                    <div class="text-[11px] text-[var(--color-text-muted)] truncate mt-0.5 pl-5 flex items-center gap-1">
+                    <div class="text-[11px] text-muted-body truncate mt-0.5 pl-5 flex items-center gap-1">
                       <div class="i-carbon-folder w-3 h-3 shrink-0" />
                       <span>{parentFolder((doc as any).path)}</span>
                     </div>
@@ -306,7 +306,7 @@ function RecentSection(props: {
                       <div class="flex flex-wrap items-center gap-1 mt-1.5 pl-5">
                         <For each={visible}>
                           {(tag) => (
-                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] border border-[var(--color-border)]">
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-elevated text-secondary-body border border-base">
                               <span
                                 class="w-2 h-2 rounded-full flex-shrink-0"
                                 style={{
@@ -319,7 +319,7 @@ function RecentSection(props: {
                           )}
                         </For>
                         {overflow > 0 && (
-                          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] text-[var(--color-text-muted)] bg-[var(--color-bg-elevated)] border border-[var(--color-border)]">
+                          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] text-muted-body bg-elevated border border-base">
                             +{overflow}
                           </span>
                         )}
@@ -330,7 +330,7 @@ function RecentSection(props: {
 
                 {/* Size — hidden on mobile */}
                 <span
-                  class="hidden sm:block text-xs text-[var(--color-text-muted)] text-right pr-6 font-mono"
+                  class="hidden sm:block text-xs text-muted-body text-right pr-6 font-mono"
                   style="font-variant-numeric: tabular-nums"
                 >
                   {props.formatSize((doc as any).size)}
@@ -338,7 +338,7 @@ function RecentSection(props: {
 
                 {/* Date */}
                 <span
-                  class="text-xs text-[var(--color-text-muted)] text-right w-20 shrink-0"
+                  class="text-xs text-muted-body text-right w-20 shrink-0"
                   style="font-variant-numeric: tabular-nums"
                 >
                   {props.formatDate((doc as any).modified)}

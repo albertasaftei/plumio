@@ -168,7 +168,7 @@ export default function NotificationCenter() {
       case "join_rejected":
         return "text-red-400";
       default:
-        return "text-[var(--color-text-muted)]";
+        return "text-muted-body";
     }
   };
 
@@ -202,7 +202,7 @@ export default function NotificationCenter() {
 
   return (
     <Popover open={isOpen()} onOpenChange={setIsOpen}>
-      <Popover.Trigger class="relative inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors text-secondary-body hover:bg-[var(--color-bg-surface)] hover:text-[var(--color-text-primary)] cursor-pointer border-none bg-transparent">
+      <Popover.Trigger class="relative inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors text-secondary-body hover:bg-surface hover:text-body cursor-pointer border-none bg-transparent">
         <div class="i-carbon-notification w-5 h-5 flex-shrink-0" />
         <Show when={unreadCount() > 0}>
           <span class="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-[var(--color-primary)] text-white text-[10px] flex items-center justify-center font-semibold pointer-events-none">
@@ -214,8 +214,8 @@ export default function NotificationCenter() {
         <Popover.Content class="z-50 w-80 max-h-96 bg-elevated border border-base rounded-lg shadow-xl overflow-hidden flex flex-col">
           <Popover.Arrow />
           {/* Header */}
-          <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
-            <span class="font-semibold text-[var(--color-text-primary)] text-sm">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-base">
+            <span class="font-semibold text-body text-sm">
               Notifications
             </span>
             <Show when={unreadCount() > 0}>
@@ -233,7 +233,7 @@ export default function NotificationCenter() {
             <Show
               when={!loading()}
               fallback={
-                <div class="p-6 text-center text-[var(--color-text-muted)] text-sm">
+                <div class="p-6 text-center text-muted-body text-sm">
                   <div class="i-carbon-circle-dash animate-spin w-5 h-5 mx-auto mb-2" />
                   Loading...
                 </div>
@@ -242,7 +242,7 @@ export default function NotificationCenter() {
               <Show
                 when={notifications().length > 0}
                 fallback={
-                  <div class="p-6 text-center text-[var(--color-text-muted)] text-sm">
+                  <div class="p-6 text-center text-muted-body text-sm">
                     <div class="i-carbon-notification w-8 h-8 mx-auto mb-2 opacity-40" />
                     No notifications yet
                   </div>
@@ -253,7 +253,7 @@ export default function NotificationCenter() {
                     const meta = parseMetadata(notification.metadata);
                     return (
                       <div
-                        class={`px-4 py-3 border-b border-[var(--color-border)] last:border-b-0 transition-colors ${
+                        class={`px-4 py-3 border-b border-base last:border-b-0 transition-colors ${
                           notification.read
                             ? "opacity-60"
                             : "bg-[var(--color-primary)]/5"
@@ -265,24 +265,24 @@ export default function NotificationCenter() {
                           />
                           <div class="flex-1 min-w-0">
                             <div class="flex items-start justify-between gap-2">
-                              <p class="text-sm font-medium text-[var(--color-text-primary)] truncate">
+                              <p class="text-sm font-medium text-body truncate">
                                 {notification.title}
                               </p>
                               <button
                                 onClick={() => handleDelete(notification.id)}
-                                class="flex-shrink-0 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] cursor-pointer bg-transparent border-none p-0"
+                                class="flex-shrink-0 text-muted-body hover:text-body cursor-pointer bg-transparent border-none p-0"
                                 title="Delete"
                               >
                                 <div class="i-carbon-close w-3.5 h-3.5" />
                               </button>
                             </div>
                             <Show when={notification.message}>
-                              <p class="text-xs text-[var(--color-text-secondary)] mt-0.5 line-clamp-2">
+                              <p class="text-xs text-secondary-body mt-0.5 line-clamp-2">
                                 {notification.message}
                               </p>
                             </Show>
                             <div class="flex items-center gap-2 mt-1.5">
-                              <span class="text-[10px] text-[var(--color-text-muted)]">
+                              <span class="text-[10px] text-muted-body">
                                 {getRelativeTime(notification.created_at)}
                               </span>
                               <Show when={!notification.read}>
@@ -331,7 +331,7 @@ export default function NotificationCenter() {
                                   disabled={processingIds().has(
                                     notification.id,
                                   )}
-                                  class="px-3 py-1 text-xs font-medium rounded bg-[var(--color-bg-base)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)] cursor-pointer border border-[var(--color-border)] disabled:opacity-50 disabled:cursor-not-allowed"
+                                  class="px-3 py-1 text-xs font-medium rounded bg-base text-secondary-body hover:bg-[var(--color-border)] cursor-pointer border border-base disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                   Reject
                                 </button>

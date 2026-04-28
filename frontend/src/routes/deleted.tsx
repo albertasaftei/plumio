@@ -78,11 +78,11 @@ export default function DeletedPage() {
       onBack={() => navigate(routes.homepage)}
       emptyState={
         <div class="text-center py-12">
-          <div class="i-carbon-trash-can w-16 h-16 text-[var(--color-text-muted)] mx-auto mb-4" />
-          <p class="text-[var(--color-text-secondary)] text-lg">
+          <div class="i-carbon-trash-can w-16 h-16 text-muted-body mx-auto mb-4" />
+          <p class="text-secondary-body text-lg">
             No recently deleted documents
           </p>
-          <p class="text-[var(--color-text-muted)] text-sm mt-2">
+          <p class="text-muted-body text-sm mt-2">
             Deleted files will appear here and be kept for 30 days
           </p>
         </div>
@@ -92,11 +92,11 @@ export default function DeletedPage() {
         when={deletedDocs().length > 0}
         fallback={
           <div class="text-center py-12">
-            <div class="i-carbon-trash-can w-16 h-16 text-[var(--color-text-muted)] mx-auto mb-4" />
-            <p class="text-[var(--color-text-secondary)] text-lg">
+            <div class="i-carbon-trash-can w-16 h-16 text-muted-body mx-auto mb-4" />
+            <p class="text-secondary-body text-lg">
               No recently deleted documents
             </p>
-            <p class="text-[var(--color-text-muted)] text-sm mt-2">
+            <p class="text-muted-body text-sm mt-2">
               Deleted files will appear here and be kept for 30 days
             </p>
           </div>
@@ -111,13 +111,13 @@ export default function DeletedPage() {
                   <div class="flex items-center justify-between gap-4">
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-3">
-                        <div class="i-carbon-document w-5 h-5 text-[var(--color-text-muted)] flex-shrink-0" />
+                        <div class="i-carbon-document w-5 h-5 text-muted-body flex-shrink-0" />
                         <div class="flex-1 min-w-0">
-                          <h3 class="text-[var(--color-text-primary)] font-medium truncate mb-1">
+                          <h3 class="text-body font-medium truncate mb-1">
                             {getDisplayName(doc.path)}
                           </h3>
-                          <div class="flex items-center gap-4 text-sm text-[var(--color-text-secondary)]">
-                            <span class="text-xs text-[var(--color-text-muted)]">
+                          <div class="flex items-center gap-4 text-sm text-secondary-body">
+                            <span class="text-xs text-muted-body">
                               Deleted {formatDayRelativeDate(doc.deleted_at)}
                             </span>
                             <span class="text-xs text-yellow-400 dark:text-yellow-400 light:text-yellow-600">

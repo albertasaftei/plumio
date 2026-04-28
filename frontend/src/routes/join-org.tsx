@@ -165,7 +165,7 @@ export default function JoinOrgPage() {
                     const isJoining = () => joiningOrgId() === org.id;
 
                     return (
-                      <div class="p-4 bg-elevated border border-[var(--color-border)]  rounded-lg">
+                      <div class="p-4 bg-elevated border border-base  rounded-lg">
                         <div class="flex items-center justify-between">
                           <div>
                             <p class="text-sm font-semibold text-body">
@@ -270,7 +270,7 @@ export default function JoinOrgPage() {
             <div class="space-y-2">
               <For each={myRequests()}>
                 {(req) => (
-                  <div class="flex items-center justify-between p-3 bg-elevated border border-[var(--color-border)] rounded-lg">
+                  <div class="flex items-center justify-between p-3 bg-elevated border border-base rounded-lg">
                     <div class="min-w-0 flex-1">
                       <p class="text-sm font-medium text-body">
                         {req.org_name}

@@ -33,22 +33,22 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div class="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center p-4">
+    <div class="min-h-screen bg-base flex items-center justify-center p-4">
       <div class="w-full max-w-md">
         <div class="flex gap-4 items-center justify-center mb-8">
           <Logo color="#2a9d8f" size="48" />
-          <span class="text-4xl font-bold text-[var(--color-text-primary)] mb-2">
+          <span class="text-4xl font-bold text-body mb-2">
             plumio
           </span>
         </div>
 
-        <div class="bg-[var(--color-bg-surface)] rounded-lg p-8 border border-[var(--color-border)]">
-          <h2 class="text-2xl font-semibold text-[var(--color-text-primary)] mb-2">
+        <div class="bg-surface rounded-lg p-8 border border-base">
+          <h2 class="text-2xl font-semibold text-body mb-2">
             Forgot Password
           </h2>
 
           <Show when={!submitted()}>
-            <p class="text-[var(--color-text-secondary)] mb-6">
+            <p class="text-secondary-body mb-6">
               Enter your email address and we'll send you a link to reset your
               password.
             </p>
@@ -61,7 +61,7 @@ export default function ForgotPassword() {
 
             <form onSubmit={handleSubmit}>
               <div class="mb-6">
-                <label class="block font-medium text-[var(--color-text-secondary)] mb-2">
+                <label class="block font-medium text-secondary-body mb-2">
                   Email
                 </label>
                 <input
@@ -70,7 +70,7 @@ export default function ForgotPassword() {
                   onInput={(e) => setEmail(e.currentTarget.value)}
                   required
                   disabled={loading()}
-                  class="focus-ring w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors disabled:opacity-50"
+                  class="focus-ring w-full px-3 py-2 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)] transition-colors disabled:opacity-50"
                   placeholder="your@email.com"
                 />
               </div>
@@ -97,7 +97,7 @@ export default function ForgotPassword() {
           <div class="mt-6 text-center">
             <button
               onClick={() => navigate(routes.login)}
-              class="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] cursor-pointer transition-colors"
+              class="text-secondary-body hover:text-body cursor-pointer transition-colors"
             >
               ← Back to Login
             </button>
