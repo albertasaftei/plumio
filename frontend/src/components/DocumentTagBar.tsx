@@ -92,7 +92,7 @@ export default function DocumentTagBar(props: DocumentTagBarProps) {
       <For each={docTags()}>
         {(tag) => (
           <span
-            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border"
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-xs border select-none"
             style={{
               "background-color": tag.color
                 ? `${tag.color}20`

@@ -41,10 +41,9 @@ export async function setupAdmin(
   username = "testadmin",
   email = "admin@test.com",
   password = "password123",
-  organizationName = "Test Org",
 ) {
   await request("POST", "/api/auth/setup", {
-    body: { username, email, password, organizationName },
+    body: { username, email, password },
   });
 
   const loginRes = await request("POST", "/api/auth/login", {

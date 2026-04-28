@@ -107,7 +107,7 @@ export default function DeletedPage() {
             {(doc) => {
               const daysLeft = getDaysUntilPermanentDelete(doc.deleted_at);
               return (
-                <div class="bg-[var(--color-bg-surface)] rounded-lg p-4 hover:bg-[var(--color-bg-elevated)] transition-colors border border-[var(--color-border)] cursor-pointer">
+                <div class="bg-elevated rounded-lg p-4 transition-colors border border-base cursor-pointer">
                   <div class="flex items-center justify-between gap-4">
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-3">

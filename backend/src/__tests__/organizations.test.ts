@@ -20,7 +20,7 @@ describe("Organizations API", () => {
       const body = await res.json();
       expect(body.organizations).toBeDefined();
       expect(body.organizations.length).toBeGreaterThanOrEqual(1);
-      expect(body.organizations[0].name).toBe("Test Org");
+      expect(body.organizations[0].name).toBe("testadmin's Organization");
     });
 
     it("returns 401 without auth", async () => {
@@ -36,7 +36,7 @@ describe("Organizations API", () => {
       });
       expect(res.status).toBe(200);
       const body = await res.json();
-      expect(body.organization.name).toBe("Test Org");
+      expect(body.organization.name).toBe("testadmin's Organization");
       expect(body.organization.role).toBe("admin");
     });
   });

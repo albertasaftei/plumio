@@ -1,6 +1,7 @@
-import { createSignal, For, Show, type Accessor } from "solid-js";
+import { For, Show, type Accessor } from "solid-js";
 import Button from "../Button";
 import OrganizationSelector from "../OrganizationSelector";
+import NotificationCenter from "../NotificationCenter";
 import { useNavigate } from "@solidjs/router";
 import { routes } from "~/routes";
 import TreeNode from "./TreeNode";
@@ -60,7 +61,7 @@ export default function SidebarContent(props: SidebarContentProps) {
   return (
     <div class="flex h-full w-full">
       {/* Small Sidebar */}
-      <div class="w-14 flex-shrink-0 border-r border-[var(--color-border)] bg-[var(--color-bg-base)] flex flex-col items-center py-4 gap-4">
+      <div class="w-14 flex-shrink-0 border-r border-[var(--color-border)] bg-surface flex flex-col items-center py-4 gap-4">
         <Button
           onClick={() => props.onViewHome()}
           variant="icon"
@@ -86,6 +87,14 @@ export default function SidebarContent(props: SidebarContentProps) {
           <div class="i-carbon-tag w-5 h-5 flex-shrink-0" />
         </Button>
         <Button
+          onClick={() => navigate(routes.joinOrg)}
+          variant="icon"
+          size="md"
+          title="Join an Organization"
+        >
+          <div class="i-carbon-enterprise w-5 h-5 flex-shrink-0" />
+        </Button>
+        <Button
           onClick={() => props.onViewArchive()}
           variant="icon"
           size="md"
@@ -103,6 +112,7 @@ export default function SidebarContent(props: SidebarContentProps) {
         </Button>
 
         <div class="flex-1" />
+        <NotificationCenter />
         <div class="relative">
           <Button
             onClick={() => navigate(routes.settings)}

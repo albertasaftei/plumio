@@ -6,6 +6,7 @@ import {
   memberQueries,
   userQueries,
   sessionQueries,
+  joinRequestQueries,
 } from "../../db/index.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import { UserJWTPayload } from "../../middlewares/auth.types.js";
@@ -32,6 +33,18 @@ const jwtSecretKey = new TextEncoder().encode(JWT_SECRET);
 
 // All routes require authentication
 organizationsRouter.use("*", authMiddleware);
+
+// Return IDs of all orgs the current user is a member of
+organizationsRouter.get("/my-memberships", async (c) => {
+  try {
+    const user = c.get("user");
+    const memberships = memberQueries.listByUser.all(user.userId);
+    return c.json({ orgIds: memberships.map((m) => m.id) });
+  } catch (error) {
+    console.error("Error fetching memberships:", error);
+    return c.json({ error: "Failed to fetch memberships" }, 500);
+  }
+});
 
 // List user's organizations
 organizationsRouter.get("/", async (c) => {
@@ -90,6 +103,8 @@ organizationsRouter.get("/:id", async (c) => {
         slug: org.slug,
         role: membership.role,
         createdAt: org.created_at,
+        discoverable: org.discoverable,
+        autoAccept: org.auto_accept,
       },
     });
   } catch (error) {
@@ -194,13 +209,35 @@ organizationsRouter.put("/:id", async (c) => {
       return c.json({ error: z.treeifyError(parsed.error) }, 400);
     }
 
-    const { name, slug } = parsed.data;
+    const { name, slug, discoverable, auto_accept } = parsed.data;
 
-    if (!name || !slug) {
-      return c.json({ error: "Name and slug are required" }, 400);
+    const currentOrg = organizationQueries.findById.get(orgId);
+    if (!currentOrg) {
+      return c.json({ error: "Organization not found" }, 404);
     }
 
-    organizationQueries.update.run(name, slug, orgId);
+    const newName = name ?? currentOrg.name;
+    const newSlug = slug ?? currentOrg.slug;
+    const newDiscoverable =
+      discoverable !== undefined
+        ? discoverable
+          ? 1
+          : 0
+        : currentOrg.discoverable;
+    const newAutoAccept =
+      auto_accept !== undefined
+        ? auto_accept
+          ? 1
+          : 0
+        : currentOrg.auto_accept;
+
+    organizationQueries.update.run(
+      newName,
+      newSlug,
+      newDiscoverable,
+      newAutoAccept,
+      orgId,
+    );
 
     return c.json({ message: "Organization updated successfully" });
   } catch (error: any) {
@@ -415,6 +452,8 @@ organizationsRouter.delete("/:id/members/:userId", async (c) => {
     }
 
     memberQueries.remove.run(orgId, targetUserId);
+    // Also remove any join requests for this user in this org
+    joinRequestQueries.deleteByOrgAndUser.run(orgId, targetUserId);
 
     return c.json({ message: "Member removed successfully" });
   } catch (error) {

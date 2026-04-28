@@ -8,10 +8,11 @@ import {
 } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { api } from "~/lib/api";
-import Button from "~/components/Button";
+import PageHeader from "~/components/PageHeader";
 import { routes } from "~/routes";
 import { getDisplayName } from "~/utils/document.utils";
 import { formatDayRelativeDate } from "~/utils/date.utils";
+import DocumentListPage from "~/components/DocumentListPage";
 
 interface SearchResult {
   path: string;
@@ -76,22 +77,10 @@ export default function SearchPage() {
   };
 
   return (
-    <div class="flex flex-col w-full overflow-auto lg:max-w-3xl mx-auto p-4 sm:p-8">
-      {/* Header */}
-      <div class="flex items-center mb-6 gap-4">
-        <Button
-          onClick={() => navigate(routes.homepage)}
-          variant="ghost"
-          size="md"
-        >
-          <div class="i-carbon-arrow-left w-5 h-5" />
-        </Button>
-        <div class="i-carbon-search w-8 h-8 text-muted-body" />
-        <h1 class="text-2xl sm:text-3xl font-bold text-body">
-          Full-text Search
-        </h1>
-      </div>
-
+    <DocumentListPage
+      title="Full-text Search"
+      onBack={() => navigate(routes.homepage)}
+    >
       {/* Search Input */}
       <div class="relative mb-6">
         <div class="absolute left-4 top-1/2 -translate-y-1/2 i-carbon-search w-5 h-5 text-muted-body pointer-events-none" />
@@ -166,7 +155,7 @@ export default function SearchPage() {
                 <Show when={result.snippet}>
                   <p
                     class="text-sm text-secondary-body leading-relaxed line-clamp-3 pl-7 [&_mark]:bg-yellow-400/30 [&_mark]:text-yellow-200 dark:[&_mark]:text-yellow-200 light:[&_mark]:bg-yellow-200 light:[&_mark]:text-yellow-900 [&_mark]:rounded-sm [&_mark]:px-0.5"
-                    // Safe: document content is HTML-escaped (& < >) before FTS insertion.
+                    // Safe: document content is HTML-escaped (& <Show >) before FTS insertion.
                     // SQLite's snippet() only adds literal <mark>…</mark> around matches.
                     innerHTML={result.snippet}
                   />
@@ -183,6 +172,6 @@ export default function SearchPage() {
           </For>
         </div>
       </Show>
-    </div>
+    </DocumentListPage>
   );
 }

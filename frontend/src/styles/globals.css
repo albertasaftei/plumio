@@ -10,6 +10,7 @@
   --color-bg-base: #0a0a0a;
   --color-bg-surface: #171717;
   --color-bg-elevated: #262626;
+  --color-bg-elevated-hover: #333333;
   --color-border: #404040;
   --color-border-subtle: #262626;
   --color-text-primary: #e5e5e5;
@@ -21,6 +22,7 @@
   --color-bg-base: #f5f5f5;
   --color-bg-surface: #ffffff;
   --color-bg-elevated: #fafafa;
+  --color-bg-elevated-hover: #f0f0f0;
   --color-border: #d4d4d4;
   --color-border-subtle: #e5e5e5;
   --color-text-primary: #171717;
@@ -33,6 +35,7 @@
   --color-bg-base: #f4ecd8;
   --color-bg-surface: #fdf6e3;
   --color-bg-elevated: #faf0d0;
+
   --color-border: #cbb99a;
   --color-border-subtle: #ddd0b8;
   --color-text-primary: #3e2f1c;
@@ -48,6 +51,7 @@
   --color-bg-base: #2e3440;
   --color-bg-surface: #3b4252;
   --color-bg-elevated: #434c5e;
+  --color-bg-elevated-hover: #4c566a;
   --color-border: #4c566a;
   --color-border-subtle: #3b4252;
   --color-text-primary: #eceff4;
@@ -63,6 +67,7 @@
   --color-bg-base: #1e1f29;
   --color-bg-surface: #282a36;
   --color-bg-elevated: #313342;
+  --color-bg-elevated-hover: #3c3e52;
   --color-border: #44475a;
   --color-border-subtle: #313342;
   --color-text-primary: #f8f8f2;
@@ -77,6 +82,7 @@
   --color-bg-base: #1e1e2e;
   --color-bg-surface: #313244;
   --color-bg-elevated: #45475a;
+  --color-bg-elevated-hover: #585b70;
   --color-border: #585b70;
   --color-border-subtle: #45475a;
   --color-text-primary: #cdd6f4;
@@ -92,6 +98,7 @@
   --color-bg-base: #ffffff;
   --color-bg-surface: #f6f8fa;
   --color-bg-elevated: #eaeef2;
+  --color-bg-elevated-hover: #d4d7da;
   --color-border: #d0d7de;
   --color-border-subtle: #eaeef2;
   --color-text-primary: #1f2328;
@@ -107,6 +114,7 @@
   --color-bg-base: #0d1117;
   --color-bg-surface: #161b22;
   --color-bg-elevated: #21262d;
+  --color-bg-elevated-hover: #30363d;
   --color-border: #30363d;
   --color-border-subtle: #21262d;
   --color-text-primary: #e6edf3;
@@ -122,6 +130,7 @@
   --color-bg-base: #011627;
   --color-bg-surface: #01223a;
   --color-bg-elevated: #0d2a45;
+  --color-bg-elevated-hover: #1a3a57;
   --color-border: #1d3b53;
   --color-border-subtle: #0d2a45;
   --color-text-primary: #d6deeb;
@@ -137,6 +146,7 @@
   --color-bg-base: #f4f7f4;
   --color-bg-surface: #eef4ee;
   --color-bg-elevated: #e4ede4;
+  --color-bg-elevated-hover: #d4e4d4;
   --color-border: #c2d4c2;
   --color-border-subtle: #d8e8d8;
   --color-text-primary: #1a2e1a;
@@ -145,6 +155,11 @@
   --color-primary: #4a7c59;
   --color-primary-dark: #3a6347;
   --color-primary-light: #5e9870;
+}
+
+/* ─── Global Focus Reset ─────────────────────────────────────── */
+*:focus {
+  outline: none;
 }
 
 /* ─── Focus Ring ─────────────────────────────────────────────── */

@@ -129,27 +129,17 @@ export class ApiClient {
     }
   }
 
-  async setup(
-    username: string,
-    email: string,
-    password: string,
-    organizationName?: string,
-  ) {
+  async setup(username: string, email: string, password: string) {
     return this.request("/api/auth/setup", {
       method: "POST",
-      body: JSON.stringify({ username, email, password, organizationName }),
+      body: JSON.stringify({ username, email, password }),
     });
   }
 
-  async register(
-    username: string,
-    email: string,
-    password: string,
-    organizationName?: string,
-  ) {
+  async register(username: string, email: string, password: string) {
     return this.request("/api/auth/register", {
       method: "POST",
-      body: JSON.stringify({ username, email, password, organizationName }),
+      body: JSON.stringify({ username, email, password }),
     });
   }
 
@@ -321,6 +311,8 @@ export class ApiClient {
         slug: string;
         role: string;
         createdAt: string;
+        discoverable: number;
+        autoAccept: number;
       };
     }>(`/api/organizations/${orgId}`);
   }
@@ -361,6 +353,17 @@ export class ApiClient {
     });
   }
 
+  async updateOrgSettings(
+    orgId: number,
+    discoverable: boolean,
+    autoAccept: boolean,
+  ) {
+    return this.request(`/api/organizations/${orgId}`, {
+      method: "PUT",
+      body: JSON.stringify({ discoverable, auto_accept: autoAccept }),
+    });
+  }
+
   async listOrgMembers(orgId: number) {
     return this.request<{
       members: Array<{
@@ -391,6 +394,117 @@ export class ApiClient {
     return this.request(`/api/organizations/${orgId}/members/${userId}`, {
       method: "DELETE",
     });
+  }
+
+  // Join Requests
+  async getMyMemberships() {
+    return this.request<{ orgIds: number[] }>(
+      "/api/organizations/my-memberships",
+    );
+  }
+
+  async listDiscoverableOrgs() {
+    return this.request<{
+      organizations: Array<{
+        id: number;
+        name: string;
+        slug: string;
+      }>;
+    }>("/api/join-requests/discoverable-orgs");
+  }
+
+  async createJoinRequest(organizationId: number, message?: string) {
+    return this.request<{ message: string; autoAccepted?: boolean }>(
+      "/api/join-requests",
+      {
+        method: "POST",
+        body: JSON.stringify({ organizationId, message }),
+      },
+    );
+  }
+
+  async listMyJoinRequests() {
+    return this.request<{
+      requests: Array<{
+        id: number;
+        organization_id: number;
+        status: "pending" | "accepted" | "rejected";
+        message: string | null;
+        org_name: string;
+        org_slug: string;
+        created_at: string;
+        updated_at: string;
+      }>;
+    }>("/api/join-requests/mine");
+  }
+
+  async listOrgJoinRequests(orgId: number) {
+    return this.request<{
+      requests: Array<{
+        id: number;
+        organization_id: number;
+        user_id: number;
+        status: string;
+        message: string | null;
+        username: string;
+        email: string;
+        created_at: string;
+      }>;
+    }>(`/api/join-requests/org/${orgId}`);
+  }
+
+  async acceptJoinRequest(requestId: number) {
+    return this.request<{ message: string }>(
+      `/api/join-requests/${requestId}/accept`,
+      { method: "PUT" },
+    );
+  }
+
+  async rejectJoinRequest(requestId: number) {
+    return this.request<{ message: string }>(
+      `/api/join-requests/${requestId}/reject`,
+      { method: "PUT" },
+    );
+  }
+
+  async cancelJoinRequest(requestId: number) {
+    return this.request<{ message: string }>(
+      `/api/join-requests/${requestId}`,
+      { method: "DELETE" },
+    );
+  }
+
+  // Notifications
+  async listNotifications(page: number = 1, limit: number = 20) {
+    return this.request<{
+      notifications: Array<{
+        id: number;
+        type: string;
+        title: string;
+        message: string | null;
+        metadata: string | null;
+        read: number;
+        created_at: string;
+      }>;
+      page: number;
+      limit: number;
+    }>(`/api/notifications?page=${page}&limit=${limit}`);
+  }
+
+  async getUnreadNotificationCount() {
+    return this.request<{ count: number }>("/api/notifications/unread-count");
+  }
+
+  async markNotificationRead(id: number) {
+    return this.request(`/api/notifications/${id}/read`, { method: "PUT" });
+  }
+
+  async markAllNotificationsRead() {
+    return this.request("/api/notifications/read-all", { method: "PUT" });
+  }
+
+  async deleteNotification(id: number) {
+    return this.request(`/api/notifications/${id}`, { method: "DELETE" });
   }
 
   // Admin - User Management (Global Admin)

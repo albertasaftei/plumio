@@ -11,4 +11,5 @@ export const routes = {
   search: "/search",
   settings: "/settings",
   tags: "/tags",
+  joinOrg: "/join-org",
 } as const;

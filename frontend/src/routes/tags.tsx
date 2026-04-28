@@ -155,7 +155,7 @@ export default function TagsPage() {
         <div class="space-y-2 w-full">
           <For each={tags()}>
             {(tag) => (
-              <div class="bg-[var(--color-bg-surface)] rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-[var(--color-bg-elevated)] transition-colors border border-[var(--color-border)] cursor-pointer">
+              <div class="bg-elevated rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-colors border border-base">
                 <div class="flex items-center gap-3 flex-1 min-w-0">
                   {/* Color dot */}
                   <div

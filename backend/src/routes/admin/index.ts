@@ -72,6 +72,7 @@ adminRouter.post("/users", async (c) => {
         `${username}'s Organization`,
         orgSlug,
         userId,
+        0, // personal orgs are not discoverable
       );
       const orgId = orgResult.lastInsertRowid as number;
 

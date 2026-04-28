@@ -57,7 +57,7 @@ authRouter.post("/setup", async (c) => {
       return c.json({ error: "Setup already completed" }, 400);
     }
 
-    const { username, email, password, organizationName } = await c.req.json();
+    const { username, email, password } = await c.req.json();
 
     if (!username || !email || !password || password.length < 8) {
       return c.json(
@@ -75,12 +75,12 @@ authRouter.post("/setup", async (c) => {
 
       // Create personal organization
       const orgSlug = `${username}-personal`;
-      const resolvedOrgName =
-        organizationName?.trim() || `${username}'s Organization`;
+      const resolvedOrgName = `${username}'s Organization`;
       const orgResult = organizationQueries.create.run(
         resolvedOrgName,
         orgSlug,
         userId,
+        0, // personal orgs are not discoverable
       );
       const orgId = orgResult.lastInsertRowid as number;
 
@@ -210,7 +210,7 @@ authRouter.post("/register", async (c) => {
       return c.json({ error: z.treeifyError(parsed.error) }, 400);
     }
 
-    const { username, email, password, organizationName } = parsed.data;
+    const { username, email, password } = parsed.data;
     const passwordHash = await bcrypt.hash(password, 10);
 
     try {
@@ -220,12 +220,12 @@ authRouter.post("/register", async (c) => {
 
       // Create personal organization for the new user
       const orgSlug = `${username}-personal`;
-      const resolvedOrgName =
-        organizationName?.trim() || `${username}'s Organization`;
+      const resolvedOrgName = `${username}'s Organization`;
       const orgResult = organizationQueries.create.run(
         resolvedOrgName,
         orgSlug,
         userId,
+        0, // personal orgs are not discoverable
       );
       const orgId = orgResult.lastInsertRowid as number;
 

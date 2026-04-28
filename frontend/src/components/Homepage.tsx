@@ -72,9 +72,9 @@ export default function Homepage(props: HomepageProps) {
   };
 
   return (
-    <div class="flex-1 overflow-auto bg-[var(--color-bg-base)]">
+    <div class="flex-1 overflow-auto bg-surface">
       {/* ── Header strip ─────────────────────────────────────────── */}
-      <div class="border-b border-[var(--color-border)] px-4 sm:px-8 py-4 sm:py-5">
+      <div class="bg-base border-b border-base px-4 sm:px-8 py-4 sm:py-5">
         <div class="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-6">
           <div class="min-w-0">
             <p class="text-[11px] font-semibold tracking-[0.14em] uppercase text-[var(--color-text-muted)] mb-0.5">
@@ -151,7 +151,7 @@ export default function Homepage(props: HomepageProps) {
                     return (
                       <button
                         onClick={() => props.onSelectDocument(doc.path)}
-                        class="w-full text-left rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] hover:bg-[var(--color-bg-elevated)] transition-colors overflow-hidden"
+                        class="w-full text-left rounded-lg border border-base bg-elevated hover:bg-elevated-hover transition-colors overflow-hidden cursor-pointer"
                         style={`border-left: 3px solid ${color}`}
                       >
                         <div class="px-3 py-3">
@@ -255,7 +255,7 @@ function RecentSection(props: {
           </div>
         }
       >
-        <div class="rounded-lg border border-[var(--color-border)] overflow-hidden bg-[var(--color-bg-surface)]">
+        <div class="bg-elevated rounded-lg border border-base overflow-hidden ">
           {/* Table header — hide # and Size on mobile */}
           <div
             class="grid text-[11px] font-semibold tracking-wide uppercase text-[var(--color-text-muted)] px-4 py-2 border-b border-[var(--color-border)]"
@@ -270,7 +270,7 @@ function RecentSection(props: {
             {(doc, i) => (
               <button
                 onClick={() => props.onSelect((doc as any).path)}
-                class="w-full text-left grid items-center gap-0 px-4 py-3 hover:bg-[var(--color-bg-elevated)] transition-colors border-b border-[var(--color-border)] last:border-b-0 cursor-pointer"
+                class="w-full text-left grid items-center gap-0 px-4 py-3 hover:bg-elevated-hover transition-colors border-b border-base last:border-b-0 cursor-pointer"
                 style="grid-template-columns: 1fr auto auto"
               >
                 {/* Name + path */}
