@@ -64,7 +64,7 @@ const AttachmentPanel: Component<AttachmentPanelProps> = (props) => {
       // Resolve each attachment URL eagerly (api proxy is async)
       const withUrls = await Promise.all(
         (result.attachments || []).map(async (a: any) => {
-          const attachPath = a.path || `org-1/attachments/${a.filename}`;
+          const attachPath = `org-${a.organization_id}/attachments/${a.filename}`;
           const url = await (api as any).getAttachmentUrl(attachPath);
           return { ...a, path: attachPath, url: url as string };
         }),

@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import fs from "fs/promises";
 import path from "path";
 import { verifyToken } from "../../middlewares/auth.js";
-import { attachmentQueries } from "../../db/index.js";
+import { attachmentQueries, memberQueries } from "../../db/index.js";
 import { UserJWTPayload } from "../../middlewares/auth.types.js";
 import { MAX_ATTACHMENT_SIZE_MB } from "../../config.js";
 import {
@@ -121,11 +121,24 @@ attachmentsRouter.get("/list", async (c) => {
 // Note: accepts ?token= in addition to Bearer (handled by the global middleware above)
 attachmentsRouter.get("/file", async (c) => {
   const user = c.get("user");
-  const organizationId = user.currentOrgId;
-  if (!organizationId) return c.json({ error: "No organization context" }, 400);
 
   const relPath = c.req.query("path") || "";
   if (!relPath) return c.json({ error: "path is required" }, 400);
+
+  // Extract org ID from path (org-{id}/attachments/{filename}) rather than
+  // relying on currentOrgId from the token. This lets any valid user token
+  // access attachments from orgs the user is a member of, even if they have
+  // since switched their active org (which issues a new token).
+  const pathOrgMatch = relPath.match(/^org-(\d+)\/attachments\//);
+  if (!pathOrgMatch) return c.json({ error: "Invalid path" }, 400);
+  const organizationId = parseInt(pathOrgMatch[1], 10);
+
+  // Verify the authenticated user is a member of this org
+  const membership = memberQueries.findMembership.get(
+    organizationId,
+    user.userId,
+  );
+  if (!membership) return c.json({ error: "Forbidden" }, 403);
 
   const absPath = resolveAttachmentPath(relPath, organizationId);
   if (!absPath) return c.json({ error: "Invalid path" }, 400);

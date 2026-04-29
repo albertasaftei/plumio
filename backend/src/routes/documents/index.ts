@@ -210,10 +210,6 @@ documentsRouter.post("/save", async (c) => {
     return c.json({ error: "Provide either 'path' or 'folder'+'name'" }, 400);
   }
 
-  if (!content) {
-    return c.json({ error: "Content is required" }, 400);
-  }
-
   try {
     const user = c.get("user");
     const organizationId = user.currentOrgId;

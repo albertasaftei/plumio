@@ -128,28 +128,22 @@ organizationsRouter.post("/:id/switch", async (c) => {
       .setExpirationTime("30d")
       .sign(jwtSecretKey);
 
-    // Update session with new token and organization
+    // Invalidate the old session and create a new one for the switched org.
     const authHeader = c.req.header("Authorization");
     const oldToken = authHeader!.substring(7);
+    sessionQueries.deleteByToken.run(oldToken);
 
-    // Get session info
-    const session = sessionQueries.findByToken.get(oldToken);
-    if (session) {
-      // Delete old session
-      sessionQueries.deleteByToken.run(oldToken);
-
-      // Create new session with new token
-      const expiresAt = new Date(
-        Date.now() + 30 * 24 * 60 * 60 * 1000,
-      ).toISOString();
-      sessionQueries.create.run(
-        session.id,
-        user.userId,
-        token,
-        orgId,
-        expiresAt,
-      );
-    }
+    const newSessionId = crypto.randomUUID();
+    const expiresAt = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    sessionQueries.create.run(
+      newSessionId,
+      user.userId,
+      token,
+      orgId,
+      expiresAt,
+    );
 
     return c.json({
       message: "Organization switched successfully",
