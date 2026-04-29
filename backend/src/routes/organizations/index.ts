@@ -6,6 +6,7 @@ import {
   memberQueries,
   userQueries,
   sessionQueries,
+  db,
 } from "../../db/index.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import { UserJWTPayload } from "../../middlewares/auth.types.js";
@@ -131,19 +132,21 @@ organizationsRouter.post("/:id/switch", async (c) => {
     // Invalidate the old session and create a new one for the switched org.
     const authHeader = c.req.header("Authorization");
     const oldToken = authHeader!.substring(7);
-    sessionQueries.deleteByToken.run(oldToken);
 
     const newSessionId = crypto.randomUUID();
     const expiresAt = new Date(
       Date.now() + 30 * 24 * 60 * 60 * 1000,
     ).toISOString();
-    sessionQueries.create.run(
-      newSessionId,
-      user.userId,
-      token,
-      orgId,
-      expiresAt,
-    );
+    db.transaction(() => {
+      sessionQueries.create.run(
+        newSessionId,
+        user.userId,
+        token,
+        orgId,
+        expiresAt,
+      );
+      sessionQueries.deleteByToken.run(oldToken);
+    })();
 
     return c.json({
       message: "Organization switched successfully",
