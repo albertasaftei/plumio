@@ -1,6 +1,35 @@
 import { $prose } from "@milkdown/utils";
 import { Plugin, PluginKey } from "@milkdown/prose/state";
 
+/**
+ * Replace the `token=` query param in attachment URLs with the current session
+ * token. Attachment URLs are baked into the document markdown at upload time, so
+ * the embedded token can expire if the user stays logged in beyond 30 days or
+ * switches orgs. Refreshing it at render time keeps images/PDFs working without
+ * any change to the stored content.
+ */
+function refreshAttachmentToken(src: string): string {
+  if (!src.includes("/api/attachments/file")) return src;
+  try {
+    const url = new URL(src, window.location.href);
+    // The `api` export is a Proxy that wraps every property in an async
+    // function, so reading `api.token` returns a closure, not the value.
+    // Read the token directly from localStorage instead.
+    const currentToken =
+      typeof window !== "undefined"
+        ? localStorage.getItem("plumio_token")
+        : null;
+    if (currentToken) {
+      url.searchParams.set("token", currentToken);
+    }
+    // Return as absolute URL only when src was already absolute, otherwise
+    // return just pathname+search so relative URLs stay relative.
+    return src.startsWith("http") ? url.toString() : url.pathname + url.search;
+  } catch {
+    return src;
+  }
+}
+
 function isPdfSrc(src: string): boolean {
   // 1. Straightforward: path ends with .pdf before query/hash
   const pathPart = src.split("?")[0].split("#")[0];
@@ -71,7 +100,7 @@ export const pdfImagePlugin = $prose(() => {
           // ── Regular image ─────────────────────────────────────────
           if (!isPdfSrc(src)) {
             const img = document.createElement("img");
-            img.src = src;
+            img.src = refreshAttachmentToken(src);
             img.alt = alt;
             if (title) img.title = title;
             img.style.cssText =
@@ -80,7 +109,7 @@ export const pdfImagePlugin = $prose(() => {
               dom: img,
               update(u: any) {
                 if (u.type !== node.type) return false;
-                img.src = u.attrs.src || "";
+                img.src = refreshAttachmentToken(u.attrs.src || "");
                 img.alt = u.attrs.alt || "";
                 img.title = u.attrs.title || "";
                 return true;
@@ -231,7 +260,9 @@ export const pdfImagePlugin = $prose(() => {
           (async () => {
             try {
               const lib = await getPdfjsLib();
-              pdfDoc = await lib.getDocument({ url: src }).promise;
+              pdfDoc = await lib.getDocument({
+                url: refreshAttachmentToken(src),
+              }).promise;
               totalPages = pdfDoc.numPages;
               await doRender(1);
             } catch (err: any) {

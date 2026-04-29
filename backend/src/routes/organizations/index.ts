@@ -6,6 +6,7 @@ import {
   memberQueries,
   userQueries,
   sessionQueries,
+  db,
   joinRequestQueries,
 } from "../../db/index.js";
 import { authMiddleware } from "../../middlewares/auth.js";
@@ -143,28 +144,24 @@ organizationsRouter.post("/:id/switch", async (c) => {
       .setExpirationTime("30d")
       .sign(jwtSecretKey);
 
-    // Update session with new token and organization
+    // Invalidate the old session and create a new one for the switched org.
     const authHeader = c.req.header("Authorization");
     const oldToken = authHeader!.substring(7);
 
-    // Get session info
-    const session = sessionQueries.findByToken.get(oldToken);
-    if (session) {
-      // Delete old session
-      sessionQueries.deleteByToken.run(oldToken);
-
-      // Create new session with new token
-      const expiresAt = new Date(
-        Date.now() + 30 * 24 * 60 * 60 * 1000,
-      ).toISOString();
+    const newSessionId = crypto.randomUUID();
+    const expiresAt = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    db.transaction(() => {
       sessionQueries.create.run(
-        session.id,
+        newSessionId,
         user.userId,
         token,
         orgId,
         expiresAt,
       );
-    }
+      sessionQueries.deleteByToken.run(oldToken);
+    })();
 
     return c.json({
       message: "Organization switched successfully",
