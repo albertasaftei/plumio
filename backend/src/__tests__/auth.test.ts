@@ -22,7 +22,6 @@ describe("Auth API", () => {
           username: "testadmin",
           email: "admin@test.com",
           password: "password123",
-          organizationName: "Test Org",
         },
       });
       expect(res.status).toBe(200);
@@ -63,7 +62,7 @@ describe("Auth API", () => {
       expect(body.username).toBe("testadmin");
       expect(body.isAdmin).toBe(false); // first user via setup doesn't set is_admin flag
       expect(body.currentOrganization).toBeDefined();
-      expect(body.currentOrganization.name).toBe("Test Org");
+      expect(body.currentOrganization.name).toBe("testadmin's Organization");
       // Save for reuse by validate/logout tests
       adminToken = body.token;
     });

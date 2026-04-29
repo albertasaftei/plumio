@@ -6,6 +6,10 @@ import { runMigrations } from "./migrations.js";
 import { allMigrations } from "./migrations/index.js";
 import {
   Document,
+  JoinRequest,
+  JoinRequestWithOrg,
+  JoinRequestWithUser,
+  Notification,
   Organization,
   OrganizationMember,
   Session,
@@ -78,8 +82,8 @@ export const userQueries = {
 
 // === Organization Queries ===
 export const organizationQueries = {
-  create: db.prepare<[string, string, number]>(
-    "INSERT INTO organizations (name, slug, owner_id) VALUES (?, ?, ?)",
+  create: db.prepare<[string, string, number, number]>(
+    "INSERT INTO organizations (name, slug, owner_id, discoverable) VALUES (?, ?, ?, ?)",
   ),
   findById: db.prepare<[number], Organization>(
     "SELECT * FROM organizations WHERE id = ?",
@@ -93,8 +97,11 @@ export const organizationQueries = {
     WHERE om.user_id = ?
     ORDER BY om.joined_at DESC
   `),
-  update: db.prepare<[string, string, number]>(
-    "UPDATE organizations SET name = ?, slug = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+  update: db.prepare<[string, string, number, number, number]>(
+    "UPDATE organizations SET name = ?, slug = ?, discoverable = ?, auto_accept = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+  ),
+  listDiscoverable: db.prepare<[], Organization>(
+    "SELECT * FROM organizations WHERE discoverable = 1 ORDER BY name ASC",
   ),
   delete: db.prepare<[number]>("DELETE FROM organizations WHERE id = ?"),
   listAll: db.prepare<[], Organization>(
@@ -554,6 +561,71 @@ export const emailChangeQueries = {
   ),
 };
 
+// === Join Request Queries ===
+export const joinRequestQueries = {
+  create: db.prepare<[number, number, string | null]>(
+    "INSERT INTO join_requests (organization_id, user_id, message) VALUES (?, ?, ?)",
+  ),
+  findById: db.prepare<[number], JoinRequest>(
+    "SELECT * FROM join_requests WHERE id = ?",
+  ),
+  findPendingByOrgAndUser: db.prepare<[number, number], JoinRequest>(
+    "SELECT * FROM join_requests WHERE organization_id = ? AND user_id = ? AND status = 'pending'",
+  ),
+  listPendingByOrg: db.prepare<[number], JoinRequestWithUser>(`
+    SELECT jr.*, u.username, u.email
+    FROM join_requests jr
+    JOIN users u ON jr.user_id = u.id
+    WHERE jr.organization_id = ? AND jr.status = 'pending'
+    ORDER BY jr.created_at DESC
+  `),
+  listByUser: db.prepare<[number], JoinRequestWithOrg>(`
+    SELECT jr.*, o.name as org_name, o.slug as org_slug
+    FROM join_requests jr
+    JOIN organizations o ON jr.organization_id = o.id
+    WHERE jr.user_id = ?
+    ORDER BY jr.created_at DESC
+  `),
+  updateStatus: db.prepare<[string, number | null, number]>(
+    "UPDATE join_requests SET status = ?, reviewed_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+  ),
+  deleteById: db.prepare<[number]>("DELETE FROM join_requests WHERE id = ?"),
+  deleteByOrgAndUser: db.prepare<[number, number]>(
+    "DELETE FROM join_requests WHERE organization_id = ? AND user_id = ?",
+  ),
+  countPendingByOrg: db.prepare<[number], { count: number }>(
+    "SELECT COUNT(*) as count FROM join_requests WHERE organization_id = ? AND status = 'pending'",
+  ),
+};
+
+// === Notification Queries ===
+export const notificationQueries = {
+  create: db.prepare<[number, string, string, string | null, string | null]>(
+    "INSERT INTO notifications (user_id, type, title, message, metadata) VALUES (?, ?, ?, ?, ?)",
+  ),
+  listByUser: db.prepare<[number, number, number], Notification>(`
+    SELECT * FROM notifications
+    WHERE user_id = ?
+    ORDER BY created_at DESC
+    LIMIT ? OFFSET ?
+  `),
+  countUnread: db.prepare<[number], { count: number }>(
+    "SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND read = 0",
+  ),
+  markRead: db.prepare<[number, number]>(
+    "UPDATE notifications SET read = 1 WHERE id = ? AND user_id = ?",
+  ),
+  markAllRead: db.prepare<[number]>(
+    "UPDATE notifications SET read = 1 WHERE user_id = ? AND read = 0",
+  ),
+  deleteById: db.prepare<[number, number]>(
+    "DELETE FROM notifications WHERE id = ? AND user_id = ?",
+  ),
+  deleteOld: db.prepare<[string]>(
+    "DELETE FROM notifications WHERE created_at < ?",
+  ),
+};
+
 // Cleanup expired sessions periodically (skip during tests)
 if (process.env.NODE_ENV !== "test") {
   setInterval(
@@ -562,6 +634,11 @@ if (process.env.NODE_ENV !== "test") {
       sessionQueries.deleteExpired.run(now);
       passwordResetQueries.deleteExpired.run(now);
       emailChangeQueries.deleteExpired.run(now);
+
+      // Cleanup old notifications (90+ days)
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      notificationQueries.deleteOld.run(ninetyDaysAgo.toISOString());
     },
     60 * 60 * 1000,
   ); // Every hour

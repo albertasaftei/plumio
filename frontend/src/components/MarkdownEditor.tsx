@@ -696,20 +696,20 @@ export default function MarkdownEditor(props: EditorProps) {
             const rect = link.getBoundingClientRect();
             const tooltip = document.createElement("div");
             tooltip.className =
-              "fixed bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] px-3 py-2 rounded shadow-lg text-sm z-50 border border-[var(--color-border)]";
+              "fixed bg-surface text-body px-3 py-2 rounded shadow-lg text-sm z-50 border border-base";
             tooltip.style.left = rect.left + "px";
             tooltip.style.top = rect.bottom + 8 + "px";
 
             const linkText = document.createElement("div");
             linkText.className =
-              "truncate max-w-xs mb-2 text-[var(--color-text-secondary)]";
+              "truncate max-w-xs mb-2 text-secondary-body";
             linkText.textContent = normalizedHref;
 
             const buttonContainer = document.createElement("div");
             buttonContainer.className = "flex gap-2";
             const openBtn = document.createElement("button");
             openBtn.className =
-              "px-3 py-1.5 bg-elevated border border-[var(--color-border)] hover:bg-surface rounded text-xs cursor-pointer transition-colors font-medium flex items-center gap-1.5";
+              "px-3 py-1.5 bg-elevated border border-base hover:bg-surface rounded text-xs cursor-pointer transition-colors font-medium flex items-center gap-1.5";
             openBtn.innerHTML = `
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32"><path fill="currentColor" d="M26 28H6a2.003 2.003 0 0 1-2-2V6a2.003 2.003 0 0 1 2-2h10v2H6v20h20V16h2v10a2.003 2.003 0 0 1-2 2"/><path fill="currentColor" d="M20 2v2h6.586L18 12.586L19.414 14L28 5.414V12h2V2z"/></svg>
             `;
@@ -726,7 +726,7 @@ export default function MarkdownEditor(props: EditorProps) {
 
             const editBtn = document.createElement("button");
             editBtn.className =
-              "px-3 py-1.5 bg-elevated border border-[var(--color-border)] hover:bg-surface rounded text-xs cursor-pointer transition-colors font-medium flex items-center gap-1.5";
+              "px-3 py-1.5 bg-elevated border border-base hover:bg-surface rounded text-xs cursor-pointer transition-colors font-medium flex items-center gap-1.5";
             editBtn.innerHTML = `
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32"><path fill="currentColor" d="M2 26h28v2H2zM25.4 9c.8-.8.8-2 0-2.8l-3.6-3.6c-.8-.8-2-.8-2.8 0l-15 15V24h6.4zm-5-5L24 7.6l-3 3L17.4 7zM6 22v-3.6l10-10l3.6 3.6l-10 10z"/></svg>
             `;
@@ -761,7 +761,7 @@ export default function MarkdownEditor(props: EditorProps) {
 
             const removeBtn = document.createElement("button");
             removeBtn.className =
-              "px-3 py-1.5 bg-elevated border border-[var(--color-border)] hover:bg-surface rounded text-xs cursor-pointer transition-colors font-medium flex items-center gap-1.5";
+              "px-3 py-1.5 bg-elevated border border-base hover:bg-surface rounded text-xs cursor-pointer transition-colors font-medium flex items-center gap-1.5";
             removeBtn.innerHTML = `
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32"><path fill="currentColor" d="M12 12h2v12h-2zm6 0h2v12h-2z"/><path fill="currentColor" d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6Zm4 22V8h16v20Zm4-26h8v2h-8z"/></svg>
             `;

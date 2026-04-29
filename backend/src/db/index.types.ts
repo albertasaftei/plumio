@@ -15,6 +15,8 @@ export interface Organization {
   created_at: string;
   updated_at: string;
   owner_id: number;
+  discoverable: number; // 1 = discoverable, 0 = hidden
+  auto_accept: number; // 1 = auto-accept join requests, 0 = manual review
 }
 
 export interface OrganizationMember {
@@ -75,6 +77,38 @@ export interface DocumentTag {
   id: number;
   document_id: number;
   tag_id: number;
+  created_at: string;
+}
+
+export interface JoinRequest {
+  id: number;
+  organization_id: number;
+  user_id: number;
+  status: "pending" | "accepted" | "rejected";
+  message: string | null;
+  reviewed_by: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface JoinRequestWithUser extends JoinRequest {
+  username: string;
+  email: string;
+}
+
+export interface JoinRequestWithOrg extends JoinRequest {
+  org_name: string;
+  org_slug: string;
+}
+
+export interface Notification {
+  id: number;
+  user_id: number;
+  type: string;
+  title: string;
+  message: string | null;
+  metadata: string | null;
+  read: number;
   created_at: string;
 }
 

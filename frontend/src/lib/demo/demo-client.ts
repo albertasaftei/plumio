@@ -654,9 +654,20 @@ export const demoClient = {
     return true;
   },
 
-  async getOrganization() {
+  async getOrganization(_orgId?: number) {
     await ensureReady();
-    return getDemoOrg();
+    const org = getDemoOrg();
+    return {
+      organization: {
+        id: org.id,
+        name: org.name,
+        slug: org.slug,
+        role: "admin",
+        createdAt: new Date(Date.now() - 2592000000).toISOString(),
+        discoverable: 0,
+        autoAccept: 0,
+      },
+    };
   },
 
   async getOrganizationMembers() {
@@ -957,20 +968,34 @@ export const demoClient = {
     };
   },
 
-  async createTag(name: string, color?: string | null, description?: string | null) {
+  async createTag(
+    name: string,
+    color?: string | null,
+    description?: string | null,
+  ) {
     await ensureReady();
     const tags = getDemoTags();
     if (tags.some((t) => t.name.toLowerCase() === name.toLowerCase())) {
       throw new Error("409: Tag already exists");
     }
     const now = new Date().toISOString();
-    const tag = { id: nextTagId(tags), name, color: color ?? null, description: description ?? null, created_at: now, updated_at: now };
+    const tag = {
+      id: nextTagId(tags),
+      name,
+      color: color ?? null,
+      description: description ?? null,
+      created_at: now,
+      updated_at: now,
+    };
     tags.push(tag);
     saveDemoTags(tags);
     return { tag };
   },
 
-  async updateTag(id: number, data: { name?: string; color?: string | null; description?: string | null }) {
+  async updateTag(
+    id: number,
+    data: { name?: string; color?: string | null; description?: string | null },
+  ) {
     await ensureReady();
     const tags = getDemoTags();
     const tag = tags.find((t) => t.id === id);
@@ -1028,7 +1053,11 @@ export const demoClient = {
     };
   },
 
-  async bulkTag(documentPaths: string[], tagId: number, action: "add" | "remove") {
+  async bulkTag(
+    documentPaths: string[],
+    tagId: number,
+    action: "add" | "remove",
+  ) {
     await ensureReady();
     const mappings = getDemoTagMappings();
     for (const path of documentPaths) {
@@ -1047,5 +1076,86 @@ export const demoClient = {
   async getTagMappings() {
     await ensureReady();
     return { mappings: getDemoTagMappings() };
+  },
+
+  // Organizations (extended)
+  async updateOrgSettings(
+    _orgId: number,
+    _discoverable: boolean,
+    _autoAccept: boolean,
+  ) {
+    await ensureReady();
+    return { message: "Settings saved" };
+  },
+
+  async permanentlyDeleteDocument(path: string) {
+    return this.permanentlyDeleteFromTrash(path);
+  },
+
+  // Join Requests (demo stubs — not functional)
+  async getMyMemberships() {
+    await ensureReady();
+    const org = getDemoOrg();
+    return { orgIds: [org.id] };
+  },
+
+  async listDiscoverableOrgs() {
+    await ensureReady();
+    return {
+      organizations: [
+        { id: 10, name: "Demo Team", slug: "demo-team" },
+        { id: 11, name: "Open Source Docs", slug: "oss-docs" },
+        { id: 12, name: "Research Collective", slug: "research-collective" },
+      ],
+    };
+  },
+
+  async createJoinRequest(_organizationId: number, _message?: string) {
+    await ensureReady();
+    // Demo: pretend a request was sent but don't actually do anything
+    return { message: "Join request sent! The admin will review it." };
+  },
+
+  async listMyJoinRequests() {
+    await ensureReady();
+    return { requests: [] as any[] };
+  },
+
+  async listOrgJoinRequests(_orgId: number) {
+    await ensureReady();
+    return { requests: [] as any[] };
+  },
+
+  async acceptJoinRequest(_requestId: number) {
+    return { message: "Accepted" };
+  },
+
+  async rejectJoinRequest(_requestId: number) {
+    return { message: "Rejected" };
+  },
+
+  async cancelJoinRequest(_requestId: number) {
+    return { message: "Cancelled" };
+  },
+
+  // Notifications (demo stubs — always empty)
+  async listNotifications(_page: number = 1, _limit: number = 20) {
+    return { notifications: [] as any[], page: 1, limit: 20 };
+  },
+
+  async getUnreadNotificationCount() {
+    return { count: 0 };
+  },
+
+  async markNotificationRead(_id: number) {
+    return {};
+  },
+
+  async markAllNotificationsRead() {
+    return {};
+  },
+
+  async deleteNotification(_id: number) {
+    return {};
   },
 };

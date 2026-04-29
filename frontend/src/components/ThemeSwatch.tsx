@@ -89,14 +89,6 @@ export default function ThemeSwatch(props: ThemeSwatchProps) {
       >
         {meta.label}
       </span>
-
-      {/* Active dot */}
-      {props.isActive && (
-        <span
-          class="w-1.5 h-1.5 rounded-full"
-          style={{ "background-color": "var(--color-primary)" }}
-        />
-      )}
     </button>
   );
 }

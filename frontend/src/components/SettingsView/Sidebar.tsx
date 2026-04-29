@@ -38,7 +38,7 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
 
   return (
     <aside
-      class="w-80 h-full border-r py-2 border-subtle bg-base flex flex-col fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto transition-transform duration-300 ease-in-out"
+      class="w-80 h-full border-r py-2 border-subtle bg-surface flex flex-col fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto transition-transform duration-300 ease-in-out"
       classList={{
         "-translate-x-full lg:translate-x-0": !props.isOpen,
         "translate-x-0": props.isOpen,

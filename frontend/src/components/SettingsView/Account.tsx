@@ -132,7 +132,7 @@ export default function Account() {
       <div>
         <h3 class="text-lg font-semibold text-body mb-2">Profile</h3>
         <div class="space-y-4">
-          <div class="p-4 bg-elevated/50 border border-base rounded-lg">
+          <div class="p-4 bg-surface border border-base rounded-lg">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-xs font-medium text-muted-body uppercase tracking-wider mb-1">
@@ -204,7 +204,7 @@ export default function Account() {
             </div>
           </div>
 
-          <div class="p-4 bg-elevated/50 border border-base rounded-lg">
+          <div class="p-4 bg-surface border border-base rounded-lg">
             <div class="flex items-center justify-between gap-4">
               <div>
                 <p class="text-xs font-medium text-muted-body uppercase tracking-wider mb-1">
@@ -392,7 +392,7 @@ export default function Account() {
             </div>
           </Show>
 
-          <div class="p-4 bg-elevated/50 border border-base rounded-lg">
+          <div class="p-4 bg-surface border border-base rounded-lg">
             <div class="flex items-center justify-between gap-4">
               <div>
                 <p class="text-xs font-medium text-muted-body uppercase tracking-wider mb-1">

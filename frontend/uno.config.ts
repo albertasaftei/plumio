@@ -11,6 +11,7 @@ export default defineConfig({
     "bg-base": "bg-[var(--color-bg-base)]",
     "bg-surface": "bg-[var(--color-bg-surface)]",
     "bg-elevated": "bg-[var(--color-bg-elevated)]",
+    "bg-elevated-hover": "bg-[var(--color-bg-elevated-hover)]",
     // ─── Semantic border tokens ───────────────────────────────────
     "border-base": "border-[var(--color-border)]",
     "border-subtle": "border-[var(--color-border-subtle)]",

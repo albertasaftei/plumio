@@ -373,7 +373,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                 {(user) => (
                   <>
                     <tr
-                      class="hover:bg-[var(--color-bg-elevated)] cursor-pointer"
+                      class="hover:bg-elevated cursor-pointer"
                       onClick={() => toggleUserExpand(user.id)}
                     >
                       <td class="px-4 py-3 whitespace-nowrap">

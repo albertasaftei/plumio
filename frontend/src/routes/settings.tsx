@@ -82,7 +82,7 @@ export default function SettingsPage() {
       />
 
       {/* Main Content */}
-      <div class="flex-1 overflow-auto bg-surface">
+      <div class="flex-1 overflow-auto bg-base">
         {/* Mobile header with menu toggle */}
         <div class="lg:hidden sticky top-0 z-10 bg-base border-b border-subtle p-4 flex items-center gap-2">
           <Button

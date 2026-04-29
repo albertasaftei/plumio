@@ -135,16 +135,16 @@ const AttachmentPanel: Component<AttachmentPanelProps> = (props) => {
 
   return (
     <Show when={props.show}>
-      <div class="border-b border-[var(--color-border)] bg-[var(--color-bg-base)] shrink-0">
+      <div class="border-b border-base bg-base shrink-0">
         {/* Header */}
-        <div class="flex items-center justify-between px-4 py-2 border-b border-[var(--color-border)]">
+        <div class="flex items-center justify-between px-4 py-2 border-b border-base">
           <div class="flex items-center gap-2">
-            <div class="i-carbon-attachment w-4 h-4 text-[var(--color-text-secondary)]" />
-            <span class="text-sm font-medium text-[var(--color-text-primary)]">
+            <div class="i-carbon-attachment w-4 h-4 text-secondary-body" />
+            <span class="text-sm font-medium text-body">
               Attachments
             </span>
             <Show when={attachments().length > 0}>
-              <span class="text-xs text-[var(--color-text-muted)] bg-[var(--color-bg-elevated)] px-1.5 py-0.5 rounded-full">
+              <span class="text-xs text-muted-body bg-elevated px-1.5 py-0.5 rounded-full">
                 {attachments().length}
               </span>
             </Show>
@@ -164,7 +164,7 @@ const AttachmentPanel: Component<AttachmentPanelProps> = (props) => {
             <button
               type="button"
               onClick={props.onClose}
-              class="p-1.5 rounded text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)] transition-colors cursor-pointer"
+              class="p-1.5 rounded text-muted-body hover:text-body hover:bg-elevated transition-colors cursor-pointer"
               title="Close attachments"
             >
               <div class="i-carbon-close w-4 h-4" />
@@ -189,17 +189,17 @@ const AttachmentPanel: Component<AttachmentPanelProps> = (props) => {
 
           <Show when={loading()}>
             <div class="flex items-center justify-center py-4">
-              <div class="i-carbon-circle-dash animate-spin w-5 h-5 text-[var(--color-text-muted)]" />
+              <div class="i-carbon-circle-dash animate-spin w-5 h-5 text-muted-body" />
             </div>
           </Show>
 
           <Show when={!loading() && attachments().length === 0}>
             <div
-              class="flex flex-col items-center justify-center py-4 gap-2 border-2 border-dashed border-[var(--color-border)] rounded-lg cursor-pointer hover:border-[var(--color-primary)] transition-colors"
+              class="flex flex-col items-center justify-center py-4 gap-2 border-2 border-dashed border-base rounded-lg cursor-pointer hover:border-[var(--color-primary)] transition-colors"
               onClick={() => fileInputRef?.click()}
             >
-              <div class="i-carbon-cloud-upload w-6 h-6 text-[var(--color-text-muted)]" />
-              <p class="text-xs text-[var(--color-text-muted)]">
+              <div class="i-carbon-cloud-upload w-6 h-6 text-muted-body" />
+              <p class="text-xs text-muted-body">
                 No attachments yet — click to upload
               </p>
             </div>
@@ -209,13 +209,13 @@ const AttachmentPanel: Component<AttachmentPanelProps> = (props) => {
             <div class="flex flex-wrap gap-2">
               <For each={attachments()}>
                 {(attachment) => (
-                  <div class="group relative flex items-center gap-2 px-2 py-1.5 rounded border border-[var(--color-border)] bg-[var(--color-bg-surface)] hover:border-[var(--color-primary)] transition-colors max-w-[220px]">
+                  <div class="group relative flex items-center gap-2 px-2 py-1.5 rounded border border-base bg-surface hover:border-[var(--color-primary)] transition-colors max-w-[220px]">
                     {/* Icon or thumbnail */}
                     <Show
                       when={isImage(attachment.mime_type)}
                       fallback={
                         <div
-                          class={`${fileIcon(attachment.mime_type)} w-5 h-5 shrink-0 text-[var(--color-text-secondary)]`}
+                          class={`${fileIcon(attachment.mime_type)} w-5 h-5 shrink-0 text-secondary-body`}
                         />
                       }
                     >
@@ -230,7 +230,7 @@ const AttachmentPanel: Component<AttachmentPanelProps> = (props) => {
                     {/* Name + size */}
                     <div class="flex flex-col min-w-0 flex-1">
                       <span
-                        class="text-xs text-[var(--color-text-primary)] truncate max-w-[120px] cursor-pointer hover:text-[var(--color-primary)]"
+                        class="text-xs text-body truncate max-w-[120px] cursor-pointer hover:text-[var(--color-primary)]"
                         title={
                           isInlineRenderable(attachment.mime_type)
                             ? `Insert ${attachment.original_name}`
@@ -240,7 +240,7 @@ const AttachmentPanel: Component<AttachmentPanelProps> = (props) => {
                       >
                         {attachment.original_name}
                       </span>
-                      <span class="text-[10px] text-[var(--color-text-muted)]">
+                      <span class="text-[10px] text-muted-body">
                         {formatBytes(attachment.size)}
                         {!isInlineRenderable(attachment.mime_type) && (
                           <span class="ml-1 opacity-60">↓ download</span>
@@ -261,7 +261,7 @@ const AttachmentPanel: Component<AttachmentPanelProps> = (props) => {
                           rel="noopener noreferrer"
                           onMouseDown={(e) => e.stopPropagation()}
                           onClick={(e) => e.stopPropagation()}
-                          class="p-0.5 rounded text-[var(--color-text-muted)] hover:text-blue-400 hover:bg-[var(--color-bg-elevated)] cursor-pointer"
+                          class="p-0.5 rounded text-muted-body hover:text-blue-400 hover:bg-elevated cursor-pointer"
                           title="Open PDF in new tab"
                         >
                           <div class="i-carbon-launch w-3 h-3" />
@@ -280,7 +280,7 @@ const AttachmentPanel: Component<AttachmentPanelProps> = (props) => {
                             );
                             props.onClose();
                           }}
-                          class="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-bg-elevated)] cursor-pointer"
+                          class="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded text-muted-body hover:text-[var(--color-primary)] hover:bg-elevated cursor-pointer"
                           title="Insert as link in editor"
                         >
                           <div class="i-carbon-link w-3 h-3" />
@@ -293,7 +293,7 @@ const AttachmentPanel: Component<AttachmentPanelProps> = (props) => {
                           e.stopPropagation();
                           handleDelete(attachment);
                         }}
-                        class="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded text-[var(--color-text-muted)] hover:text-red-400 hover:bg-[var(--color-bg-elevated)] cursor-pointer shrink-0"
+                        class="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded text-muted-body hover:text-red-400 hover:bg-elevated cursor-pointer shrink-0"
                         title="Delete attachment"
                       >
                         <div class="i-carbon-trash-can w-3.5 h-3.5" />

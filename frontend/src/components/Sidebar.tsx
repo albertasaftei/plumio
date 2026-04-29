@@ -253,7 +253,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     <>
       <Show when={isMounted() && isMobile()}>
         <aside
-          class="w-80 h-full border-r border-[var(--color-border)] bg-[var(--color-bg-base)] flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out"
+          class="w-80 h-full border-r border-base bg-base flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out"
           classList={{
             "-translate-x-full": !props.sidebarOpen,
             "translate-x-0": props.sidebarOpen,
@@ -314,7 +314,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           minSize={300}
           maxSize={600}
           resizeFrom="right"
-          class="h-full border-r border-[var(--color-border)] bg-[var(--color-bg-base)] flex flex-col relative"
+          class="h-full border-r border-base bg-base flex flex-col relative"
         >
           <SidebarContent
             filteredTree={filteredTree}
@@ -382,15 +382,15 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           value={newDocName()}
           onInput={(e) => setNewDocName(e.currentTarget.value)}
           onKeyPress={(e) => e.key === "Enter" && handleCreateDocument()}
-          class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] mb-3"
+          class="w-full px-3 py-2 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)] mb-3"
         />
-        <label class="block text-sm text-[var(--color-text-secondary)] mb-1">
+        <label class="block text-sm text-secondary-body mb-1">
           Create in
         </label>
         <select
           value={targetFolder()}
           onChange={(e) => setTargetFolder(e.currentTarget.value)}
-          class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] mb-4 cursor-pointer"
+          class="w-full px-3 py-2 bg-base border border-base rounded-lg text-body focus:outline-none focus:border-[var(--color-primary)] mb-4 cursor-pointer"
         >
           {folderOptions().map((opt) => (
             <option value={opt.path}>{opt.label}</option>
@@ -407,7 +407,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           setShowNewFolderModal(false);
         }}
       >
-        <p class="text-[var(--color-text-secondary)] mb-3">
+        <p class="text-secondary-body mb-3">
           Creating in: {targetFolder()}
         </p>
         <input
@@ -417,7 +417,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           value={newFolderName()}
           onInput={(e) => setNewFolderName(e.currentTarget.value)}
           onKeyPress={(e) => e.key === "Enter" && handleCreateFolder()}
-          class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] mb-4"
+          class="w-full px-3 py-2 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)] mb-4"
         />
       </AlertDialog>
 
@@ -427,7 +427,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         onConfirm={handleRename}
         onCancel={() => setShowRenameModal(false)}
       >
-        <p class="text-[var(--color-text-secondary)] mb-3">
+        <p class="text-secondary-body mb-3">
           Current: {itemToRename() ? getDisplayName(itemToRename()!) : ""}
         </p>
         <input
@@ -437,7 +437,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           value={newItemName()}
           onInput={(e) => setNewItemName(e.currentTarget.value)}
           onKeyPress={(e) => e.key === "Enter" && handleRename()}
-          class="w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] mb-4"
+          class="w-full px-3 py-2 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)] mb-4"
         />
       </AlertDialog>
 

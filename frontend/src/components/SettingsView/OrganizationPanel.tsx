@@ -43,6 +43,9 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
   const [editingOrgName, setEditingOrgName] = createSignal(false);
   const [newOrgName, setNewOrgName] = createSignal("");
   const [savingOrgName, setSavingOrgName] = createSignal(false);
+  const [orgDiscoverable, setOrgDiscoverable] = createSignal(false);
+  const [orgAutoAccept, setOrgAutoAccept] = createSignal(false);
+  const [savingDiscovery, setSavingDiscovery] = createSignal(false);
 
   onMount(async () => {
     setMounted(true);
@@ -51,6 +54,16 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
     // Fetch admin status from server for security validation
     const adminStatus = await api.isOrgAdmin();
     setIsAdmin(adminStatus);
+    // Load discovery settings
+    if (currentOrg?.id) {
+      try {
+        const { organization } = await api.getOrganization(currentOrg.id);
+        setOrgDiscoverable(organization.discoverable === 1);
+        setOrgAutoAccept(organization.autoAccept === 1);
+      } catch {
+        // ignore
+      }
+    }
   });
 
   const handleRenameOrg = async (e: Event) => {
@@ -184,7 +197,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
       </p>
 
       {/* Organization Name */}
-      <div class="mb-6 p-4 bg-elevated/50 border border-base rounded-lg">
+      <div class="mb-6 p-4 bg-surface border border-base rounded-lg">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-xs font-medium text-muted-body uppercase tracking-wider mb-1">
@@ -368,7 +381,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
               <tbody class="divide-y divide-neutral-700 dark:divide-neutral-700 light:divide-neutral-300">
                 <For each={members()}>
                   {(member) => (
-                    <tr class="hover:bg-[var(--color-bg-elevated)]">
+                    <tr class="hover:bg-elevated">
                       <td class="px-4 py-3 whitespace-nowrap">
                         <div class="flex items-center">
                           <div class="i-carbon-user-avatar w-8 h-8 text-muted-body mr-3" />
@@ -389,7 +402,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                                 class={`px-2 py-1 text-xs font-medium rounded capitalize ${
                                   member.role === "admin"
                                     ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                                    : "bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)]"
+                                    : "bg-elevated text-secondary-body"
                                 }`}
                               >
                                 {member.role}
@@ -450,6 +463,98 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
           </div>
         </Show>
       </div>
+
+      {/* Pending Join Requests */}
+      <Show when={mounted() && isAdmin()}>
+        <JoinRequestsSection
+          orgId={currentOrg()?.id ?? 0}
+          onToast={(msg, type) => setToast({ message: msg, type })}
+        />
+      </Show>
+
+      {/* Discovery Settings */}
+      <Show when={mounted() && isAdmin()}>
+        <div class="mt-6 p-4 bg-surface border border-base rounded-lg">
+          <h3 class="text-sm font-semibold text-body mb-1">
+            Discovery Settings
+          </h3>
+          <p class="text-xs text-muted-body mb-4">
+            Control whether other users can find and request to join this
+            organization.
+          </p>
+          <div class="space-y-3">
+            <label class="flex items-center justify-between cursor-pointer">
+              <div>
+                <p class="text-sm text-body">
+                  Allow users to discover this organization
+                </p>
+                <p class="text-xs text-muted-body">
+                  Show this org in the "Join an Organization" page
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={orgDiscoverable()}
+                onChange={(e) => {
+                  setOrgDiscoverable(e.currentTarget.checked);
+                  if (!e.currentTarget.checked) setOrgAutoAccept(false);
+                }}
+                class="w-4 h-4 accent-[var(--color-primary)]"
+              />
+            </label>
+            <label
+              class="flex items-center justify-between cursor-pointer"
+              style={{ opacity: orgDiscoverable() ? "1" : "0.4" }}
+            >
+              <div>
+                <p class="text-sm text-body">Auto-accept join requests</p>
+                <p class="text-xs text-muted-body">
+                  Members are added instantly without admin approval
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={orgAutoAccept()}
+                disabled={!orgDiscoverable()}
+                onChange={(e) => setOrgAutoAccept(e.currentTarget.checked)}
+                class="w-4 h-4 accent-[var(--color-primary)]"
+              />
+            </label>
+          </div>
+          <div class="mt-4">
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={savingDiscovery()}
+              onClick={async () => {
+                const org = currentOrg();
+                if (!org) return;
+                setSavingDiscovery(true);
+                try {
+                  await api.updateOrgSettings(
+                    org.id,
+                    orgDiscoverable(),
+                    orgAutoAccept(),
+                  );
+                  setToast({
+                    message: "Discovery settings saved",
+                    type: "success",
+                  });
+                } catch (err: any) {
+                  setToast({
+                    message: err.message || "Failed to save settings",
+                    type: "error",
+                  });
+                } finally {
+                  setSavingDiscovery(false);
+                }
+              }}
+            >
+              {savingDiscovery() ? "Saving…" : "Save Settings"}
+            </Button>
+          </div>
+        </div>
+      </Show>
     </>
   );
 
@@ -501,5 +606,142 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
         </Show>
       </div>
     </>
+  );
+}
+
+// --- Join Requests Section (org admin only) ---
+
+interface JoinRequestsSectionProps {
+  orgId: number;
+  onToast: (
+    message: string,
+    type: "success" | "error" | "info" | "warning",
+  ) => void;
+}
+
+interface JoinRequestItem {
+  id: number;
+  organization_id: number;
+  user_id: number;
+  status: string;
+  message: string | null;
+  username: string;
+  email: string;
+  created_at: string;
+}
+
+function JoinRequestsSection(props: JoinRequestsSectionProps) {
+  const [requests, setRequests] = createSignal<JoinRequestItem[]>([]);
+  const [loading, setLoading] = createSignal(false);
+
+  const loadRequests = async () => {
+    if (!props.orgId) return;
+    setLoading(true);
+    try {
+      const result = await api.listOrgJoinRequests(props.orgId);
+      setRequests(result.requests);
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  createEffect(() => {
+    if (props.orgId) {
+      loadRequests();
+    }
+  });
+
+  const handleAccept = async (requestId: number) => {
+    try {
+      await api.acceptJoinRequest(requestId);
+      props.onToast("Join request accepted", "success");
+      await loadRequests();
+    } catch (err: any) {
+      props.onToast(err.message || "Failed to accept request", "error");
+    }
+  };
+
+  const handleReject = async (requestId: number) => {
+    try {
+      await api.rejectJoinRequest(requestId);
+      props.onToast("Join request rejected", "info");
+      await loadRequests();
+    } catch (err: any) {
+      props.onToast(err.message || "Failed to reject request", "error");
+    }
+  };
+
+  return (
+    <div class="mt-6">
+      <h3 class="text-sm font-semibold text-body mb-3 flex items-center gap-2">
+        <div class="i-carbon-user-follow w-4 h-4" />
+        Pending Join Requests
+        <Show when={requests().length > 0}>
+          <span class="px-1.5 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs font-medium">
+            {requests().length}
+          </span>
+        </Show>
+      </h3>
+
+      <Show
+        when={!loading()}
+        fallback={
+          <div class="text-sm text-muted-body py-4 text-center">
+            <div class="i-carbon-circle-dash animate-spin w-4 h-4 inline-block mr-2" />
+            Loading...
+          </div>
+        }
+      >
+        <Show
+          when={requests().length > 0}
+          fallback={
+            <p class="text-sm text-muted-body py-2">
+              No pending join requests.
+            </p>
+          }
+        >
+          <div class="space-y-3">
+            <For each={requests()}>
+              {(request) => (
+                <div class="flex items-center justify-between p-3 bg-surface border border-base rounded-lg">
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-body">
+                      {request.username}
+                    </p>
+                    <p class="text-xs text-muted-body">{request.email}</p>
+                    <Show when={request.message}>
+                      <p class="text-xs text-secondary-body mt-1 italic">
+                        "{request.message}"
+                      </p>
+                    </Show>
+                    <p class="text-[10px] text-muted-body mt-1">
+                      {formatAbsoluteDate(request.created_at)}
+                    </p>
+                  </div>
+                  <div class="flex gap-2 ml-3 flex-shrink-0">
+                    <Button
+                      onClick={() => handleAccept(request.id)}
+                      variant="primary"
+                      size="sm"
+                    >
+                      Accept
+                    </Button>
+                    <Button
+                      onClick={() => handleReject(request.id)}
+                      variant="secondary"
+                      size="sm"
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </For>
+          </div>
+        </Show>
+      </Show>
+    </div>
   );
 }

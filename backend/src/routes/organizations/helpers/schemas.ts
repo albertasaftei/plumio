@@ -5,8 +5,10 @@ export const getOrgParamsSchema = z.object({
 });
 
 export const updateOrgSchema = z.object({
-  name: z.string().min(1),
-  slug: z.string().min(1),
+  name: z.string().min(1).optional(),
+  slug: z.string().min(1).optional(),
+  discoverable: z.boolean().optional(),
+  auto_accept: z.boolean().optional(),
 });
 
 export const updateOrgParamsSchema = z.object({

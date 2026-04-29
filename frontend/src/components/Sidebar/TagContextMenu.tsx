@@ -16,7 +16,7 @@ export default function TagContextMenu(props: TagContextMenuProps) {
       <For
         each={props.tags()}
         fallback={
-          <p class="px-3 py-2 text-xs text-[var(--color-text-muted)]">
+          <p class="px-3 py-2 text-xs text-muted-body">
             No tags. Create one first.
           </p>
         }
@@ -29,7 +29,7 @@ export default function TagContextMenu(props: TagContextMenuProps) {
                 e.stopPropagation();
                 props.onToggle(tag.id, !isChecked());
               }}
-              class="w-full px-3 py-1.5 text-left text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-elevated)] transition-colors flex items-center gap-2 cursor-pointer"
+              class="w-full px-3 py-1.5 text-left text-sm text-secondary-body hover:bg-elevated transition-colors flex items-center gap-2 cursor-pointer"
             >
               <div
                 class={`w-4 h-4 flex-shrink-0 ${isChecked() ? "i-carbon-checkbox-checked text-[var(--color-primary)]" : "i-carbon-checkbox"}`}

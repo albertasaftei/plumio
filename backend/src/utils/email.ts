@@ -83,3 +83,113 @@ export async function sendEmailChangeConfirmationEmail(
     `,
   });
 }
+
+export async function sendJoinRequestEmail(
+  to: string,
+  requesterUsername: string,
+  orgName: string,
+): Promise<void> {
+  if (!isSmtpConfigured()) {
+    return; // Silently skip — in-app notification is the primary channel
+  }
+
+  const loginUrl = `${APP_URL}`;
+  const transporter = createTransporter();
+
+  await transporter.sendMail({
+    from: SMTP_FROM,
+    to,
+    subject: `New join request for ${orgName} — plumio`,
+    text: `${requesterUsername} has requested to join your organization "${orgName}".\n\nLog in to review the request: ${loginUrl}\n`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <p><strong>${requesterUsername}</strong> has requested to join your organization <strong>${orgName}</strong>.</p>
+        <a href="${loginUrl}" style="display:inline-block;margin:16px 0;padding:12px 24px;background:#2a9d8f;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;">
+          Review Request
+        </a>
+        <p style="color:#888;font-size:13px;">You can accept or reject this request from the notification center in plumio.</p>
+      </div>
+    `,
+  });
+}
+
+export async function sendJoinRequestAcceptedEmail(
+  to: string,
+  orgName: string,
+): Promise<void> {
+  if (!isSmtpConfigured()) {
+    return;
+  }
+
+  const loginUrl = `${APP_URL}`;
+  const transporter = createTransporter();
+
+  await transporter.sendMail({
+    from: SMTP_FROM,
+    to,
+    subject: `You've been accepted into ${orgName} — plumio`,
+    text: `Your request to join "${orgName}" has been accepted!\n\nLog in to access your new organization: ${loginUrl}\n`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <p>Your request to join <strong>${orgName}</strong> has been <span style="color:#2a9d8f;font-weight:600;">accepted</span>!</p>
+        <a href="${loginUrl}" style="display:inline-block;margin:16px 0;padding:12px 24px;background:#2a9d8f;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;">
+          Go to plumio
+        </a>
+        <p style="color:#888;font-size:13px;">You can now switch to this organization from the organization selector.</p>
+      </div>
+    `,
+  });
+}
+
+export async function sendJoinRequestRejectedEmail(
+  to: string,
+  orgName: string,
+): Promise<void> {
+  if (!isSmtpConfigured()) {
+    return;
+  }
+
+  const transporter = createTransporter();
+
+  await transporter.sendMail({
+    from: SMTP_FROM,
+    to,
+    subject: `Join request for ${orgName} was declined — plumio`,
+    text: `Your request to join "${orgName}" was declined by an organization administrator.\n`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <p>Your request to join <strong>${orgName}</strong> was <span style="color:#e76f51;font-weight:600;">declined</span> by an organization administrator.</p>
+        <p style="color:#888;font-size:13px;">If you believe this was a mistake, please contact the organization owner directly.</p>
+      </div>
+    `,
+  });
+}
+
+export async function sendMemberJoinedEmail(
+  to: string,
+  memberUsername: string,
+  orgName: string,
+): Promise<void> {
+  if (!isSmtpConfigured()) {
+    return;
+  }
+
+  const loginUrl = `${APP_URL}`;
+  const transporter = createTransporter();
+
+  await transporter.sendMail({
+    from: SMTP_FROM,
+    to,
+    subject: `${memberUsername} joined ${orgName} — plumio`,
+    text: `${memberUsername} has automatically joined your organization "${orgName}".\n\nLog in to manage your organization: ${loginUrl}\n`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <p><strong>${memberUsername}</strong> has automatically joined your organization <strong>${orgName}</strong>.</p>
+        <a href="${loginUrl}" style="display:inline-block;margin:16px 0;padding:12px 24px;background:#2a9d8f;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;">
+          Manage Organization
+        </a>
+        <p style="color:#888;font-size:13px;">Auto-accept is enabled for this organization.</p>
+      </div>
+    `,
+  });
+}

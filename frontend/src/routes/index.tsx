@@ -15,7 +15,6 @@ export default function Home() {
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
   const [confirmPassword, setConfirmPassword] = createSignal("");
-  const [organizationName, setOrganizationName] = createSignal("");
   const [error, setError] = createSignal("");
   const [loading, setLoading] = createSignal(true);
   const [showPassword, setShowPassword] = createSignal(false);
@@ -67,13 +66,12 @@ export default function Home() {
     }
 
     try {
-      await api.setup(username(), email(), password(), organizationName());
+      await api.setup(username(), email(), password());
       setNeedsSetup(false);
       setIsSetup(false);
       setEmail("");
       setPassword("");
       setConfirmPassword("");
-      setOrganizationName("");
     } catch (err: any) {
       setError(err.message || "Setup failed");
     }
@@ -92,11 +90,11 @@ export default function Home() {
   };
 
   return (
-    <div class="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center p-4">
+    <div class="min-h-screen bg-base flex items-center justify-center p-4">
       <Show
         when={!loading()}
         fallback={
-          <div class="text-[var(--color-text-secondary)]">
+          <div class="text-secondary-body">
             <div class="i-carbon-circle-dash animate-spin w-8 h-8 mx-auto" />
           </div>
         }
@@ -104,23 +102,23 @@ export default function Home() {
         <div class="w-full max-w-md">
           <div class="flex gap-4 items-center justify-center mb-8">
             <Logo color="#2a9d8f" size="48" />
-            <span class="text-4xl font-bold text-[var(--color-text-primary)] mb-2">
+            <span class="text-4xl font-bold text-body mb-2">
               plumio
             </span>
           </div>
 
-          <div class="bg-[var(--color-bg-surface)] rounded-lg p-8 border border-[var(--color-border)]">
+          <div class="bg-surface rounded-lg p-8 border border-base">
             <Show when={isSetup()}>
-              <h2 class="text-2xl font-semibold text-[var(--color-text-primary)] mb-6">
+              <h2 class="text-2xl font-semibold text-body mb-6">
                 Initial Setup
               </h2>
-              <p class="text-[var(--color-text-secondary)] mb-6 ">
+              <p class="text-secondary-body mb-6 ">
                 Create your admin account to get started
               </p>
             </Show>
 
             <Show when={!isSetup() && !needsSetup()}>
-              <h2 class="text-2xl font-semibold text-[var(--color-text-primary)] mb-6">
+              <h2 class="text-2xl font-semibold text-body mb-6">
                 Welcome Back
               </h2>
             </Show>
@@ -133,7 +131,7 @@ export default function Home() {
 
             <form onSubmit={isSetup() ? handleSetup : handleLogin}>
               <div class="mb-4">
-                <label class="block font-medium text-[var(--color-text-secondary)] mb-2">
+                <label class="block font-medium text-secondary-body mb-2">
                   Username
                 </label>
                 <input
@@ -141,14 +139,14 @@ export default function Home() {
                   value={username()}
                   onInput={(e) => setUsername(e.currentTarget.value)}
                   required
-                  class="focus-ring w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                  class="focus-ring w-full px-3 py-2 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)] transition-colors"
                   placeholder="Enter username"
                 />
               </div>
 
               <Show when={isSetup()}>
                 <div class="mb-4">
-                  <label class="block font-medium text-[var(--color-text-secondary)] mb-2">
+                  <label class="block font-medium text-secondary-body mb-2">
                     Email
                   </label>
                   <input
@@ -156,26 +154,14 @@ export default function Home() {
                     value={email()}
                     onInput={(e) => setEmail(e.currentTarget.value)}
                     required
-                    class="focus-ring w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                    class="focus-ring w-full px-3 py-2 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)] transition-colors"
                     placeholder="Enter email"
-                  />
-                </div>
-                <div class="mb-4">
-                  <label class="block font-medium text-[var(--color-text-secondary)] mb-2">
-                    Organization Name
-                  </label>
-                  <input
-                    type="text"
-                    value={organizationName()}
-                    onInput={(e) => setOrganizationName(e.currentTarget.value)}
-                    class="focus-ring w-full px-3 py-2 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-                    placeholder={`${username() || "Your"}'s Organization`}
                   />
                 </div>
               </Show>
 
               <div class="mb-4">
-                <label class="block font-medium text-[var(--color-text-secondary)] mb-2">
+                <label class="block font-medium text-secondary-body mb-2">
                   Password
                 </label>
                 <div class="relative">
@@ -184,13 +170,13 @@ export default function Home() {
                     value={password()}
                     onInput={(e) => setPassword(e.currentTarget.value)}
                     required
-                    class="focus-ring w-full px-3 py-2 pr-10 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                    class="focus-ring w-full px-3 py-2 pr-10 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)] transition-colors"
                     placeholder="Enter password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword())}
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors cursor-pointer"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-body hover:text-body transition-colors cursor-pointer"
                     title={showPassword() ? "Hide password" : "Show password"}
                   >
                     <div
@@ -206,7 +192,7 @@ export default function Home() {
 
               <Show when={isSetup()}>
                 <div class="mb-6">
-                  <label class="block font-medium text-[var(--color-text-secondary)] mb-2">
+                  <label class="block font-medium text-secondary-body mb-2">
                     Confirm Password
                   </label>
                   <div class="relative">
@@ -215,7 +201,7 @@ export default function Home() {
                       value={confirmPassword()}
                       onInput={(e) => setConfirmPassword(e.currentTarget.value)}
                       required
-                      class="focus-ring w-full px-3 py-2 pr-10 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                      class="focus-ring w-full px-3 py-2 pr-10 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)] transition-colors"
                       placeholder="Confirm password"
                     />
                     <button
@@ -223,7 +209,7 @@ export default function Home() {
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword())
                       }
-                      class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors cursor-pointer"
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-body hover:text-body transition-colors cursor-pointer"
                       title={
                         showConfirmPassword()
                           ? "Hide password"
@@ -254,7 +240,7 @@ export default function Home() {
 
             <Show when={!isSetup()}>
               <div class="mt-6 text-center">
-                <span class="text-[var(--color-text-secondary)]">
+                <span class="text-secondary-body">
                   Don't have an account?
                 </span>
                 <button
@@ -267,7 +253,7 @@ export default function Home() {
               <div class="mt-3 text-center">
                 <button
                   onClick={() => navigate(routes.forgotPassword)}
-                  class="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] cursor-pointer transition-colors text-sm"
+                  class="text-muted-body hover:text-secondary-body cursor-pointer transition-colors text-sm"
                 >
                   Forgot password?
                 </button>
@@ -275,7 +261,7 @@ export default function Home() {
             </Show>
           </div>
 
-          <p class="text-center text-[var(--color-text-muted)] mt-6">
+          <p class="text-center text-muted-body mt-6">
             Your data is encrypted and stored locally on your server
           </p>
         </div>
