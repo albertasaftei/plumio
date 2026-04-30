@@ -47,6 +47,7 @@ interface ToolbarProps {
   hasSelection?: boolean;
   activeState?: ActiveState;
   showAttachments?: boolean;
+  attachmentCount?: number;
 }
 
 interface ToolbarButtonProps {
@@ -407,7 +408,7 @@ export default function EditorToolbar(props: ToolbarProps) {
       <ToolbarButton
         icon="i-carbon-attachment"
         title="Attachments"
-        active={props.showAttachments}
+        active={props.showAttachments || (props.attachmentCount ?? 0) > 0}
         onClick={() => props.onCommand("toggleAttachments")}
       />
     </div>

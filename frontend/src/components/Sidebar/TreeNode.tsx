@@ -26,6 +26,7 @@ import { COLOR_PALETTE } from "~/utils/sidebar.utils";
 import { getDisplayName } from "~/utils/document.utils";
 import TagContextMenu from "./TagContextMenu";
 import type { Tag } from "~/types/Tag.types";
+import { api } from "~/lib/api";
 
 interface TreeNodeProps {
   node: TreeNodeType;
@@ -326,9 +327,73 @@ export default function TreeNode(props: TreeNodeProps) {
                     </PopoverItem>
                   </Show>
 
+                  {/* Download actions (files only) */}
+                  <Show when={props.node.type === "file"}>
+                    <div class="h-px bg-[var(--color-border)] my-1" />
+                    <Popover placement="right-start">
+                      <Popover.Trigger
+                        as={(triggerProps: any) => (
+                          <button
+                            {...triggerProps}
+                            onClick={(e: MouseEvent) => {
+                              e.stopPropagation();
+                              triggerProps.onClick?.(e);
+                            }}
+                            class="w-full px-3 py-2 text-left text-sm text-secondary-body hover:bg-neutral-600 transition-colors flex items-center gap-2 cursor-pointer"
+                          >
+                            <div class="i-carbon-download w-4 h-4" />
+                            Download
+                            <div class="i-carbon-chevron-right w-3 h-3 ml-auto" />
+                          </button>
+                        )}
+                      />
+                      <Popover.Portal>
+                        <Popover.Content class="bg-surface border border-base rounded-lg shadow-lg z-[60] py-1 min-w-40 animate-slide-down">
+                          <PopoverItem
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              props.setOpenMenuPath(null);
+                              const result = await api.getDocument(
+                                props.node.path,
+                              );
+                              const filename = props.node.name.endsWith(".md")
+                                ? props.node.name
+                                : `${props.node.name}.md`;
+                              api.downloadDocumentAsMarkdown(
+                                filename,
+                                result.content,
+                              );
+                            }}
+                          >
+                            <div class="i-carbon-document w-4 h-4" />
+                            Markdown
+                          </PopoverItem>
+                          <PopoverItem
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              props.setOpenMenuPath(null);
+                              const result = await api.getDocument(
+                                props.node.path,
+                              );
+                              api.downloadDocumentAsPdf(
+                                props.node.name,
+                                result.content,
+                              );
+                            }}
+                          >
+                            <div class="i-carbon-document-pdf w-4 h-4" />
+                            PDF
+                          </PopoverItem>
+                        </Popover.Content>
+                      </Popover.Portal>
+                    </Popover>
+
+                    <div class="h-px bg-[var(--color-border)] my-1" />
+                  </Show>
+
                   {/* Tags action (files only) */}
                   <Show when={props.node.type === "file"}>
-                    <Popover>
+                    <Popover placement="right-start">
                       <Popover.Trigger
                         as={(triggerProps: any) => (
                           <button
@@ -346,7 +411,7 @@ export default function TreeNode(props: TreeNodeProps) {
                         )}
                       />
                       <Popover.Portal>
-                        <Popover.Content class="ml-1 bg-surface border border-base rounded-lg shadow-lg z-[60] py-1 min-w-40 animate-slide-down">
+                        <Popover.Content class="bg-surface border border-base rounded-lg shadow-lg z-[60] py-1 min-w-40 animate-slide-down">
                           <TagContextMenu
                             documentPath={props.node.path}
                             tags={props.tags}

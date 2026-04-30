@@ -715,6 +715,306 @@ export class ApiClient {
     });
   }
 
+  downloadDocumentAsMarkdown(filename: string, content: string) {
+    const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename.endsWith(".md") ? filename : `${filename}.md`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
+
+  async downloadDocumentAsPdf(filename: string, content: string) {
+    const [{ marked }, { default: mermaid }, { default: katex }, Prism] =
+      await Promise.all([
+        import("marked"),
+        import("mermaid"),
+        import("katex"),
+        import("prismjs").then(async (m) => {
+          // Load common language grammars
+          await Promise.allSettled([
+            import("prismjs/components/prism-javascript" as string),
+            import("prismjs/components/prism-typescript" as string),
+            import("prismjs/components/prism-jsx" as string),
+            import("prismjs/components/prism-tsx" as string),
+            import("prismjs/components/prism-css" as string),
+            import("prismjs/components/prism-json" as string),
+            import("prismjs/components/prism-bash" as string),
+            import("prismjs/components/prism-python" as string),
+            import("prismjs/components/prism-rust" as string),
+            import("prismjs/components/prism-go" as string),
+            import("prismjs/components/prism-sql" as string),
+            import("prismjs/components/prism-yaml" as string),
+            import("prismjs/components/prism-markdown" as string),
+            import("prismjs/components/prism-java" as string),
+            import("prismjs/components/prism-c" as string),
+            import("prismjs/components/prism-cpp" as string),
+          ]);
+          return m.default;
+        }),
+      ]);
+
+    let html = await marked.parse(content);
+    const runId = Date.now().toString(36);
+
+    // Render mermaid code blocks to inline SVG.
+    // marked outputs: <pre><code class="language-mermaid">...html-encoded source...</code></pre>
+    const decodeHtml = (s: string) =>
+      s
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'");
+
+    const mermaidRe =
+      /<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/gi;
+    const mermaidMatches = [...html.matchAll(mermaidRe)];
+
+    if (mermaidMatches.length > 0) {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: "default",
+        suppressErrorRendering: true,
+        htmlLabels: false,
+        flowchart: { htmlLabels: false, useMaxWidth: false },
+        sequence: { useMaxWidth: false },
+        er: { useMaxWidth: false },
+      });
+
+      const svgs = await Promise.all(
+        mermaidMatches.map(async (m, i) => {
+          try {
+            const source = decodeHtml(m[1]).trim();
+            const { svg } = await mermaid.render(
+              `mermaid-pdf-${runId}-${i}`,
+              source,
+            );
+            return svg as string;
+          } catch {
+            return null;
+          }
+        }),
+      );
+
+      // Replace from end to start so earlier indices stay valid.
+      for (let i = mermaidMatches.length - 1; i >= 0; i--) {
+        const m = mermaidMatches[i];
+        const svg = svgs[i];
+        const replacement = svg
+          ? `<div class="mermaid-diagram">${svg}</div>`
+          : m[0];
+        html =
+          html.slice(0, m.index!) +
+          replacement +
+          html.slice(m.index! + m[0].length);
+      }
+    }
+
+    // Syntax-highlight fenced code blocks using Prism.
+    // marked outputs: <pre><code class="language-{lang}">...html-encoded...</code></pre>
+    html = html.replace(
+      /<pre><code class="language-([^"]+)">([\/\s\S]*?)<\/code><\/pre>/gi,
+      (match, lang, encodedCode) => {
+        if (lang === "mermaid") return match; // already handled above
+        const grammar =
+          Prism.languages[lang] || Prism.languages[lang.toLowerCase()];
+        if (!grammar) return match;
+        const code = decodeHtml(encodedCode);
+        const highlighted = Prism.highlight(code, grammar, lang);
+        return `<pre class="language-${lang}"><code class="language-${lang}">${highlighted}</code></pre>`;
+      },
+    );
+
+    // Helper: detect whether a src points to a PDF attachment
+    const isPdfSrc = (src: string) => {
+      const pathPart = src.split("?")[0].split("#")[0];
+      if (/\.pdf$/i.test(pathPart)) return true;
+      try {
+        const u = new URL(src, window.location.href);
+        return /\.pdf$/i.test((u.searchParams.get("path") || "").split("?")[0]);
+      } catch {
+        return false;
+      }
+    };
+
+    // Inline images: fetch API attachment images and replace with base64 data URLs
+    // so they work correctly when the HTML is opened as a blob URL.
+    // PDF attachments are rendered page-by-page via PDF.js into PNG data URLs.
+    const imgRe =
+      /<img([^>]*?)src="([^"]*\/api\/attachments\/file[^"]*)"([^>]*?)>/gi;
+    const imgMatches = [...html.matchAll(imgRe)];
+    if (imgMatches.length > 0) {
+      const pdfjsLib = await import("pdfjs-dist");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+        "pdfjs-dist/build/pdf.worker.min.mjs",
+        import.meta.url,
+      ).href;
+
+      await Promise.all(
+        imgMatches.map(async (m) => {
+          try {
+            const src = m[2];
+            const absoluteSrc = src.startsWith("http")
+              ? src
+              : `${API_URL}${src}`;
+            const urlObj = new URL(absoluteSrc);
+            if (this.token) urlObj.searchParams.set("token", this.token);
+            const resp = await fetch(urlObj.toString(), {
+              headers: { Authorization: `Bearer ${this.token}` },
+            });
+            if (!resp.ok) return;
+            const buffer = await resp.arrayBuffer();
+
+            if (isPdfSrc(src)) {
+              // Render every page to PNG and replace the <img> with a stack of images
+              const pdfDoc = await pdfjsLib.getDocument({ data: buffer })
+                .promise;
+              const pageImgs: string[] = [];
+              for (let p = 1; p <= pdfDoc.numPages; p++) {
+                const page = await pdfDoc.getPage(p);
+                const viewport = page.getViewport({ scale: 2 }); // 2× for print quality
+                const canvas = document.createElement("canvas");
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                await page.render({
+                  canvasContext: canvas.getContext("2d")!,
+                  viewport,
+                  canvas,
+                }).promise;
+                pageImgs.push(canvas.toDataURL("image/png"));
+              }
+              const replacement = pageImgs
+                .map(
+                  (dataUrl, i) =>
+                    `<img src="${dataUrl}" alt="PDF page ${i + 1}" style="max-width:100%;display:block;margin:0 0 8px;" />`,
+                )
+                .join("\n");
+              html = html.replace(m[0], replacement);
+            } else {
+              const mimeType = resp.headers.get("content-type") || "image/png";
+              const base64 = btoa(
+                String.fromCharCode(...new Uint8Array(buffer)),
+              );
+              const dataUrl = `data:${mimeType};base64,${base64}`;
+              html = html.replace(m[0], m[0].replace(m[2], dataUrl));
+            }
+          } catch {
+            // leave original src if fetch fails
+          }
+        }),
+      );
+    }
+
+    // Render math with KaTeX MathML output (no CSS needed, natively supported in modern browsers).
+    // Split on <pre>/<code> segments first so math inside code blocks is left untouched.
+    const finalHtml = html
+      .split(/(<pre\b[^>]*>[\s\S]*?<\/pre>|<code\b[^>]*>[^<]*<\/code>)/i)
+      .map((seg, i) => {
+        if (i % 2 === 1) return seg;
+        seg = seg.replace(/\$\$([\s\S]+?)\$\$/g, (_, math) =>
+          katex.renderToString(math.trim(), {
+            displayMode: true,
+            throwOnError: false,
+            output: "mathml",
+          }),
+        );
+        seg = seg.replace(/\$([^\n$]+?)\$/g, (_, math) =>
+          katex.renderToString(math.trim(), {
+            displayMode: false,
+            throwOnError: false,
+            output: "mathml",
+          }),
+        );
+        return seg;
+      })
+      .join("");
+
+    const title = filename.replace(/\.md$/, "");
+    const htmlDocument = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob: *;" />
+  <title>${title}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #1a1a1a;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 32px;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: 700;
+      line-height: 1.3;
+      margin: 1.5em 0 0.5em;
+    }
+    h1 { font-size: 2em; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+    h2 { font-size: 1.5em; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
+    h3 { font-size: 1.25em; }
+    p { margin: 0 0 1em; }
+    a { color: #2563eb; text-decoration: underline; }
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.875em;
+      background: #f3f4f6;
+      padding: 0.15em 0.4em;
+      border-radius: 3px;
+    }
+    pre {
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 1em 1.25em;
+      overflow-x: auto;
+      margin: 1em 0;
+    }
+    pre code { background: none; padding: 0; font-size: 0.875em; }
+    blockquote {
+      border-left: 4px solid #d1d5db;
+      margin: 1em 0;
+      padding: 0.5em 1em;
+      color: #6b7280;
+    }
+    blockquote p { margin: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+    th, td { border: 1px solid #d1d5db; padding: 0.5em 0.75em; text-align: left; }
+    th { background: #f9fafb; font-weight: 600; }
+    img { max-width: 100%; height: auto; }
+    hr { border: none; border-top: 1px solid #e5e7eb; margin: 2em 0; }
+    ul, ol { padding-left: 1.5em; margin: 0 0 1em; }
+    li { margin: 0.25em 0; }
+    .mermaid-diagram { text-align: center; margin: 1.5em 0; }
+    .mermaid-diagram svg { max-width: 100%; height: auto; }
+    math { font-size: 1.1em; }
+    /* Prism default theme */
+    code[class*=language-],pre[class*=language-]{color:#000;background:0 0;text-shadow:0 1px #fff;font-family:Consolas,Monaco,'Andale Mono','Ubuntu Mono',monospace;font-size:1em;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}
+    pre[class*=language-]{padding:1em;margin:.5em 0;overflow:auto}:not(pre)>code[class*=language-],pre[class*=language-]{background:#f5f2f0}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal}.token.cdata,.token.comment,.token.doctype,.token.prolog{color:#708090}.token.punctuation{color:#999}.token.namespace{opacity:.7}.token.boolean,.token.constant,.token.deleted,.token.number,.token.property,.token.symbol,.token.tag{color:#905}.token.attr-name,.token.builtin,.token.char,.token.inserted,.token.selector,.token.string{color:#690}.language-css .token.string,.style .token.string,.token.entity,.token.operator,.token.url{color:#9a6e3a;background:hsla(0,0%,100%,.5)}.token.atrule,.token.attr-value,.token.keyword{color:#07a}.token.class-name,.token.function{color:#dd4a68}.token.important,.token.regex,.token.variable{color:#e90}.token.bold,.token.important{font-weight:700}.token.italic{font-style:italic}.token.entity{cursor:help}
+    @page { margin: 0; }
+    @media print {
+      body { padding: 10mm 12mm; }
+      a { color: #1a1a1a; }
+      pre { white-space: pre-wrap; word-break: break-word; }
+    }
+  </style>
+<script>window.onload = function() { window.print(); };</script>
+</head>
+<body>${finalHtml}</body>
+</html>`;
+
+    const blob = new Blob([htmlDocument], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  }
+
   async exportDocuments() {
     const response = await fetch(`${API_URL}/api/documents/export`, {
       method: "POST",

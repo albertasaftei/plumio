@@ -42,6 +42,7 @@ export default function MarkdownEditor(props: EditorProps) {
   const [hasSelection, setHasSelection] = createSignal(false);
   const [showLinkPopup, setShowLinkPopup] = createSignal(false);
   const [showAttachments, setShowAttachments] = createSignal(false);
+  const [attachmentCount, setAttachmentCount] = createSignal(0);
   const [currentLinkData, setCurrentLinkData] = createSignal<{
     href: string;
     title?: string;
@@ -701,8 +702,7 @@ export default function MarkdownEditor(props: EditorProps) {
             tooltip.style.top = rect.bottom + 8 + "px";
 
             const linkText = document.createElement("div");
-            linkText.className =
-              "truncate max-w-xs mb-2 text-secondary-body";
+            linkText.className = "truncate max-w-xs mb-2 text-secondary-body";
             linkText.textContent = normalizedHref;
 
             const buttonContainer = document.createElement("div");
@@ -954,10 +954,13 @@ export default function MarkdownEditor(props: EditorProps) {
     const docPath = props.documentPath;
     if (!docPath) return;
     setShowAttachments(false);
+    setAttachmentCount(0);
     api
       .listAttachments(docPath)
       .then((result: any) => {
-        if ((result.attachments || []).length > 0) {
+        const count = (result.attachments || []).length;
+        setAttachmentCount(count);
+        if (count > 0) {
           setShowAttachments(true);
         }
       })
@@ -980,6 +983,7 @@ export default function MarkdownEditor(props: EditorProps) {
         hasSelection={hasSelection()}
         activeState={activeState()}
         showAttachments={showAttachments()}
+        attachmentCount={attachmentCount()}
       />
       <LinkPopup
         show={showLinkPopup()}

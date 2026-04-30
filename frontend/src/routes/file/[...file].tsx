@@ -8,9 +8,11 @@ import {
   onMount,
 } from "solid-js";
 import { useParams, useNavigate, useBeforeLeave } from "@solidjs/router";
+import { Popover } from "@kobalte/core/popover";
 import { api } from "~/lib/api";
 import Editor from "~/components/Editor";
 import Button from "~/components/Button";
+import PopoverItem from "~/components/PopoverItem";
 import { routes } from "~/routes";
 import DocumentTagBar from "~/components/DocumentTagBar";
 
@@ -116,6 +118,20 @@ export default function DocumentPage() {
     }
   };
 
+  const getFilename = () => {
+    const path = getDocumentPath();
+    const parts = path.split("/");
+    return parts[parts.length - 1] || "document";
+  };
+
+  const handleDownloadMarkdown = () => {
+    api.downloadDocumentAsMarkdown(getFilename(), currentContent());
+  };
+
+  const handleDownloadPdf = () => {
+    api.downloadDocumentAsPdf(getFilename(), currentContent());
+  };
+
   return (
     <>
       {/* Document Actions Toolbar */}
@@ -146,20 +162,52 @@ export default function DocumentPage() {
           </Button>
         </div>
 
-        {/* Save Status */}
-        <div class="flex items-center">
-          <Show when={saveStatus() === "saving"}>
-            <span class="text-xs text-muted-body">Saving...</span>
-          </Show>
-          <Show when={saveStatus() === "saved"}>
-            <div class="flex items-center gap-1">
-              <div class="i-carbon-checkmark text-green-500" />
-              <span class="text-xs text-green-500">Saved</span>
-            </div>
-          </Show>
-          <Show when={saveStatus() === "unsaved"}>
-            <span class="text-xs text-yellow-500">● Unsaved</span>
-          </Show>
+        {/* Right side: Download + Save Status */}
+        <div class="flex items-center gap-2">
+          {/* Download Dropdown */}
+          <Popover>
+            <Popover.Trigger
+              as={(triggerProps: any) => (
+                <Button
+                  {...triggerProps}
+                  variant="ghost"
+                  size="sm"
+                  class="flex items-center gap-1"
+                  title="Download document"
+                >
+                  <div class="i-carbon-download w-4 h-4" />
+                </Button>
+              )}
+            />
+            <Popover.Portal>
+              <Popover.Content class="mt-1 bg-surface border border-base rounded-lg shadow-lg z-50 py-1 min-w-44 animate-slide-down">
+                <PopoverItem onClick={handleDownloadMarkdown}>
+                  <div class="i-carbon-document w-4 h-4" />
+                  Markdown
+                </PopoverItem>
+                <PopoverItem onClick={handleDownloadPdf}>
+                  <div class="i-carbon-document-pdf w-4 h-4" />
+                  PDF
+                </PopoverItem>
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover>
+
+          {/* Save Status */}
+          <div class="flex items-center">
+            <Show when={saveStatus() === "saving"}>
+              <span class="text-xs text-muted-body">Saving...</span>
+            </Show>
+            <Show when={saveStatus() === "saved"}>
+              <div class="flex items-center gap-1">
+                <div class="i-carbon-checkmark text-green-500" />
+                <span class="text-xs text-green-500">Saved</span>
+              </div>
+            </Show>
+            <Show when={saveStatus() === "unsaved"}>
+              <span class="text-xs text-yellow-500">● Unsaved</span>
+            </Show>
+          </div>
         </div>
       </div>
 
