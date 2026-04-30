@@ -411,6 +411,54 @@ export default function EditorToolbar(props: ToolbarProps) {
         active={props.showAttachments || (props.attachmentCount ?? 0) > 0}
         onClick={() => props.onCommand("toggleAttachments")}
       />
+
+      <ToolbarDivider />
+
+      {/* Download */}
+      <Popover>
+        <Popover.Trigger
+          as={(triggerProps: any) => (
+            <button
+              {...triggerProps}
+              type="button"
+              onMouseDown={(e: MouseEvent) => {
+                e.preventDefault();
+                triggerProps.onClick?.(e);
+              }}
+              title="Download document"
+              class="toolbar-button p-1.5 rounded transition-colors duration-150 cursor-pointer text-secondary-body hover:text-body hover:bg-elevated active:bg-elevated"
+            >
+              <div class="i-carbon-download w-4 h-4" />
+            </button>
+          )}
+        />
+        <Popover.Portal>
+          <Popover.Content class="mt-1 bg-surface border border-base rounded-lg shadow-lg z-50 py-1 min-w-[160px] animate-slide-down">
+            <button
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                props.onCommand("downloadMarkdown");
+              }}
+              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-body hover:bg-elevated transition-colors cursor-pointer"
+            >
+              <div class="i-carbon-document w-4 h-4" />
+              Markdown
+            </button>
+            <button
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                props.onCommand("downloadPdf");
+              }}
+              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-body hover:bg-elevated transition-colors cursor-pointer"
+            >
+              <div class="i-carbon-document-pdf w-4 h-4" />
+              PDF
+            </button>
+          </Popover.Content>
+        </Popover.Portal>
+      </Popover>
     </div>
   );
 }

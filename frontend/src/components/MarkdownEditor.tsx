@@ -247,6 +247,20 @@ export default function MarkdownEditor(props: EditorProps) {
       return;
     }
 
+    // Download commands
+    if (command === "downloadMarkdown") {
+      const parts = (props.documentPath || "document").split("/");
+      const filename = parts[parts.length - 1] || "document";
+      api.downloadDocumentAsMarkdown(filename, props.content);
+      return;
+    }
+    if (command === "downloadPdf") {
+      const parts = (props.documentPath || "document").split("/");
+      const filename = parts[parts.length - 1] || "document";
+      api.downloadDocumentAsPdf(filename, props.content);
+      return;
+    }
+
     // Insert attachment (image or file link) at cursor
     if (command === "insertAttachment") {
       const {
