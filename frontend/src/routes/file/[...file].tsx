@@ -6,6 +6,8 @@ import {
   createEffect,
   onCleanup,
   onMount,
+  on,
+  For,
 } from "solid-js";
 import { useParams, useNavigate, useBeforeLeave } from "@solidjs/router";
 import { api } from "~/lib/api";
@@ -13,6 +15,7 @@ import Editor from "~/components/Editor";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
 import DocumentTagBar from "~/components/DocumentTagBar";
+import { getVimMode } from "~/lib/editorPreferences";
 
 const MarkdownEditor = lazy(() => import("~/components/MarkdownEditor"));
 
@@ -25,6 +28,12 @@ export default function DocumentPage() {
   const [saveStatus, setSaveStatus] = createSignal<
     "saved" | "saving" | "unsaved"
   >("saved");
+
+  // Re-mount the editor when vim mode is toggled in settings
+  const [editorVersion, setEditorVersion] = createSignal(0);
+  createEffect(
+    on(getVimMode, () => setEditorVersion((v) => v + 1), { defer: true }),
+  );
 
   let saveTimeout: ReturnType<typeof setTimeout>;
   onCleanup(() => clearTimeout(saveTimeout));
@@ -185,11 +194,15 @@ export default function DocumentPage() {
               </div>
             }
           >
-            <MarkdownEditor
-              content={currentContent()}
-              onChange={handleContentChange}
-              documentPath={getDocumentPath()}
-            />
+            <For each={[editorVersion()]}>
+              {(_) => (
+                <MarkdownEditor
+                  content={currentContent()}
+                  onChange={handleContentChange}
+                  documentPath={getDocumentPath()}
+                />
+              )}
+            </For>
           </Suspense>
         ) : (
           <Editor content={currentContent()} onChange={handleContentChange} />

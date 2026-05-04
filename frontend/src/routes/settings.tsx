@@ -13,6 +13,7 @@ import AppConfiguration from "~/components/SettingsView/AppConfiguration";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
 import BuildInformation from "~/components/SettingsView/BuildInformation";
+import EditorPreferences from "~/components/SettingsView/EditorPreferences";
 
 const SectionsWrapper = ({ children }: { children: JSX.Element }) => {
   return <div class="p-8 max-w-5xl mx-auto">{children}</div>;
@@ -120,6 +121,23 @@ export default function SettingsPage() {
                 <h2 class="text-2xl font-bold text-body">Account</h2>
               </div>
               <Account />
+            </SectionsWrapper>
+          </Show>
+
+          <Show when={activeSection() === "editor"}>
+            <SectionsWrapper>
+              <div class="flex items-center gap-3 mb-6">
+                <Button
+                  onClick={handleClose}
+                  variant="ghost"
+                  size="md"
+                  title="Back to editor"
+                >
+                  <div class="i-carbon-arrow-left w-5 h-5" />
+                </Button>
+                <h2 class="text-2xl font-bold text-body">Editor</h2>
+              </div>
+              <EditorPreferences />
             </SectionsWrapper>
           </Show>
 

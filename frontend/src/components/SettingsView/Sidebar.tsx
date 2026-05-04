@@ -4,6 +4,7 @@ import { api } from "~/lib/api";
 
 export type SettingsSection =
   | "account"
+  | "editor"
   | "import-export"
   | "organization"
   | "admin"
@@ -66,6 +67,16 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
           >
             <div class="i-carbon-user w-4 h-4" />
             <span class="ml-2">Account</span>
+          </Button>
+
+          <Button
+            onClick={() => props.onSectionChange("editor")}
+            variant={props.activeSection === "editor" ? "secondary" : "ghost"}
+            size="md"
+            fullWidth
+          >
+            <div class="i-carbon-edit w-4 h-4" />
+            <span class="ml-2">Editor</span>
           </Button>
 
           <Button

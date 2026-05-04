@@ -2,6 +2,8 @@ import { $remark } from "@milkdown/utils";
 import { onMount, onCleanup, createEffect, createSignal } from "solid-js";
 import type { EditorProps } from "~/types/Editor.types";
 import EditorToolbar from "~/components/EditorToolbar";
+import { vimPlugin } from "~/utils/milkdown/vimPlugin";
+import { getVimMode } from "~/lib/editorPreferences";
 import { exitMarkKeymap } from "~/utils/milkdown/highlight/exitMarkKeymap";
 import { markInputRule } from "~/utils/milkdown/highlight/inputRule";
 import { markSchema } from "~/utils/milkdown/highlight/markSchema";
@@ -642,8 +644,13 @@ export default function MarkdownEditor(props: EditorProps) {
         .use(exitMarkKeymap)
         .use(taskListInputPlugin)
         .use(codeBlockViewPlugin)
-        .use(pdfImagePlugin)
-        .create();
+        .use(pdfImagePlugin);
+
+      if (getVimMode()) {
+        editorInstance = editorInstance.use(vimPlugin);
+      }
+
+      editorInstance = await editorInstance.create();
 
       if (editorRef) {
         editorRef.classList.add("milkdown-theme-dark");
