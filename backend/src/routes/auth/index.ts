@@ -123,8 +123,9 @@ authRouter.post("/login", async (c) => {
       return c.json({ error: "No organization found for user" }, 500);
     }
 
-    // Use first organization as default (usually personal org)
-    const currentOrg = organizations[0];
+    // Use personal organization as default (the one owned by the user), fallback to first
+    const currentOrg =
+      organizations.find((o) => o.owner_id === user.id) || organizations[0];
     const membership = memberQueries.findMembership.get(currentOrg.id, user.id);
 
     // Check if user is global admin
