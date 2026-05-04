@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import fs from "fs/promises";
 import path from "path";
 import { ENABLE_ENCRYPTION } from "../../config.js";
-import db, { documentQueries } from "../../db/index.js";
+import db, { documentQueries, memberQueries } from "../../db/index.js";
 import { authMiddleware } from "../../middlewares/auth.js";
 import { UserJWTPayload } from "../../middlewares/auth.types.js";
 import * as z from "zod";
@@ -28,6 +28,7 @@ import {
   deleteDocumentSchema,
   renameDocumentSchema,
   moveDocumentSchema,
+  moveCrossOrgSchema,
   colorDocumentSchema,
   favoriteDocumentSchema,
   importDocumentSchema,
@@ -614,6 +615,100 @@ documentsRouter.post("/move", async (c) => {
     return c.json({ message: "Moved successfully", newPath });
   } catch (error) {
     console.error("Error moving:", error);
+    return c.json({ error: "Failed to move item" }, 500);
+  }
+});
+
+// Move an item to the root of a different organization
+documentsRouter.post("/move-cross-org", async (c) => {
+  const parsed = moveCrossOrgSchema.safeParse(await c.req.json());
+  const user = c.get("user");
+  const organizationId = user.currentOrgId;
+
+  if (!parsed.success) {
+    return c.json({ error: z.treeifyError(parsed.error) }, 400);
+  }
+
+  if (!organizationId) {
+    return c.json({ error: "No organization context" }, 400);
+  }
+
+  const { sourcePath, targetOrgId } = parsed.data;
+
+  if (targetOrgId === organizationId) {
+    return c.json(
+      { error: "Source and target organization are the same" },
+      400,
+    );
+  }
+
+  // Verify user is a member of the target organization
+  const membership = memberQueries.findMembership.get(targetOrgId, user.userId);
+  if (!membership) {
+    return c.json(
+      { error: "You are not a member of the target organization" },
+      403,
+    );
+  }
+
+  const fullSourcePath = sanitizePath(sourcePath, organizationId);
+  const itemName = path.basename(sourcePath);
+  const newPath = `/${itemName}`;
+  const fullNewPath = sanitizePath(newPath, targetOrgId);
+
+  try {
+    // Check source exists
+    await fs.access(fullSourcePath);
+
+    // Check destination would not conflict
+    try {
+      await fs.access(fullNewPath);
+      return c.json(
+        {
+          error:
+            "An item with the same name already exists in the target organization",
+        },
+        409,
+      );
+    } catch {
+      // Good — target doesn't exist yet
+    }
+
+    // Ensure target org directory exists
+    await fs.mkdir(path.dirname(fullNewPath), { recursive: true });
+
+    // Copy to target org (cp supports cross-device unlike rename)
+    const stats = await fs.stat(fullSourcePath);
+    await fs.cp(fullSourcePath, fullNewPath, { recursive: true });
+
+    // Copy metadata sidecar if it exists
+    try {
+      await fs.access(fullSourcePath + ".meta.json");
+      await fs.cp(fullSourcePath + ".meta.json", fullNewPath + ".meta.json");
+    } catch {
+      // No metadata file, that's fine
+    }
+
+    // Update DB: change organization_id (and update path for folder trees)
+    documentQueries.moveCrossOrg(
+      organizationId,
+      targetOrgId,
+      sourcePath,
+      newPath,
+      stats.isDirectory(),
+    );
+
+    // Remove source after successful copy + DB update
+    await fs.rm(fullSourcePath, { recursive: true, force: true });
+    try {
+      await fs.rm(fullSourcePath + ".meta.json", { force: true });
+    } catch {
+      // No metadata to remove
+    }
+
+    return c.json({ message: "Moved successfully", newPath, targetOrgId });
+  } catch (error) {
+    console.error("Error moving cross-org:", error);
     return c.json({ error: "Failed to move item" }, 500);
   }
 });

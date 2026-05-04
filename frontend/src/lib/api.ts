@@ -115,7 +115,9 @@ export class ApiClient {
     return this.request<{ needsSetup: boolean }>("/api/auth/check-setup");
   }
 
-  async validateSession(): Promise<{ valid: false } | { valid: true; theme: string }> {
+  async validateSession(): Promise<
+    { valid: false } | { valid: true; theme: string }
+  > {
     if (!this.token) return { valid: false };
     try {
       const result = await this.request<{
@@ -703,6 +705,17 @@ export class ApiClient {
         body: JSON.stringify({ sourcePath, destinationFolder }),
       },
     );
+  }
+
+  async moveCrossOrg(sourcePath: string, targetOrgId: number) {
+    return this.request<{
+      message: string;
+      newPath: string;
+      targetOrgId: number;
+    }>("/api/documents/move-cross-org", {
+      method: "POST",
+      body: JSON.stringify({ sourcePath, targetOrgId }),
+    });
   }
 
   async reorderItem(

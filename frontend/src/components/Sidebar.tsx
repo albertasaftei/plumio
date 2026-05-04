@@ -384,9 +384,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           onKeyPress={(e) => e.key === "Enter" && handleCreateDocument()}
           class="w-full px-3 py-2 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)] mb-3"
         />
-        <label class="block text-sm text-secondary-body mb-1">
-          Create in
-        </label>
+        <label class="block text-sm text-secondary-body mb-1">Create in</label>
         <select
           value={targetFolder()}
           onChange={(e) => setTargetFolder(e.currentTarget.value)}
@@ -407,9 +405,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
           setShowNewFolderModal(false);
         }}
       >
-        <p class="text-secondary-body mb-3">
-          Creating in: {targetFolder()}
-        </p>
+        <p class="text-secondary-body mb-3">Creating in: {targetFolder()}</p>
         <input
           ref={newFolderInputRef}
           type="text"
@@ -447,10 +443,10 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         itemName={itemToMove()?.name ?? ""}
         itemType={itemToMove()?.type ?? "file"}
         documents={props.documents}
-        onConfirm={(dest) => {
+        onConfirm={(dest, targetOrgId) => {
           const source = itemToMove();
           if (source && props.onMoveItem) {
-            props.onMoveItem(source.path, dest);
+            props.onMoveItem(source.path, dest, targetOrgId);
           }
           setShowMoveModal(false);
           setItemToMove(null);

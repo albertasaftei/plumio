@@ -302,6 +302,43 @@ export const documentQueries = {
         oldPrefix + "/%",
       );
   },
+  moveCrossOrg: (
+    sourceOrgId: number,
+    targetOrgId: number,
+    sourcePath: string,
+    newPath: string,
+    isDirectory: boolean,
+  ) => {
+    if (isDirectory) {
+      return db
+        .prepare(
+          `UPDATE documents
+           SET organization_id = ?,
+               path = ? || substr(path, ?),
+               updated_at = CURRENT_TIMESTAMP
+           WHERE organization_id = ?
+             AND (path = ? OR path LIKE ?)`,
+        )
+        .run(
+          targetOrgId,
+          newPath,
+          sourcePath.length + 1,
+          sourceOrgId,
+          sourcePath,
+          sourcePath + "/%",
+        );
+    }
+    return db
+      .prepare(
+        `UPDATE documents
+         SET organization_id = ?,
+             path = ?,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE organization_id = ?
+           AND path = ?`,
+      )
+      .run(targetOrgId, newPath, sourceOrgId, sourcePath);
+  },
   permanentlyDeleteWithFtsCleanup: (
     organizationId: number,
     docPath: string,

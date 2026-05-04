@@ -12,7 +12,11 @@ export interface SidebarProps {
   onCreateFolder: (name: string, parentPath?: string) => void;
   onDeleteItem: (path: string) => void;
   onRenameItem?: (oldPath: string, newName: string) => void;
-  onMoveItem?: (sourcePath: string, destinationFolder: string) => void;
+  onMoveItem?: (
+    sourcePath: string,
+    destinationFolder: string,
+    targetOrgId?: number,
+  ) => void;
   onExpandFolder: (path: string) => void;
   onSetColor?: (path: string, color: string | null) => void;
   onToggleFavorite?: (path: string, favorite: boolean) => void;

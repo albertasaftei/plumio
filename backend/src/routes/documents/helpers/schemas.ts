@@ -35,6 +35,11 @@ export const moveDocumentSchema = z.object({
   destinationFolder: z.string(),
 });
 
+export const moveCrossOrgSchema = z.object({
+  sourcePath: z.string().min(1),
+  targetOrgId: z.number().int().positive(),
+});
+
 export const colorDocumentSchema = z.object({
   path: z.string().min(1),
   color: z.string().or(z.null()),

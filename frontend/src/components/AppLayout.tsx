@@ -197,13 +197,27 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     }
   };
 
-  const moveItem = async (sourcePath: string, destinationFolder: string) => {
+  const moveItem = async (
+    sourcePath: string,
+    destinationFolder: string,
+    targetOrgId?: number,
+  ) => {
     try {
-      const result = await api.moveItem(sourcePath, destinationFolder);
-      await loadAllDocuments();
-      navigateIfViewing(sourcePath, result.newPath);
+      if (targetOrgId !== undefined) {
+        await api.moveCrossOrg(sourcePath, targetOrgId);
+        await loadAllDocuments();
+        // File is no longer in this org — navigate away if it was open
+        navigateIfViewing(sourcePath, routes.homepage);
+      } else {
+        const result = await api.moveItem(sourcePath, destinationFolder);
+        await loadAllDocuments();
+        navigateIfViewing(sourcePath, result.newPath);
+      }
     } catch (error) {
       console.error("Failed to move item:", error);
+      const message =
+        error instanceof Error ? error.message : "Failed to move item";
+      setToast({ message, type: "error" });
     }
   };
 
