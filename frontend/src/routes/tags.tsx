@@ -36,8 +36,8 @@ export default function TagsPage() {
   };
 
   onMount(async () => {
-    const isValid = await api.validateSession();
-    if (!isValid) {
+    const session = await api.validateSession();
+    if (!session.valid) {
       navigate(routes.login);
       return;
     }

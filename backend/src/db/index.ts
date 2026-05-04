@@ -78,6 +78,9 @@ export const userQueries = {
   updateEmail: db.prepare<[string, number]>(
     "UPDATE users SET email = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
   ),
+  updateTheme: db.prepare<[string, number]>(
+    "UPDATE users SET theme = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+  ),
 };
 
 // === Organization Queries ===

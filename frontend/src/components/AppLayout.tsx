@@ -13,6 +13,7 @@ import Button from "~/components/Button";
 import AlertDialog from "~/components/AlertDialog";
 import Toast from "~/components/Toast";
 import { api, type Document } from "~/lib/api";
+import { syncThemeFromServer } from "~/lib/theme";
 import { isMobile } from "~/utils/device.utils";
 import { routes } from "~/routes";
 
@@ -74,12 +75,13 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
 
     // In demo mode, skip session validation
     if (!isDemoMode) {
-      const isValid = await api.validateSession();
-      if (!isValid) {
+      const session = await api.validateSession();
+      if (!session.valid) {
         // Session is invalid or expired, redirect to login
         navigate(routes.login);
         return;
       }
+      syncThemeFromServer(session.theme);
     }
 
     // Load documents once on mount

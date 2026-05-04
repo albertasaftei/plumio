@@ -29,8 +29,8 @@ export default function SettingsPage() {
 
   onMount(async () => {
     // Validate session first
-    const isValid = await api.validateSession();
-    if (!isValid) {
+    const session = await api.validateSession();
+    if (!session.valid) {
       navigate(routes.login);
       return;
     }

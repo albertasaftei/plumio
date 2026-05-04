@@ -1,6 +1,7 @@
 import { createSignal, onMount, Show } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { api } from "~/lib/api";
+import { syncThemeFromServer } from "~/lib/theme";
 import Logo from "~/components/Logo";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
@@ -35,8 +36,8 @@ export default function Home() {
 
       // If setup is complete and has token, validate session
       if (!result.needsSetup && localStorage.getItem("plumio_token")) {
-        const isValid = await api.validateSession();
-        if (isValid) {
+        const session = await api.validateSession();
+        if (session.valid) {
           navigate(routes.homepage);
         }
         // If invalid, token was cleared by validateSession()
@@ -82,7 +83,8 @@ export default function Home() {
     setError("");
 
     try {
-      await api.login(username(), password());
+      const result = await api.login(username(), password());
+      syncThemeFromServer(result.theme);
       navigate(routes.homepage);
     } catch (err: any) {
       setError(err.message || "Login failed");

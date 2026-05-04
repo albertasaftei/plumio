@@ -115,17 +115,20 @@ export class ApiClient {
     return this.request<{ needsSetup: boolean }>("/api/auth/check-setup");
   }
 
-  async validateSession(): Promise<boolean> {
-    if (!this.token) return false;
+  async validateSession(): Promise<{ valid: false } | { valid: true; theme: string }> {
+    if (!this.token) return { valid: false };
     try {
-      await this.request<{ valid: boolean; userId: number; username: string }>(
-        "/api/auth/validate",
-      );
-      return true;
+      const result = await this.request<{
+        valid: boolean;
+        userId: number;
+        username: string;
+        theme: string;
+      }>("/api/auth/validate");
+      return { valid: true, theme: result.theme ?? "dark" };
     } catch {
       // Token is invalid or expired, clear it
       this.clearToken();
-      return false;
+      return { valid: false };
     }
   }
 
@@ -148,6 +151,7 @@ export class ApiClient {
       token: string;
       username: string;
       isAdmin?: boolean;
+      theme: string;
       currentOrganization: {
         id: number;
         name: string;
@@ -175,6 +179,13 @@ export class ApiClient {
     return this.request<{ message: string }>("/api/auth/change-password", {
       method: "PUT",
       body: JSON.stringify({ currentPassword, newPassword }),
+    });
+  }
+
+  async updatePreferences(prefs: { theme: string }) {
+    return this.request<{ message: string }>("/api/auth/preferences", {
+      method: "PUT",
+      body: JSON.stringify(prefs),
     });
   }
 

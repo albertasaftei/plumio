@@ -10,6 +10,7 @@ import { addEmailChangeTokens } from "./008-add-email-change-tokens.js";
 import { addJoinRequests } from "./009-add-join-requests.js";
 import { addNotifications } from "./010-add-notifications.js";
 import { addOrgDiscovery } from "./011-add-org-discovery.js";
+import { addUserTheme } from "./012-add-user-theme.js";
 
 // All migrations in order - put them inside this folder and add them here
 export const allMigrations: Migration[] = [
@@ -24,4 +25,5 @@ export const allMigrations: Migration[] = [
   addJoinRequests,
   addNotifications,
   addOrgDiscovery,
+  addUserTheme,
 ];

@@ -34,14 +34,29 @@ const authRouter = new Hono<{ Variables: Variables }>();
 
 const jwtSecretKey = new TextEncoder().encode(JWT_SECRET);
 
+const VALID_THEMES = [
+  "dark",
+  "light",
+  "sepia",
+  "nord",
+  "dracula",
+  "catppuccin",
+  "github",
+  "github-dark",
+  "nightowl",
+  "matcha",
+] as const;
+
 // Validate session - Check if current token is valid
 authRouter.get("/validate", authMiddleware, async (c) => {
   try {
     const user = c.get("user");
+    const dbUser = userQueries.findById.get(user.userId);
     return c.json({
       valid: true,
       userId: user.userId,
       username: user.username,
+      theme: dbUser?.theme ?? "dark",
     });
   } catch (error) {
     return c.json({ valid: false }, 401);
@@ -159,6 +174,7 @@ authRouter.post("/login", async (c) => {
       token,
       username: user.username,
       isAdmin: isGlobalAdmin,
+      theme: user.theme,
       currentOrganization: {
         id: currentOrg.id,
         name: currentOrg.name,
@@ -169,6 +185,25 @@ authRouter.post("/login", async (c) => {
   } catch (error) {
     console.error("Login error:", error);
     return c.json({ error: "Login failed" }, 500);
+  }
+});
+
+// Update user preferences (theme)
+authRouter.put("/preferences", authMiddleware, async (c) => {
+  try {
+    const user = c.get("user");
+    const body = await c.req.json().catch(() => ({}));
+    const theme = typeof body?.theme === "string" ? body.theme : "";
+
+    if (!VALID_THEMES.includes(theme as (typeof VALID_THEMES)[number])) {
+      return c.json({ error: "Invalid theme" }, 400);
+    }
+
+    userQueries.updateTheme.run(theme, user.userId);
+    return c.json({ message: "Preferences updated" });
+  } catch (error) {
+    console.error("Update preferences error:", error);
+    return c.json({ error: "Failed to update preferences" }, 500);
   }
 });
 

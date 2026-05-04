@@ -2,6 +2,7 @@ import { createSignal, For, onMount } from "solid-js";
 import { getVimMode, setVimMode } from "~/lib/editorPreferences";
 import { initializeTheme, Theme, THEME_META, useTheme } from "~/lib/theme";
 import ThemeSwatch from "~/components/ThemeSwatch";
+import { api } from "~/lib/api";
 
 interface ToggleProps {
   enabled: boolean;
@@ -49,6 +50,11 @@ export default function EditorPreferences() {
     setVimEnabled(value);
   };
 
+  const handleThemeSelect = (id: Theme) => {
+    setTheme(id);
+    api.updatePreferences({ theme: id }).catch(() => {});
+  };
+
   return (
     <div class="space-y-6">
       {/* Theme */}
@@ -63,7 +69,7 @@ export default function EditorPreferences() {
               <ThemeSwatch
                 id={id}
                 isActive={theme() === id}
-                onSelect={setTheme}
+                onSelect={handleThemeSelect}
               />
             )}
           </For>

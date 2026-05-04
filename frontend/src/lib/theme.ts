@@ -156,3 +156,14 @@ export function getTheme() {
 export function useTheme() {
   return [theme, setThemeValue] as const;
 }
+
+/**
+ * Apply a theme received from the server, updating the signal,
+ * localStorage cache, and the DOM simultaneously.
+ */
+export function syncThemeFromServer(serverTheme: string) {
+  const resolved: Theme = VALID_THEMES.has(serverTheme)
+    ? (serverTheme as Theme)
+    : "dark";
+  setThemeValue(resolved);
+}
