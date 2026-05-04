@@ -173,6 +173,17 @@ describe("POST /api/documents/move-cross-org", () => {
       },
     });
 
+    // Seed a file for copy mode test
+    await request("POST", "/api/documents/save", {
+      token: adminToken,
+      body: {
+        folder: "/",
+        name: "Copy Org Doc",
+        content: "# Copy Org Doc\n\nContent",
+        isNew: true,
+      },
+    });
+
     // Seed a file that will collide in the second org
     await request("POST", "/api/documents/save", {
       token: adminTokenInSecondOrg,
@@ -264,5 +275,41 @@ describe("POST /api/documents/move-cross-org", () => {
       body: { sourcePath: "/Anything.md", targetOrgId: secondOrgId },
     });
     expect(res.status).toBe(401);
+  });
+
+  describe("keepSource (copy mode)", () => {
+    it("copies a file to another org leaving the original intact", async () => {
+      const res = await request("POST", "/api/documents/move-cross-org", {
+        token: adminToken,
+        body: {
+          sourcePath: "/Copy Org Doc.md",
+          targetOrgId: secondOrgId,
+          keepSource: true,
+        },
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.newPath).toBe("/Copy Org Doc.md");
+    });
+
+    it("copy appears in the target org", async () => {
+      const res = await request("GET", "/api/documents/list?path=/", {
+        token: adminTokenInSecondOrg,
+      });
+      const body = await res.json();
+      const found = body.items.find((i: any) => i.name === "Copy Org Doc.md");
+      expect(found).toBeDefined();
+    });
+
+    it("original is still present in the source org after copy", async () => {
+      const res = await request("GET", "/api/documents/list?path=/", {
+        token: adminToken,
+      });
+      const body = await res.json();
+      const original = body.items.find(
+        (i: any) => i.name === "Copy Org Doc.md",
+      );
+      expect(original).toBeDefined();
+    });
   });
 });

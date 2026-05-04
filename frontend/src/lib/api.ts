@@ -707,14 +707,18 @@ export class ApiClient {
     );
   }
 
-  async moveCrossOrg(sourcePath: string, targetOrgId: number) {
+  async moveCrossOrg(
+    sourcePath: string,
+    targetOrgId: number,
+    keepSource = false,
+  ) {
     return this.request<{
       message: string;
       newPath: string;
       targetOrgId: number;
     }>("/api/documents/move-cross-org", {
       method: "POST",
-      body: JSON.stringify({ sourcePath, targetOrgId }),
+      body: JSON.stringify({ sourcePath, targetOrgId, keepSource }),
     });
   }
 

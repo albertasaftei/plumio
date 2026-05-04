@@ -201,13 +201,25 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     sourcePath: string,
     destinationFolder: string,
     targetOrgId?: number,
+    keepSource?: boolean,
   ) => {
     try {
       if (targetOrgId !== undefined) {
-        await api.moveCrossOrg(sourcePath, targetOrgId);
+        await api.moveCrossOrg(sourcePath, targetOrgId, keepSource);
         await loadAllDocuments();
-        // File is no longer in this org — navigate away if it was open
-        navigateIfViewing(sourcePath, routes.homepage);
+        const itemName = sourcePath.split("/").pop() ?? sourcePath;
+        if (keepSource) {
+          setToast({
+            message: `"${itemName}" copied successfully`,
+            type: "success",
+          });
+        } else {
+          navigateIfViewing(sourcePath, routes.homepage);
+          setToast({
+            message: `"${itemName}" moved successfully`,
+            type: "success",
+          });
+        }
       } else {
         const result = await api.moveItem(sourcePath, destinationFolder);
         await loadAllDocuments();

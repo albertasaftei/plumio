@@ -443,10 +443,10 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         itemName={itemToMove()?.name ?? ""}
         itemType={itemToMove()?.type ?? "file"}
         documents={props.documents}
-        onConfirm={(dest, targetOrgId) => {
+        onConfirm={(dest, targetOrgId, keepSource) => {
           const source = itemToMove();
           if (source && props.onMoveItem) {
-            props.onMoveItem(source.path, dest, targetOrgId);
+            props.onMoveItem(source.path, dest, targetOrgId, keepSource);
           }
           setShowMoveModal(false);
           setItemToMove(null);

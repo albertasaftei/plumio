@@ -16,6 +16,7 @@ export interface SidebarProps {
     sourcePath: string,
     destinationFolder: string,
     targetOrgId?: number,
+    keepSource?: boolean,
   ) => void;
   onExpandFolder: (path: string) => void;
   onSetColor?: (path: string, color: string | null) => void;

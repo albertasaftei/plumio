@@ -633,7 +633,7 @@ documentsRouter.post("/move-cross-org", async (c) => {
     return c.json({ error: "No organization context" }, 400);
   }
 
-  const { sourcePath, targetOrgId } = parsed.data;
+  const { sourcePath, targetOrgId, keepSource } = parsed.data;
 
   if (targetOrgId === organizationId) {
     return c.json(
@@ -689,24 +689,34 @@ documentsRouter.post("/move-cross-org", async (c) => {
       // No metadata file, that's fine
     }
 
-    // Update DB: change organization_id (and update path for folder trees)
-    documentQueries.moveCrossOrg(
-      organizationId,
-      targetOrgId,
-      sourcePath,
-      newPath,
-      stats.isDirectory(),
-    );
-
-    // Remove source after successful copy + DB update
-    await fs.rm(fullSourcePath, { recursive: true, force: true });
-    try {
-      await fs.rm(fullSourcePath + ".meta.json", { force: true });
-    } catch {
-      // No metadata to remove
+    if (keepSource) {
+      // Copy mode: insert new DB records for the target org, leave source intact
+      documentQueries.copyCrossOrg(
+        organizationId,
+        targetOrgId,
+        sourcePath,
+        newPath,
+      );
+    } else {
+      // Move mode: update DB records to belong to target org
+      documentQueries.moveCrossOrg(
+        organizationId,
+        targetOrgId,
+        sourcePath,
+        newPath,
+        stats.isDirectory(),
+      );
+      // Remove source after successful copy + DB update
+      await fs.rm(fullSourcePath, { recursive: true, force: true });
+      try {
+        await fs.rm(fullSourcePath + ".meta.json", { force: true });
+      } catch {
+        // No metadata to remove
+      }
     }
 
-    return c.json({ message: "Moved successfully", newPath, targetOrgId });
+    const message = keepSource ? "Copied successfully" : "Moved successfully";
+    return c.json({ message, newPath, targetOrgId });
   } catch (error) {
     console.error("Error moving cross-org:", error);
     return c.json({ error: "Failed to move item" }, 500);

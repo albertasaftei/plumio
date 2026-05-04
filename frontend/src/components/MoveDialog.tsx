@@ -1,5 +1,6 @@
 import { createSignal, createMemo, createEffect, For, Show } from "solid-js";
 import AlertDialog from "./AlertDialog";
+import Button from "./Button";
 import type { Document } from "~/lib/api";
 import type { TreeNode } from "~/types/Sidebar.types";
 import {
@@ -22,7 +23,11 @@ export interface MoveDialogProps {
   itemName: string;
   itemType: "file" | "folder";
   documents: Document[];
-  onConfirm: (destinationFolder: string, targetOrgId?: number) => void;
+  onConfirm: (
+    destinationFolder: string,
+    targetOrgId?: number,
+    keepSource?: boolean,
+  ) => void;
   onCancel: () => void;
 }
 
@@ -34,6 +39,7 @@ export default function MoveDialog(props: Readonly<MoveDialogProps>) {
   const [orgs, setOrgs] = createSignal<OrgOption[]>([]);
   const [currentOrgId, setCurrentOrgId] = createSignal<number | null>(null);
   const [selectedOrgId, setSelectedOrgId] = createSignal<number | null>(null);
+  const [crossOrgMode, setCrossOrgMode] = createSignal<"move" | "copy">("move");
 
   // Reset selection when dialog opens with a new item
   const currentParent = () => getParentPath(props.itemPath);
@@ -78,7 +84,7 @@ export default function MoveDialog(props: Readonly<MoveDialogProps>) {
 
   const handleConfirm = () => {
     if (isCrossOrg()) {
-      props.onConfirm("/", selectedOrgId()!);
+      props.onConfirm("/", selectedOrgId()!, crossOrgMode() === "copy");
     } else {
       props.onConfirm(resolvedSelection());
     }
@@ -105,6 +111,7 @@ export default function MoveDialog(props: Readonly<MoveDialogProps>) {
       if (org) {
         setCurrentOrgId(org.id);
         setSelectedOrgId(org.id);
+        setCrossOrgMode("move");
       }
     });
     api.listOrganizations().then((res) => {
@@ -132,35 +139,35 @@ export default function MoveDialog(props: Readonly<MoveDialogProps>) {
 
     return (
       <>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
+          fullWidth
           role="treeitem"
           aria-selected={isSelected()}
           aria-disabled={isDisabled()}
           disabled={isDisabled()}
-          onClick={() => {
+          onClick={(e) => {
             if (!isDisabled()) {
               setSelectedDestination(nodeProps.node.path);
             }
+            if (hasChildren()) {
+              e.stopPropagation();
+              toggleExpand(nodeProps.node.path);
+            }
           }}
-          class="w-full flex items-center gap-2 py-1.5 px-2 rounded-md text-left transition-colors"
-          classList={{
-            "bg-[var(--color-primary)]/10 border-l-2 border-l-[var(--color-primary)]":
-              isSelected(),
-            "hover:bg-elevated": !isSelected() && !isDisabled(),
-            "opacity-40 cursor-not-allowed": isDisabled(),
-            "ring-1 ring-[var(--color-border)]":
-              isCurrentParent() && !isSelected(),
-          }}
+          class={`text-left cursor-pointer disabled:opacity-40  disabled:cursor-not-allowed ${
+            isSelected()
+              ? "!bg-primary/10 !text-body border-l-2 border-l-primary"
+              : isCurrentParent()
+                ? "ring-1 ring-border"
+                : ""
+          }`}
           style={{ "padding-left": `${nodeProps.depth * 16 + 8}px` }}
         >
           <Show when={hasChildren()}>
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleExpand(nodeProps.node.path);
-              }}
-              class={`w-3 h-3 flex-shrink-0 bg-[var(--color-text-primary)] cursor-pointer transition-transform ${
+              class={`w-3 h-3 flex-shrink-0 bg-primary cursor-pointer transition-transform ${
                 isExpanded()
                   ? "i-carbon-chevron-down"
                   : "i-carbon-chevron-right"
@@ -177,7 +184,7 @@ export default function MoveDialog(props: Readonly<MoveDialogProps>) {
               current
             </span>
           </Show>
-        </button>
+        </Button>
 
         <Show when={isExpanded()}>
           <For
@@ -193,8 +200,12 @@ export default function MoveDialog(props: Readonly<MoveDialogProps>) {
   return (
     <AlertDialog
       isOpen={props.isOpen}
-      title={`Move "${props.itemName}"`}
-      confirmText="Move"
+      title={
+        isCrossOrg() && crossOrgMode() === "copy"
+          ? `Copy "${props.itemName}"`
+          : `Move "${props.itemName}"`
+      }
+      confirmText={isCrossOrg() && crossOrgMode() === "copy" ? "Copy" : "Move"}
       cancelText="Cancel"
       onConfirm={handleConfirm}
       onCancel={props.onCancel}
@@ -208,38 +219,75 @@ export default function MoveDialog(props: Readonly<MoveDialogProps>) {
               const isCurrent = () => org.id === currentOrgId();
               const isSelected = () => org.id === selectedOrgId();
               return (
-                <button
-                  type="button"
-                  onClick={() => setSelectedOrgId(org.id)}
-                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors"
-                  classList={{
-                    "bg-[var(--color-primary)] border-[var(--color-primary)] text-white":
-                      isSelected(),
-                    "bg-base border-base hover:border-[var(--color-border-hover)] text-body":
-                      !isSelected(),
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  active={isSelected()}
+                  onClick={() => {
+                    setSelectedOrgId(org.id);
+                    setCrossOrgMode("move");
                   }}
+                  class={`${isSelected() ? "border-primary text-primary" : ""}`}
                 >
                   <div class="i-carbon-building w-3.5 h-3.5 flex-shrink-0" />
                   {org.name}
                   <Show when={isCurrent()}>
                     <span class="text-xs opacity-70">(current)</span>
                   </Show>
-                </button>
+                </Button>
               );
             }}
           </For>
         </div>
       </Show>
 
-      {/* Cross-org: no folder picker, just a confirmation message */}
+      {/* Cross-org: mode selector + confirmation message */}
       <Show when={isCrossOrg()}>
+        {/* Move / Copy toggle */}
+        <div class="flex gap-2 mb-3">
+          <Button
+            variant="secondary"
+            size="sm"
+            active={crossOrgMode() === "move"}
+            fullWidth
+            class={`justify-center ${crossOrgMode() === "move" ? "border-primary text-primary" : ""}`}
+            onClick={() => setCrossOrgMode("move")}
+          >
+            <div class="i-carbon-migrate w-4 h-4 flex-shrink-0" />
+            Move
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            active={crossOrgMode() === "copy"}
+            fullWidth
+            class={`justify-center ${crossOrgMode() === "copy" ? "border-primary text-primary" : ""}`}
+            onClick={() => setCrossOrgMode("copy")}
+          >
+            <div class="i-carbon-copy w-4 h-4 flex-shrink-0" />
+            Copy
+          </Button>
+        </div>
+
+        {/* Description */}
         <div class="flex items-start gap-3 p-3 mb-4 rounded-lg bg-elevated border border-base text-sm text-body">
           <div class="i-carbon-information w-4 h-4 flex-shrink-0 mt-0.5 text-[var(--color-primary)]" />
-          <span>
-            <strong class="font-medium">"{props.itemName}"</strong> will be
-            moved to the root of{" "}
-            <strong class="font-medium">{selectedOrgName()}</strong>.
-          </span>
+          <Show when={crossOrgMode() === "move"}>
+            <span>
+              <strong class="font-medium">"{props.itemName}"</strong> will be{" "}
+              <strong class="font-medium">moved</strong> to the root of{" "}
+              <strong class="font-medium">{selectedOrgName()}</strong>. It will
+              be removed from the current organization.
+            </span>
+          </Show>
+          <Show when={crossOrgMode() === "copy"}>
+            <span>
+              A copy of <strong class="font-medium">"{props.itemName}"</strong>{" "}
+              will be placed in the root of{" "}
+              <strong class="font-medium">{selectedOrgName()}</strong>. The
+              original will remain in the current organization.
+            </span>
+          </Show>
         </div>
       </Show>
 
@@ -254,27 +302,28 @@ export default function MoveDialog(props: Readonly<MoveDialogProps>) {
           class="max-h-64 overflow-y-auto border border-base rounded-lg p-2 mb-4 bg-base"
         >
           {/* Root option */}
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
+            fullWidth
             role="treeitem"
             aria-selected={resolvedSelection() === "/"}
             onClick={() => setSelectedDestination("/")}
-            class="w-full flex items-center gap-2 py-1.5 px-2 rounded-md text-left transition-colors"
-            classList={{
-              "bg-[var(--color-primary)]/10 border-l-2 border-l-[var(--color-primary)]":
-                resolvedSelection() === "/",
-              "hover:bg-elevated": resolvedSelection() !== "/",
-              "ring-1 ring-[var(--color-border)]":
-                currentParent() === "/" && resolvedSelection() !== "/",
-            }}
+            class={`text-left ${
+              resolvedSelection() === "/"
+                ? "!bg-[var(--color-primary)]/10 !text-body border-l-2 border-l-[var(--color-primary)]"
+                : currentParent() === "/"
+                  ? "ring-1 ring-[var(--color-border)]"
+                  : ""
+            }`}
           >
             <div class="w-3 h-3 flex-shrink-0" />
             <div class="i-carbon-home w-4 h-4 flex-shrink-0 text-muted-body" />
-            <span class="text-sm text-body font-medium">Root</span>
+            <span class="text-sm font-medium">Root</span>
             <Show when={currentParent() === "/"}>
               <span class="text-xs text-muted-body ml-auto">current</span>
             </Show>
-          </button>
+          </Button>
 
           {/* Folder tree */}
           <For each={folderTree()}>

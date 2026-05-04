@@ -339,6 +339,32 @@ export const documentQueries = {
       )
       .run(targetOrgId, newPath, sourceOrgId, sourcePath);
   },
+  copyCrossOrg: (
+    sourceOrgId: number,
+    targetOrgId: number,
+    sourcePath: string,
+    newPath: string,
+  ) => {
+    // Bulk-copy all matching DB records into the target org with updated path prefix.
+    // Works for both single files (substr returns "") and folders (preserves children).
+    return db
+      .prepare(
+        `INSERT OR IGNORE INTO documents
+           (organization_id, user_id, path, title, color, size, updated_at)
+         SELECT ?, user_id, ? || substr(path, ?), title, color, size, CURRENT_TIMESTAMP
+         FROM documents
+         WHERE organization_id = ?
+           AND (path = ? OR path LIKE ?)`,
+      )
+      .run(
+        targetOrgId,
+        newPath,
+        sourcePath.length + 1,
+        sourceOrgId,
+        sourcePath,
+        sourcePath + "/%",
+      );
+  },
   permanentlyDeleteWithFtsCleanup: (
     organizationId: number,
     docPath: string,
