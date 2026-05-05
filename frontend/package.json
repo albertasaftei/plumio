@@ -45,6 +45,7 @@
     "micromark-extension-highlight-mark": "^1.2.0",
     "micromark-util-types": "^2.0.2",
     "pdfjs-dist": "^5.5.207",
+    "perfect-freehand": "^1.2.3",
     "prismjs": "^1.30.0",
     "solid-js": "^1.9.11",
     "unified": "^11.0.5",

@@ -390,6 +390,11 @@ export default function EditorToolbar(props: ToolbarProps) {
         onClick={() => props.onCommand("toggleCodeBlock")}
       />
       <ToolbarButton
+        icon="i-carbon-pen"
+        title="Sketch"
+        onClick={() => props.onCommand("insertSketch")}
+      />
+      <ToolbarButton
         icon="i-carbon-link"
         title={s().link ? "Edit Link" : "Add Link"}
         active={s().link}

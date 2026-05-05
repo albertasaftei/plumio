@@ -2531,3 +2531,305 @@
   border-color: rgba(23, 23, 23, 0.08);
   color: #171717;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Sketch canvas block
+   ═══════════════════════════════════════════════════════════════ */
+
+.sketch-container {
+  display: none;
+  flex-direction: column;
+  background: #111111;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+.sketch-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  flex-wrap: wrap;
+  background: #181818;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.1);
+}
+
+.sketch-toolbar-divider {
+  width: 1px;
+  height: 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.sketch-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sketch-toolbar-group--end {
+  margin-left: auto;
+}
+
+.sketch-delete-btn {
+  color: #f87171 !important;
+  border-color: rgba(248, 113, 113, 0.2) !important;
+}
+
+.sketch-delete-btn:hover {
+  background: rgba(248, 113, 113, 0.12) !important;
+  border-color: rgba(248, 113, 113, 0.4) !important;
+  color: #fca5a5 !important;
+}
+
+.light .sketch-delete-btn {
+  color: #dc2626 !important;
+  border-color: rgba(220, 38, 38, 0.18) !important;
+}
+
+.light .sketch-delete-btn:hover {
+  background: rgba(220, 38, 38, 0.08) !important;
+  border-color: rgba(220, 38, 38, 0.35) !important;
+  color: #b91c1c !important;
+}
+
+.sketch-toolbar-label {
+  font-size: 0.7rem;
+  color: #737373;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 0.15rem;
+}
+
+.sketch-swatch {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  background: var(--swatch-color);
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
+  padding: 0;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.sketch-swatch:hover {
+  transform: scale(1.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.sketch-swatch.active {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+  transform: scale(1.15);
+}
+
+.sketch-size-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 0.5rem;
+  border-radius: 7px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: #a3a3a3;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s,
+    transform 0.1s;
+}
+
+.sketch-size-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #f5f5f5;
+  transform: translateY(-1px);
+}
+
+.sketch-size-btn.active {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.38);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.sketch-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 0.7rem;
+  border-radius: 7px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: #a3a3a3;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s,
+    transform 0.1s;
+  white-space: nowrap;
+}
+
+.sketch-action-btn svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.sketch-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #f5f5f5;
+  transform: translateY(-1px);
+}
+
+.sketch-action-btn.active {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.38);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.sketch-opacity-slider {
+  width: 72px;
+  height: 4px;
+  cursor: pointer;
+  accent-color: #737373;
+  border-radius: 2px;
+}
+
+.sketch-canvas {
+  display: block;
+  width: 100%;
+  height: 380px;
+  cursor: crosshair;
+  touch-action: none;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.028) 0,
+      rgba(255, 255, 255, 0.028) 1px,
+      transparent 1px,
+      transparent 32px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.028) 0,
+      rgba(255, 255, 255, 0.028) 1px,
+      transparent 1px,
+      transparent 32px
+    ),
+    #111111;
+}
+
+/* ── Light theme ── */
+.light .sketch-container {
+  background: #f8f8f8;
+  border-color: rgba(23, 23, 23, 0.16);
+}
+
+.light .sketch-toolbar {
+  background: #f1f1f1;
+  border-bottom-color: rgba(23, 23, 23, 0.13);
+}
+
+.light .sketch-toolbar-divider {
+  background: rgba(23, 23, 23, 0.12);
+}
+
+.light .sketch-toolbar-label {
+  color: #a3a3a3;
+}
+
+.light .sketch-swatch {
+  border-color: rgba(23, 23, 23, 0.16);
+}
+
+.light .sketch-swatch:hover {
+  border-color: rgba(23, 23, 23, 0.45);
+}
+
+.light .sketch-swatch.active {
+  border-color: #1a1a1a;
+  box-shadow: 0 0 0 2px rgba(23, 23, 23, 0.18);
+}
+
+.light .sketch-size-btn {
+  border-color: rgba(23, 23, 23, 0.15);
+  background: rgba(23, 23, 23, 0.04);
+  color: #737373;
+}
+
+.light .sketch-size-btn:hover {
+  background: rgba(23, 23, 23, 0.09);
+  border-color: rgba(23, 23, 23, 0.3);
+  color: #1a1a1a;
+}
+
+.light .sketch-size-btn.active {
+  background: rgba(23, 23, 23, 0.13);
+  border-color: rgba(23, 23, 23, 0.4);
+  color: #0a0a0a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.light .sketch-action-btn {
+  border-color: rgba(23, 23, 23, 0.15);
+  background: rgba(23, 23, 23, 0.04);
+  color: #737373;
+}
+
+.light .sketch-action-btn:hover {
+  background: rgba(23, 23, 23, 0.09);
+  border-color: rgba(23, 23, 23, 0.3);
+  color: #1a1a1a;
+}
+
+.light .sketch-action-btn.active {
+  background: rgba(23, 23, 23, 0.13);
+  border-color: rgba(23, 23, 23, 0.4);
+  color: #0a0a0a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.light .sketch-opacity-slider {
+  accent-color: #525252;
+}
+
+.light .sketch-canvas {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(23, 23, 23, 0.045) 0,
+      rgba(23, 23, 23, 0.045) 1px,
+      transparent 1px,
+      transparent 32px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(23, 23, 23, 0.045) 0,
+      rgba(23, 23, 23, 0.045) 1px,
+      transparent 1px,
+      transparent 32px
+    ),
+    #f8f8f8;
+}

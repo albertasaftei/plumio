@@ -842,12 +842,77 @@ export class ApiClient {
       }
     }
 
+    // Render sketch code blocks to inline SVG for PDF output.
+    const sketchRe =
+      /<pre><code class="language-sketch">([\s\S]*?)<\/code><\/pre>/gi;
+    const sketchMatches = [...html.matchAll(sketchRe)];
+
+    if (sketchMatches.length > 0) {
+      const { getStroke: getSketchStroke } = await import("perfect-freehand");
+
+      const getSvgPathFromSketchStroke = (stroke: number[][]): string => {
+        if (!stroke.length) return "";
+        const [first] = stroke;
+        let d = `M ${first[0].toFixed(2)} ${first[1].toFixed(2)} `;
+        for (let i = 1; i < stroke.length - 1; i++) {
+          const [x0, y0] = stroke[i];
+          const [x1, y1] = stroke[i + 1];
+          d += `Q ${x0.toFixed(2)} ${y0.toFixed(2)} ${((x0 + x1) / 2).toFixed(2)} ${((y0 + y1) / 2).toFixed(2)} `;
+        }
+        d += "Z";
+        return d;
+      };
+
+      for (let i = sketchMatches.length - 1; i >= 0; i--) {
+        const m = sketchMatches[i];
+        let sketchData: {
+          strokes: {
+            color: string;
+            size: number;
+            opacity: number;
+            points: [number, number, number][];
+          }[];
+        } = { strokes: [] };
+        try {
+          const decoded = decodeHtml(m[1]).trim();
+          if (decoded) sketchData = JSON.parse(decoded);
+        } catch {
+          // leave empty
+        }
+
+        const pathEls = sketchData.strokes
+          .map((s) => {
+            const outline = getSketchStroke(s.points, {
+              size: s.size,
+              thinning: 0.5,
+              smoothing: 0.5,
+              streamline: 0.5,
+            });
+            const d = getSvgPathFromSketchStroke(outline);
+            return `<path d="${d}" fill="${s.color}" opacity="${s.opacity ?? 1}" />`;
+          })
+          .join("\n");
+
+        const svgString = `<svg viewBox="0 0 1600 600" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;border-radius:6px;background:#1e1e1e;">
+  <rect width="1600" height="600" fill="#1e1e1e" />
+  ${pathEls}
+</svg>`;
+
+        const replacement = `<div class="sketch-diagram">${svgString}</div>`;
+        html =
+          html.slice(0, m.index!) +
+          replacement +
+          html.slice(m.index! + m[0].length);
+      }
+    }
+
     // Syntax-highlight fenced code blocks using Prism.
     // marked outputs: <pre><code class="language-{lang}">...html-encoded...</code></pre>
     html = html.replace(
       /<pre><code class="language-([^"]+)">([\/\s\S]*?)<\/code><\/pre>/gi,
       (match, lang, encodedCode) => {
         if (lang === "mermaid") return match; // already handled above
+        if (lang === "sketch") return match; // already handled above
         const grammar =
           Prism.languages[lang] || Prism.languages[lang.toLowerCase()];
         if (!grammar) return match;
@@ -1021,6 +1086,8 @@ export class ApiClient {
     li { margin: 0.25em 0; }
     .mermaid-diagram { text-align: center; margin: 1.5em 0; }
     .mermaid-diagram svg { max-width: 100%; height: auto; }
+    .sketch-diagram { margin: 1.5em 0; page-break-inside: avoid; }
+    .sketch-diagram svg { max-width: 100%; height: auto; border-radius: 6px; }
     math { font-size: 1.1em; }
     /* Prism default theme */
     code[class*=language-],pre[class*=language-]{color:#000;background:0 0;text-shadow:0 1px #fff;font-family:Consolas,Monaco,'Andale Mono','Ubuntu Mono',monospace;font-size:1em;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}

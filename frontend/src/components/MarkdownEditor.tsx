@@ -249,6 +249,44 @@ export default function MarkdownEditor(props: EditorProps) {
       return;
     }
 
+    // Insert sketch block
+    if (command === "insertSketch") {
+      try {
+        const { editorViewCtx } = await import("@milkdown/core");
+        const { TextSelection } = await import("@milkdown/prose/state");
+        await editorInstance.action((ctx: any) => {
+          const view = ctx.get(editorViewCtx);
+          view.focus();
+          const { state, dispatch } = view;
+          const { schema } = state;
+          const codeBlockType = schema.nodes.code_block;
+          const paragraphType = schema.nodes.paragraph;
+          if (!codeBlockType) return;
+          const initialJson = '{"strokes":[]}';
+          const sketchNode = codeBlockType.create({ language: "sketch" }, [
+            schema.text(initialJson),
+          ]);
+          const { from, to } = state.selection;
+          // Build: sketch block + empty paragraph after
+          const nodes = paragraphType
+            ? [sketchNode, paragraphType.create()]
+            : [sketchNode];
+          let tr = state.tr.replaceWith(from, to, nodes);
+          // Place cursor inside the empty paragraph that follows
+          if (paragraphType) {
+            const insertPos = from + sketchNode.nodeSize;
+            tr = tr.setSelection(
+              TextSelection.near(tr.doc.resolve(insertPos + 1)),
+            );
+          }
+          dispatch(tr);
+        });
+      } catch (err) {
+        console.error("Failed to insert sketch block:", err);
+      }
+      return;
+    }
+
     // Download commands
     if (command === "downloadMarkdown") {
       const parts = (props.documentPath || "document").split("/");
