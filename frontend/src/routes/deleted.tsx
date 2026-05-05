@@ -8,9 +8,11 @@ import { routes } from "~/routes";
 import { getDisplayName } from "~/utils/document.utils";
 import { useAppLayout } from "~/components/AppLayout";
 import { formatDayRelativeDate } from "~/utils/date.utils";
+import { useI18n } from "~/i18n";
 
 export default function DeletedPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const { loadAllDocuments } = useAppLayout();
   const [deletedDocs, setDeletedDocs] = createSignal<Document[]>([]);
   const [loading, setLoading] = createSignal(true);
@@ -72,19 +74,15 @@ export default function DeletedPage() {
 
   return (
     <DocumentListPage
-      title="Recently Deleted"
+      title={t("deleted.title")}
       icon="i-carbon-trash-can"
       loading={loading()}
       onBack={() => navigate(routes.homepage)}
       emptyState={
         <div class="text-center py-12">
           <div class="i-carbon-trash-can w-16 h-16 text-muted-body mx-auto mb-4" />
-          <p class="text-secondary-body text-lg">
-            No recently deleted documents
-          </p>
-          <p class="text-muted-body text-sm mt-2">
-            Deleted files will appear here and be kept for 30 days
-          </p>
+          <p class="text-secondary-body text-lg">{t("deleted.noItems")}</p>
+          <p class="text-muted-body text-sm mt-2">{t("deleted.noItemsDesc")}</p>
         </div>
       }
     >
@@ -93,11 +91,9 @@ export default function DeletedPage() {
         fallback={
           <div class="text-center py-12">
             <div class="i-carbon-trash-can w-16 h-16 text-muted-body mx-auto mb-4" />
-            <p class="text-secondary-body text-lg">
-              No recently deleted documents
-            </p>
+            <p class="text-secondary-body text-lg">{t("deleted.noItems")}</p>
             <p class="text-muted-body text-sm mt-2">
-              Deleted files will appear here and be kept for 30 days
+              {t("deleted.noItemsDesc")}
             </p>
           </div>
         }
@@ -118,14 +114,18 @@ export default function DeletedPage() {
                           </h3>
                           <div class="flex items-center gap-4 text-sm text-secondary-body">
                             <span class="text-xs text-muted-body">
-                              Deleted {formatDayRelativeDate(doc.deleted_at)}
+                              {t("deleted.deletedAt", {
+                                date: formatDayRelativeDate(doc.deleted_at),
+                              })}
                             </span>
                             <span class="text-xs text-yellow-400 dark:text-yellow-400 light:text-yellow-600">
                               {daysLeft === 0
-                                ? "Deletes today"
+                                ? t("deleted.deletesToday")
                                 : daysLeft === 1
-                                  ? "Deletes tomorrow"
-                                  : `Deletes in ${daysLeft} days`}
+                                  ? t("deleted.deletesTomorrow")
+                                  : t("deleted.deletesInDays", {
+                                      days: String(daysLeft),
+                                    })}
                             </span>
                           </div>
                         </div>
@@ -164,9 +164,9 @@ export default function DeletedPage() {
           const path = deleteConfirm();
           if (path) handlePermanentDelete(path);
         }}
-        title="Permanently Delete Document?"
-        message="This action cannot be undone. The document will be permanently deleted."
-        confirmText="Delete"
+        title={t("deleted.permanentDeleteTitle")}
+        message={t("deleted.permanentDeleteConfirm")}
+        confirmText={t("deleted.delete")}
         variant="danger"
       />
     </DocumentListPage>

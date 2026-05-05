@@ -4,9 +4,11 @@ import { api } from "~/lib/api";
 import Logo from "~/components/Logo";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
+import { useI18n } from "~/i18n";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [email, setEmail] = createSignal("");
   const [error, setError] = createSignal("");
   const [submitted, setSubmitted] = createSignal(false);
@@ -17,7 +19,7 @@ export default function ForgotPassword() {
     setError("");
 
     if (!email().trim()) {
-      setError("Email is required");
+      setError(t("forgotPassword.emailRequired"));
       return;
     }
 
@@ -44,13 +46,12 @@ export default function ForgotPassword() {
 
         <div class="bg-surface rounded-lg p-8 border border-base">
           <h2 class="text-2xl font-semibold text-body mb-2">
-            Forgot Password
+            {t("forgotPassword.title")}
           </h2>
 
           <Show when={!submitted()}>
             <p class="text-secondary-body mb-6">
-              Enter your email address and we'll send you a link to reset your
-              password.
+              {t("forgotPassword.instructions")}
             </p>
 
             <Show when={error()}>
@@ -62,7 +63,7 @@ export default function ForgotPassword() {
             <form onSubmit={handleSubmit}>
               <div class="mb-6">
                 <label class="block font-medium text-secondary-body mb-2">
-                  Email
+                  {t("auth.email")}
                 </label>
                 <input
                   type="email"
@@ -82,15 +83,14 @@ export default function ForgotPassword() {
                 fullWidth
                 disabled={loading()}
               >
-                {loading() ? "Sending..." : "Send Reset Link"}
+                {loading() ? t("forgotPassword.sending") : t("forgotPassword.sendLink")}
               </Button>
             </form>
           </Show>
 
           <Show when={submitted()}>
             <div class="mt-2 p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400">
-              If that email is registered, you'll receive a reset link shortly.
-              Check your inbox (and spam folder).
+              {t("forgotPassword.successMessage")}
             </div>
           </Show>
 
@@ -99,7 +99,7 @@ export default function ForgotPassword() {
               onClick={() => navigate(routes.login)}
               class="text-secondary-body hover:text-body cursor-pointer transition-colors"
             >
-              ← Back to Login
+              {t("forgotPassword.backToLogin")}
             </button>
           </div>
         </div>

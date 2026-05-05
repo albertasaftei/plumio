@@ -5,11 +5,13 @@ import { syncThemeFromServer } from "~/lib/theme";
 import Logo from "~/components/Logo";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
+import { useI18n } from "~/i18n";
 
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 
 export default function Home() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [needsSetup, setNeedsSetup] = createSignal(false);
   const [isSetup, setIsSetup] = createSignal(false);
   const [username, setUsername] = createSignal("");
@@ -45,7 +47,7 @@ export default function Home() {
     } catch (err) {
       console.error("Failed to check setup:", err);
       setError(
-        "Failed to connect to server. Make sure the backend is running.",
+        t("auth.connectFailed"),
       );
     } finally {
       setLoading(false);
@@ -57,12 +59,12 @@ export default function Home() {
     setError("");
 
     if (password() !== confirmPassword()) {
-      setError("Passwords do not match");
+      setError(t("auth.passwordsNoMatch"));
       return;
     }
 
     if (password().length < 8) {
-      setError("Password must be at least 8 characters");
+      setError(t("auth.passwordTooShort"));
       return;
     }
 
@@ -112,16 +114,16 @@ export default function Home() {
           <div class="bg-surface rounded-lg p-8 border border-base">
             <Show when={isSetup()}>
               <h2 class="text-2xl font-semibold text-body mb-6">
-                Initial Setup
+                {t("auth.initialSetup")}
               </h2>
               <p class="text-secondary-body mb-6 ">
-                Create your admin account to get started
+                {t("auth.setupSubtitle")}
               </p>
             </Show>
 
             <Show when={!isSetup() && !needsSetup()}>
               <h2 class="text-2xl font-semibold text-body mb-6">
-                Welcome Back
+                {t("auth.welcomeBack")}
               </h2>
             </Show>
 
@@ -134,7 +136,7 @@ export default function Home() {
             <form onSubmit={isSetup() ? handleSetup : handleLogin}>
               <div class="mb-4">
                 <label class="block font-medium text-secondary-body mb-2">
-                  Username
+                  {t("auth.username")}
                 </label>
                 <input
                   type="text"
@@ -142,14 +144,14 @@ export default function Home() {
                   onInput={(e) => setUsername(e.currentTarget.value)}
                   required
                   class="focus-ring w-full px-3 py-2 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-                  placeholder="Enter username"
+                  placeholder={t("auth.enterUsername")}
                 />
               </div>
 
               <Show when={isSetup()}>
                 <div class="mb-4">
                   <label class="block font-medium text-secondary-body mb-2">
-                    Email
+                    {t("auth.email")}
                   </label>
                   <input
                     type="email"
@@ -157,14 +159,14 @@ export default function Home() {
                     onInput={(e) => setEmail(e.currentTarget.value)}
                     required
                     class="focus-ring w-full px-3 py-2 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-                    placeholder="Enter email"
+                    placeholder={t("auth.enterEmail")}
                   />
                 </div>
               </Show>
 
               <div class="mb-4">
                 <label class="block font-medium text-secondary-body mb-2">
-                  Password
+                  {t("auth.password")}
                 </label>
                 <div class="relative">
                   <input
@@ -173,13 +175,13 @@ export default function Home() {
                     onInput={(e) => setPassword(e.currentTarget.value)}
                     required
                     class="focus-ring w-full px-3 py-2 pr-10 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-                    placeholder="Enter password"
+                    placeholder={t("auth.enterPassword")}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword())}
                     class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-body hover:text-body transition-colors cursor-pointer"
-                    title={showPassword() ? "Hide password" : "Show password"}
+                    title={showPassword() ? t("auth.hidePassword") : t("auth.showPassword")}
                   >
                     <div
                       class={
@@ -195,7 +197,7 @@ export default function Home() {
               <Show when={isSetup()}>
                 <div class="mb-6">
                   <label class="block font-medium text-secondary-body mb-2">
-                    Confirm Password
+                    {t("auth.confirmPassword")}
                   </label>
                   <div class="relative">
                     <input
@@ -204,7 +206,7 @@ export default function Home() {
                       onInput={(e) => setConfirmPassword(e.currentTarget.value)}
                       required
                       class="focus-ring w-full px-3 py-2 pr-10 bg-base border border-base rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-                      placeholder="Confirm password"
+                      placeholder={t("auth.confirmPasswordPlaceholder")}
                     />
                     <button
                       type="button"
@@ -214,8 +216,8 @@ export default function Home() {
                       class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-body hover:text-body transition-colors cursor-pointer"
                       title={
                         showConfirmPassword()
-                          ? "Hide password"
-                          : "Show password"
+                          ? t("auth.hidePassword")
+                          : t("auth.showPassword")
                       }
                     >
                       <div
@@ -236,20 +238,20 @@ export default function Home() {
                 class="justify-center"
                 fullWidth
               >
-                {isSetup() ? "Complete Setup" : "Login"}
+                {isSetup() ? t("auth.completeSetup") : t("auth.login")}
               </Button>
             </form>
 
             <Show when={!isSetup()}>
               <div class="mt-6 text-center">
                 <span class="text-secondary-body">
-                  Don't have an account?
+                  {t("auth.noAccount")}
                 </span>
                 <button
                   onClick={() => navigate(routes.register)}
                   class="ml-2 text-primary hover:underline cursor-pointer"
                 >
-                  Register
+                  {t("auth.register")}
                 </button>
               </div>
               <div class="mt-3 text-center">
@@ -257,14 +259,14 @@ export default function Home() {
                   onClick={() => navigate(routes.forgotPassword)}
                   class="text-muted-body hover:text-secondary-body cursor-pointer transition-colors text-sm"
                 >
-                  Forgot password?
+                  {t("auth.forgotPassword")}
                 </button>
               </div>
             </Show>
           </div>
 
           <p class="text-center text-muted-body mt-6">
-            Your data is encrypted and stored locally on your server
+            {t("auth.dataEncrypted")}
           </p>
         </div>
       </Show>

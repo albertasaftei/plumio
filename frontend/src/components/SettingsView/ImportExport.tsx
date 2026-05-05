@@ -7,8 +7,10 @@ import {
   exportDocumentsPlain,
   importDocuments,
 } from "~/lib/api";
+import { useI18n } from "~/i18n";
 
 export default function ImportExport() {
+  const { t } = useI18n();
   const [isExporting, setIsExporting] = createSignal(false);
   const [isExportingPlain, setIsExportingPlain] = createSignal(false);
   const [isImporting, setIsImporting] = createSignal(false);
@@ -29,14 +31,14 @@ export default function ImportExport() {
       await exportDocuments();
       setToast({
         show: true,
-        message: "Documents exported successfully",
+        message: t("importExport.exportSuccess"),
         type: "success",
       });
     } catch (error) {
       console.error("Export failed:", error);
       setToast({
         show: true,
-        message: "Failed to export documents",
+        message: t("importExport.exportFailed"),
         type: "error",
       });
     } finally {
@@ -50,14 +52,14 @@ export default function ImportExport() {
       await exportDocumentsPlain();
       setToast({
         show: true,
-        message: "Documents exported successfully",
+        message: t("importExport.exportSuccess"),
         type: "success",
       });
     } catch (error) {
       console.error("Export failed:", error);
       setToast({
         show: true,
-        message: "Failed to export documents",
+        message: t("importExport.exportFailed"),
         type: "error",
       });
     } finally {
@@ -93,7 +95,7 @@ export default function ImportExport() {
       target.value = "";
       setToast({
         show: true,
-        message: "Documents imported successfully. Reloading...",
+        message: t("importExport.importSuccess"),
         type: "success",
       });
       // Delay reload to show toast
@@ -104,7 +106,7 @@ export default function ImportExport() {
       console.error("Failed to import documents:", error);
       setToast({
         show: true,
-        message: "Failed to import documents. Please try again.",
+        message: t("importExport.importFailed"),
         type: "error",
       });
       setIsImporting(false);
@@ -123,10 +125,10 @@ export default function ImportExport() {
     <>
       <div class="space-y-4">
         <div class="bg-elevated rounded-lg p-6 border border-transparent light:border-base light:shadow-sm">
-          <h3 class="text-lg font-semibold text-body mb-2">Export Documents</h3>
-          <p class="text-muted-body mb-4">
-            Download all your documents as a compressed archive.
-          </p>
+          <h3 class="text-lg font-semibold text-body mb-2">
+            {t("importExport.exportTitle")}
+          </h3>
+          <p class="text-muted-body mb-4">{t("importExport.exportDesc")}</p>
           <div class="flex gap-3 flex-wrap">
             <Button
               onClick={handleExport}
@@ -139,12 +141,12 @@ export default function ImportExport() {
                 fallback={
                   <>
                     <div class="i-carbon-in-progress animate-spin w-4 h-4" />
-                    <span class="ml-2">Exporting...</span>
+                    <span class="ml-2">{t("importExport.exporting")}</span>
                   </>
                 }
               >
                 <div class="i-carbon-download w-4 h-4" />
-                <span class="ml-2">Export Encrypted</span>
+                <span class="ml-2">{t("importExport.exportEncrypted")}</span>
               </Show>
             </Button>
             <Button
@@ -158,22 +160,22 @@ export default function ImportExport() {
                 fallback={
                   <>
                     <div class="i-carbon-in-progress animate-spin w-4 h-4" />
-                    <span class="ml-2">Exporting...</span>
+                    <span class="ml-2">{t("importExport.exporting")}</span>
                   </>
                 }
               >
                 <div class="i-carbon-document w-4 h-4" />
-                <span class="ml-2">Export Plain Text</span>
+                <span class="ml-2">{t("importExport.exportPlainText")}</span>
               </Show>
             </Button>
           </div>
         </div>
 
         <div class="bg-elevated rounded-lg p-6 border border-transparent light:border-base light:shadow-sm">
-          <h3 class="text-lg font-semibold text-body mb-2">Import Documents</h3>
-          <p class="text-muted-body mb-4">
-            Upload a previously exported archive to restore your documents.
-          </p>
+          <h3 class="text-lg font-semibold text-body mb-2">
+            {t("importExport.importTitle")}
+          </h3>
+          <p class="text-muted-body mb-4">{t("importExport.importDesc")}</p>
           <Button
             onClick={handleImportClick}
             variant="secondary"
@@ -185,12 +187,12 @@ export default function ImportExport() {
               fallback={
                 <>
                   <div class="i-carbon-in-progress animate-spin w-4 h-4" />
-                  <span class="ml-2">Importing...</span>
+                  <span class="ml-2">{t("importExport.importing")}</span>
                 </>
               }
             >
               <div class="i-carbon-upload w-4 h-4" />
-              <span class="ml-2">Import</span>
+              <span class="ml-2">{t("common.import")}</span>
             </Show>
           </Button>
         </div>
@@ -219,14 +221,11 @@ export default function ImportExport() {
       </Show>
       <AlertDialog
         isOpen={importDialog().isOpen}
-        title="Import Documents"
+        title={t("importExport.importDialogTitle")}
         onConfirm={confirmImport}
         onCancel={cancelImport}
       >
-        <p class="text-muted-body mb-2">
-          Importing will merge with existing documents. Any files with the same
-          name will be overwritten. Continue?
-        </p>
+        <p class="text-muted-body mb-2">{t("importExport.importDialogDesc")}</p>
       </AlertDialog>
     </>
   );

@@ -5,6 +5,7 @@ import { config } from "~/lib/config";
 import Logo from "~/components/Logo";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
+import { useI18n } from "~/i18n";
 
 interface DiscoverableOrg {
   id: number;
@@ -14,6 +15,7 @@ interface DiscoverableOrg {
 
 export default function Register() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [username, setUsername] = createSignal("");
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
@@ -48,17 +50,17 @@ export default function Register() {
     setError("");
 
     if (password() !== confirmPassword()) {
-      setError("Passwords do not match");
+      setError(t("auth.passwordsNoMatch"));
       return;
     }
 
     if (password().length < 8) {
-      setError("Password must be at least 8 characters");
+      setError(t("auth.passwordTooShort"));
       return;
     }
 
     if (!username().trim() || !email().trim()) {
-      setError("Username and email are required");
+      setError(t("auth.usernameEmailRequired"));
       return;
     }
 
@@ -90,7 +92,7 @@ export default function Register() {
         navigate(routes.login);
       }, 2000);
     } catch (err: any) {
-      setError(err.message || "Registration failed");
+      setError(err.message || t("auth.registrationFailed"));
     } finally {
       setLoading(false);
     }
@@ -105,16 +107,16 @@ export default function Register() {
         </div>
 
         <div class="bg-surface rounded-lg p-8 border border-subtle light:shadow-xl">
-          <h2 class="text-2xl font-semibold text-body mb-6">Create Account</h2>
+          <h2 class="text-2xl font-semibold text-body mb-6">{t("auth.createAccount")}</h2>
 
           <Show when={success()}>
             <div class="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400">
-              Registration successful!
+              {t("auth.registrationSuccess")}
               <Show when={joinRequestSent()}>
                 {" "}
-                A join request has been sent to the organization admin.
+                {t("auth.joinRequestSent")}
               </Show>{" "}
-              Redirecting to login...
+              {t("auth.redirectingToLogin")}
             </div>
           </Show>
 
@@ -127,7 +129,7 @@ export default function Register() {
           <form onSubmit={handleRegister}>
             <div class="mb-4">
               <label class="block font-medium text-secondary-body mb-2">
-                Username
+                {t("auth.username")}
               </label>
               <input
                 type="text"
@@ -136,13 +138,13 @@ export default function Register() {
                 required
                 disabled={loading() || success()}
                 class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-base disabled:opacity-50"
-                placeholder="Choose a username"
+                placeholder={t("auth.chooseUsername")}
               />
             </div>
 
             <div class="mb-4">
               <label class="block font-medium text-secondary-body mb-2">
-                Email
+                {t("auth.email")}
               </label>
               <input
                 type="email"
@@ -197,7 +199,7 @@ export default function Register() {
 
             <div class="mb-4">
               <label class="block font-medium text-secondary-body mb-2">
-                Password
+                {t("auth.password")}
               </label>
               <input
                 type="password"
@@ -212,7 +214,7 @@ export default function Register() {
 
             <div class="mb-6">
               <label class="block font-medium text-secondary-body mb-2">
-                Confirm Password
+                {t("auth.confirmPassword")}
               </label>
               <input
                 type="password"
@@ -221,7 +223,7 @@ export default function Register() {
                 required
                 disabled={loading() || success()}
                 class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-base disabled:opacity-50"
-                placeholder="Confirm your password"
+                placeholder={t("auth.confirmPasswordPlaceholder")}
               />
             </div>
 
@@ -234,25 +236,25 @@ export default function Register() {
             >
               <Show when={loading()}>
                 <div class="i-carbon-circle-dash animate-spin w-4 h-4" />
-                <span class="ml-2">Creating account...</span>
+                <span class="ml-2">{t("common.loading")}</span>
               </Show>
-              <Show when={!loading()}>Create Account</Show>
+              <Show when={!loading()}>{t("auth.createAccount")}</Show>
             </Button>
           </form>
 
           <div class="mt-6 text-center">
-            <span class="text-muted-body">Already have an account?</span>
+            <span class="text-muted-body">{t("auth.noAccount")}</span>
             <button
               onClick={() => navigate(routes.login)}
               class="ml-2 text-primary hover:underline cursor-pointer"
             >
-              Login
+              {t("auth.login")}
             </button>
           </div>
         </div>
 
         <p class="text-center text-muted-body mt-6">
-          Your data is encrypted and stored locally on your server
+          {t("auth.dataEncrypted")}
         </p>
       </div>
     </div>

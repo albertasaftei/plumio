@@ -1,6 +1,7 @@
 import { Show, createSignal, onMount } from "solid-js";
 import Button from "../Button";
 import { api } from "~/lib/api";
+import { useI18n } from "~/i18n";
 
 export type SettingsSection =
   | "account"
@@ -24,6 +25,7 @@ interface SettingsSidebarProps {
 }
 
 export default function SettingsSidebar(props: SettingsSidebarProps) {
+  const { t } = useI18n();
   const [versionInfo, setVersionInfo] = createSignal<{
     updateAvailable: boolean;
     latestVersion: string | null;
@@ -50,7 +52,7 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
           onClick={props.onToggle}
           variant="icon"
           size="md"
-          title="Close sidebar"
+          title={t("sidebar.closeSidebar")}
           class=""
         >
           <div class="i-carbon-close w-5 h-5" />
@@ -66,7 +68,7 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
             fullWidth
           >
             <div class="i-carbon-user w-4 h-4" />
-            <span class="ml-2">Account</span>
+            <span class="ml-2">{t("settings.account")}</span>
           </Button>
 
           <Button
@@ -76,7 +78,7 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
             fullWidth
           >
             <div class="i-carbon-edit w-4 h-4" />
-            <span class="ml-2">Editor</span>
+            <span class="ml-2">{t("settings.editor")}</span>
           </Button>
 
           <Button
@@ -88,7 +90,7 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
             fullWidth
           >
             <div class="i-carbon-document-import w-4 h-4" />
-            <span class="ml-2">Import / Export</span>
+            <span class="ml-2">{t("settings.importExport")}</span>
           </Button>
 
           <Show when={props.isOrgAdmin}>
@@ -101,7 +103,7 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
               fullWidth
             >
               <div class="i-carbon-enterprise w-4 h-4" />
-              <span class="ml-2">Organization</span>
+              <span class="ml-2">{t("settings.organization")}</span>
             </Button>
           </Show>
 
@@ -113,7 +115,7 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
               fullWidth
             >
               <div class="i-carbon-user-admin w-4 h-4" />
-              <span class="ml-2">Admin Panel</span>
+              <span class="ml-2">{t("settings.admin")}</span>
             </Button>
 
             <Button
@@ -127,7 +129,7 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
               fullWidth
             >
               <div class="i-carbon-settings-adjust w-4 h-4" />
-              <span class="ml-2">App Configuration</span>
+              <span class="ml-2">{t("settings.appConfiguration")}</span>
             </Button>
           </Show>
 
@@ -143,7 +145,7 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
               fullWidth
             >
               <div class="i-carbon-information w-4 h-4" />
-              <span class="ml-2">Build Information</span>
+              <span class="ml-2">{t("settings.buildInformation")}</span>
               <Show when={versionInfo()?.updateAvailable}>
                 <span class="ml-auto w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
               </Show>
@@ -160,7 +162,7 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
             class="text-red-400 hover:text-red-300 hover:bg-red-950/30"
           >
             <div class="i-carbon-logout w-4 h-4" />
-            <span class="ml-2">Logout</span>
+            <span class="ml-2">{t("settings.logout")}</span>
           </Button>
         </div>
         <div class="mt-auto p-2 border-t border-subtle ">

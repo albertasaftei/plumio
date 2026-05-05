@@ -4,6 +4,7 @@ import Button from "../Button";
 import AlertDialog from "../AlertDialog";
 import Toast from "../Toast";
 import { formatAbsoluteDate } from "~/utils/date.utils";
+import { useI18n } from "~/i18n";
 
 interface Member {
   id: number;
@@ -21,6 +22,7 @@ interface OrganizationPanelProps {
 }
 
 export default function OrganizationPanel(props: OrganizationPanelProps) {
+  const { t } = useI18n();
   const [members, setMembers] = createSignal<Member[]>([]);
   const [loading, setLoading] = createSignal(false);
   const [showAddForm, setShowAddForm] = createSignal(false);
@@ -91,10 +93,10 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
         );
       }
       setEditingOrgName(false);
-      setToast({ message: "Organization name updated", type: "success" });
+      setToast({ message: t("orgPanel.orgNameUpdated"), type: "success" });
     } catch (err: any) {
       setToast({
-        message: err.message || "Failed to update name",
+        message: err.message || t("orgPanel.failedUpdateName"),
         type: "error",
       });
     } finally {
@@ -112,7 +114,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
       setMembers(result.members);
     } catch (err: any) {
       console.error("Failed to load members:", err);
-      setError(err.message || "Failed to load members");
+      setError(err.message || t("orgPanel.failedLoadMembers"));
     } finally {
       setLoading(false);
     }
@@ -132,7 +134,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
     if (!org) return;
 
     if (!username().trim()) {
-      setError("Username is required");
+      setError(t("orgPanel.usernameRequired"));
       return;
     }
 
@@ -141,11 +143,11 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
       setUsername("");
       setRole("member");
       setShowAddForm(false);
-      setToast({ message: "Member added successfully", type: "success" });
+      setToast({ message: t("orgPanel.memberAdded"), type: "success" });
       await loadMembers();
     } catch (err: any) {
       setToast({
-        message: err.message || "Failed to add member",
+        message: err.message || t("orgPanel.failedAddMember"),
         type: "error",
       });
     }
@@ -157,11 +159,11 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
 
     try {
       await api.updateOrgMemberRole(org.id, memberId, newRole);
-      setToast({ message: "Role updated successfully", type: "success" });
+      setToast({ message: t("orgPanel.roleUpdated"), type: "success" });
       await loadMembers();
     } catch (err: any) {
       setToast({
-        message: err.message || "Failed to update role",
+        message: err.message || t("orgPanel.failedUpdateRole"),
         type: "error",
       });
     }
@@ -179,11 +181,11 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
     try {
       await api.removeOrgMember(org.id, member.id);
       setRemoveDialog({ isOpen: false, member: null });
-      setToast({ message: "Member removed successfully", type: "success" });
+      setToast({ message: t("orgPanel.memberRemoved"), type: "success" });
       await loadMembers();
     } catch (err: any) {
       setToast({
-        message: err.message || "Failed to remove member",
+        message: err.message || t("orgPanel.failedRemoveMember"),
         type: "error",
       });
       setRemoveDialog({ isOpen: false, member: null });
@@ -192,16 +194,14 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
 
   const renderContent = () => (
     <>
-      <p class="text-sm text-muted-body mb-6">
-        Manage organization members and access
-      </p>
+      <p class="text-sm text-muted-body mb-6">{t("orgPanel.subtitle")}</p>
 
       {/* Organization Name */}
       <div class="mb-6 p-4 bg-surface border border-base rounded-lg">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-xs font-medium text-muted-body uppercase tracking-wider mb-1">
-              Organization Name
+              {t("orgPanel.orgNameLabel")}
             </p>
             <Show
               when={!editingOrgName()}
@@ -224,7 +224,9 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                     size="sm"
                     disabled={savingOrgName()}
                   >
-                    {savingOrgName() ? "Saving…" : "Save"}
+                    {savingOrgName()
+                      ? t("orgPanel.saving")
+                      : t("orgPanel.save")}
                   </Button>
                   <Button
                     type="button"
@@ -232,7 +234,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                     size="sm"
                     onClick={() => setEditingOrgName(false)}
                   >
-                    Cancel
+                    {t("orgPanel.cancel")}
                   </Button>
                 </form>
               }
@@ -252,7 +254,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
               }}
             >
               <div class="i-carbon-edit w-4 h-4 mr-1.5" />
-              Rename
+              {t("orgPanel.rename")}
             </Button>
           </Show>
         </div>
@@ -271,9 +273,11 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
         <Show when={mounted() && isAdmin()}>
           <div class="mb-6 flex justify-between items-center">
             <div>
-              <h3 class="text-lg font-semibold text-body">Members</h3>
+              <h3 class="text-lg font-semibold text-body">
+                {t("orgPanel.membersHeading")}
+              </h3>
               <p class="text-sm text-muted-body">
-                {members().length} total members
+                {t("orgPanel.totalMembers", { count: members().length })}
               </p>
             </div>
             <Button
@@ -282,7 +286,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
               size="md"
             >
               <div class="i-carbon-user-follow w-5 h-5 mr-2" />
-              Add Member
+              {t("orgPanel.addMember")}
             </Button>
           </div>
 
@@ -290,12 +294,12 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
           <Show when={showAddForm()}>
             <div class="mb-6 p-4 bg-elevated/50 border border-base rounded-lg">
               <h4 class="text-md font-semibold text-body mb-4">
-                Add Member to Organization
+                {t("orgPanel.addMemberTitle")}
               </h4>
               <form onSubmit={handleAddMember} class="space-y-4">
                 <div>
                   <label class="block text-sm font-medium text-secondary-body mb-2">
-                    Username
+                    {t("admin.username")}
                   </label>
                   <input
                     type="text"
@@ -303,30 +307,30 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                     onInput={(e) => setUsername(e.currentTarget.value)}
                     required
                     class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-base"
-                    placeholder="Enter existing username"
+                    placeholder={t("orgPanel.usernamePlaceholder")}
                   />
                   <p class="text-xs text-muted-body mt-1">
-                    The user must already have an account
+                    {t("orgPanel.usernameHint")}
                   </p>
                 </div>
 
                 <div>
                   <label class="block text-sm font-medium text-secondary-body mb-2">
-                    Role
+                    {t("orgPanel.roleLabel")}
                   </label>
                   <select
                     value={role()}
                     onChange={(e) => setRole(e.currentTarget.value)}
                     class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body focus:outline-none focus:border-base"
                   >
-                    <option value="member">Member</option>
-                    <option value="admin">Admin</option>
+                    <option value="member">{t("orgPanel.roleMember")}</option>
+                    <option value="admin">{t("orgPanel.roleAdmin")}</option>
                   </select>
                 </div>
 
                 <div class="flex gap-2">
                   <Button type="submit" variant="primary" size="md">
-                    Add Member
+                    {t("orgPanel.addMember")}
                   </Button>
                   <Button
                     onClick={() => {
@@ -338,7 +342,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                     variant="secondary"
                     size="md"
                   >
-                    Cancel
+                    {t("orgPanel.cancel")}
                   </Button>
                 </div>
               </form>
@@ -360,20 +364,20 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
               <thead class="bg-elevated/50">
                 <tr>
                   <th class="px-4 py-3 text-left text-xs font-medium text-muted-body uppercase tracking-wider">
-                    Member
+                    {t("orgPanel.colMember")}
                   </th>
                   <th class="px-4 py-3 text-left text-xs font-medium text-muted-body uppercase tracking-wider">
-                    Email
+                    {t("orgPanel.colEmail")}
                   </th>
                   <th class="px-4 py-3 text-left text-xs font-medium text-muted-body uppercase tracking-wider">
-                    Role
+                    {t("orgPanel.colRole")}
                   </th>
                   <th class="px-4 py-3 text-left text-xs font-medium text-muted-body uppercase tracking-wider">
-                    Joined
+                    {t("orgPanel.colJoined")}
                   </th>
                   <Show when={mounted() && isAdmin()}>
                     <th class="px-4 py-3 text-right text-xs font-medium text-muted-body uppercase tracking-wider">
-                      Actions
+                      {t("orgPanel.colActions")}
                     </th>
                   </Show>
                 </tr>
@@ -419,13 +423,17 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                               }
                               class="px-2 py-1 text-xs font-medium bg-elevated border border-base rounded text-body focus:outline-none focus:border-neutral-600 dark:focus:border-neutral-600 light:focus:border-neutral-500"
                             >
-                              <option value="member">Member</option>
-                              <option value="admin">Admin</option>
+                              <option value="member">
+                                {t("orgPanel.roleMember")}
+                              </option>
+                              <option value="admin">
+                                {t("orgPanel.roleAdmin")}
+                              </option>
                             </select>
                           </Show>
                           <Show when={member.isOwner}>
                             <span class="px-2 py-1 text-xs font-medium rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                              Owner
+                              {t("orgPanel.ownerBadge")}
                             </span>
                           </Show>
                         </div>
@@ -439,7 +447,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                             when={!member.isOwner}
                             fallback={
                               <span class="text-xs text-muted-body italic">
-                                Cannot remove
+                                {t("orgPanel.cannotRemove")}
                               </span>
                             }
                           >
@@ -447,7 +455,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                               onClick={() => handleRemoveMember(member)}
                               variant="icon"
                               size="sm"
-                              title="Remove member"
+                              title={t("orgPanel.removeMemberTooltip")}
                               class="text-red-400 hover:text-red-300"
                             >
                               <div class="i-carbon-trash-can w-5 h-5" />
@@ -476,20 +484,19 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
       <Show when={mounted() && isAdmin()}>
         <div class="mt-6 p-4 bg-surface border border-base rounded-lg">
           <h3 class="text-sm font-semibold text-body mb-1">
-            Discovery Settings
+            {t("orgPanel.discoveryTitle")}
           </h3>
           <p class="text-xs text-muted-body mb-4">
-            Control whether other users can find and request to join this
-            organization.
+            {t("orgPanel.discoveryDesc")}
           </p>
           <div class="space-y-3">
             <label class="flex items-center justify-between cursor-pointer">
               <div>
                 <p class="text-sm text-body">
-                  Allow users to discover this organization
+                  {t("orgPanel.discoverableLabel")}
                 </p>
                 <p class="text-xs text-muted-body">
-                  Show this org in the "Join an Organization" page
+                  {t("orgPanel.discoverableDesc")}
                 </p>
               </div>
               <input
@@ -507,9 +514,9 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
               style={{ opacity: orgDiscoverable() ? "1" : "0.4" }}
             >
               <div>
-                <p class="text-sm text-body">Auto-accept join requests</p>
+                <p class="text-sm text-body">{t("orgPanel.autoAcceptLabel")}</p>
                 <p class="text-xs text-muted-body">
-                  Members are added instantly without admin approval
+                  {t("orgPanel.autoAcceptDesc")}
                 </p>
               </div>
               <input
@@ -537,12 +544,12 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                     orgAutoAccept(),
                   );
                   setToast({
-                    message: "Discovery settings saved",
+                    message: t("orgPanel.discoverySaved"),
                     type: "success",
                   });
                 } catch (err: any) {
                   setToast({
-                    message: err.message || "Failed to save settings",
+                    message: err.message || t("orgPanel.failedSaveSettings"),
                     type: "error",
                   });
                 } finally {
@@ -550,7 +557,9 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                 }
               }}
             >
-              {savingDiscovery() ? "Saving…" : "Save Settings"}
+              {savingDiscovery()
+                ? t("orgPanel.saving")
+                : t("orgPanel.saveSettings")}
             </Button>
           </div>
         </div>
@@ -563,10 +572,12 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
       {/* Remove Confirmation Dialog */}
       <AlertDialog
         isOpen={removeDialog().isOpen}
-        title="Remove Member"
-        message={`Are you sure you want to remove "${removeDialog().member?.username}" from this organization?`}
-        confirmText="Remove"
-        cancelText="Cancel"
+        title={t("orgPanel.removeMemberTitle")}
+        message={t("orgPanel.removeMemberConfirm", {
+          username: removeDialog().member?.username ?? "",
+        })}
+        confirmText={t("orgPanel.remove")}
+        cancelText={t("orgPanel.cancel")}
         variant="danger"
         onConfirm={confirmRemove}
         onCancel={() => setRemoveDialog({ isOpen: false, member: null })}
@@ -631,6 +642,7 @@ interface JoinRequestItem {
 }
 
 function JoinRequestsSection(props: JoinRequestsSectionProps) {
+  const { t } = useI18n();
   const [requests, setRequests] = createSignal<JoinRequestItem[]>([]);
   const [loading, setLoading] = createSignal(false);
 
@@ -656,20 +668,20 @@ function JoinRequestsSection(props: JoinRequestsSectionProps) {
   const handleAccept = async (requestId: number) => {
     try {
       await api.acceptJoinRequest(requestId);
-      props.onToast("Join request accepted", "success");
+      props.onToast(t("orgPanel.joinRequestAccepted"), "success");
       await loadRequests();
     } catch (err: any) {
-      props.onToast(err.message || "Failed to accept request", "error");
+      props.onToast(err.message || t("orgPanel.failedAcceptRequest"), "error");
     }
   };
 
   const handleReject = async (requestId: number) => {
     try {
       await api.rejectJoinRequest(requestId);
-      props.onToast("Join request rejected", "info");
+      props.onToast(t("orgPanel.joinRequestRejected"), "info");
       await loadRequests();
     } catch (err: any) {
-      props.onToast(err.message || "Failed to reject request", "error");
+      props.onToast(err.message || t("orgPanel.failedRejectRequest"), "error");
     }
   };
 
@@ -677,7 +689,7 @@ function JoinRequestsSection(props: JoinRequestsSectionProps) {
     <div class="mt-6">
       <h3 class="text-sm font-semibold text-body mb-3 flex items-center gap-2">
         <div class="i-carbon-user-follow w-4 h-4" />
-        Pending Join Requests
+        {t("orgPanel.pendingRequests")}
         <Show when={requests().length > 0}>
           <span class="px-1.5 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs font-medium">
             {requests().length}
@@ -690,7 +702,7 @@ function JoinRequestsSection(props: JoinRequestsSectionProps) {
         fallback={
           <div class="text-sm text-muted-body py-4 text-center">
             <div class="i-carbon-circle-dash animate-spin w-4 h-4 inline-block mr-2" />
-            Loading...
+            {t("orgPanel.loading")}
           </div>
         }
       >
@@ -698,7 +710,7 @@ function JoinRequestsSection(props: JoinRequestsSectionProps) {
           when={requests().length > 0}
           fallback={
             <p class="text-sm text-muted-body py-2">
-              No pending join requests.
+              {t("orgPanel.noPendingRequests")}
             </p>
           }
         >
@@ -726,14 +738,14 @@ function JoinRequestsSection(props: JoinRequestsSectionProps) {
                       variant="primary"
                       size="sm"
                     >
-                      Accept
+                      {t("orgPanel.accept")}
                     </Button>
                     <Button
                       onClick={() => handleReject(request.id)}
                       variant="secondary"
                       size="sm"
                     >
-                      Reject
+                      {t("orgPanel.reject")}
                     </Button>
                   </div>
                 </div>

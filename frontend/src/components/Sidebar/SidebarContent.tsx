@@ -10,6 +10,7 @@ import type {
   TreeNode as TreeNodeType,
 } from "~/types/Sidebar.types";
 import type { Tag } from "~/types/Tag.types";
+import { useI18n } from "~/i18n";
 
 interface SidebarContentProps extends Omit<
   Readonly<SidebarProps>,
@@ -57,6 +58,7 @@ interface SidebarContentProps extends Omit<
 
 export default function SidebarContent(props: SidebarContentProps) {
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   return (
     <div class="flex h-full w-full">
@@ -66,7 +68,7 @@ export default function SidebarContent(props: SidebarContentProps) {
           onClick={() => props.onViewHome()}
           variant="icon"
           size="md"
-          title="Homepage"
+          title={t("sidebar.homepage")}
         >
           <div class="i-carbon-home w-5 h-5 flex-shrink-0" />
         </Button>
@@ -74,7 +76,7 @@ export default function SidebarContent(props: SidebarContentProps) {
           onClick={() => props.onViewSearch()}
           variant="icon"
           size="md"
-          title="Full-text Search"
+          title={t("sidebar.search")}
         >
           <div class="i-carbon-search w-5 h-5 flex-shrink-0" />
         </Button>
@@ -82,7 +84,7 @@ export default function SidebarContent(props: SidebarContentProps) {
           onClick={() => props.onViewTags()}
           variant="icon"
           size="md"
-          title="Tags"
+          title={t("sidebar.tags")}
         >
           <div class="i-carbon-tag w-5 h-5 flex-shrink-0" />
         </Button>
@@ -90,7 +92,7 @@ export default function SidebarContent(props: SidebarContentProps) {
           onClick={() => navigate(routes.joinOrg)}
           variant="icon"
           size="md"
-          title="Join an Organization"
+          title={t("sidebar.joinOrg")}
         >
           <div class="i-carbon-enterprise w-5 h-5 flex-shrink-0" />
         </Button>
@@ -98,7 +100,7 @@ export default function SidebarContent(props: SidebarContentProps) {
           onClick={() => props.onViewArchive()}
           variant="icon"
           size="md"
-          title="View Archive"
+          title={t("sidebar.archive")}
         >
           <div class="i-carbon-archive w-5 h-5 flex-shrink-0" />
         </Button>
@@ -106,7 +108,7 @@ export default function SidebarContent(props: SidebarContentProps) {
           onClick={() => props.onViewDeleted()}
           variant="icon"
           size="md"
-          title="Recently Deleted"
+          title={t("sidebar.deleted")}
         >
           <div class="i-carbon-trash-can w-5 h-5 flex-shrink-0" />
         </Button>
@@ -120,8 +122,8 @@ export default function SidebarContent(props: SidebarContentProps) {
             size="md"
             title={
               props.versionInfo()?.updateAvailable
-                ? `Settings — Update available (${props.versionInfo()?.latestVersion})`
-                : "Settings"
+                ? t("sidebar.settingsUpdateAvailable", { version: props.versionInfo()?.latestVersion ?? "" })
+                : t("sidebar.settings")
             }
           >
             <div class="i-carbon-settings w-5 h-5 flex-shrink-0" />
@@ -141,7 +143,7 @@ export default function SidebarContent(props: SidebarContentProps) {
               onClick={() => props.setSidebarOpen(false)}
               variant="icon"
               size="md"
-              title="Close sidebar"
+              title={t("sidebar.closeSidebar")}
             >
               <div class="i-carbon-close w-5 h-5" />
             </Button>

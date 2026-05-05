@@ -13,6 +13,7 @@ import { routes } from "~/routes";
 import { getDisplayName } from "~/utils/document.utils";
 import { formatDayRelativeDate } from "~/utils/date.utils";
 import DocumentListPage from "~/components/DocumentListPage";
+import { useI18n } from "~/i18n";
 
 interface SearchResult {
   path: string;
@@ -25,6 +26,7 @@ interface SearchResult {
 
 export default function SearchPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [query, setQuery] = createSignal("");
   const [results, setResults] = createSignal<SearchResult[]>([]);
   const [loading, setLoading] = createSignal(false);
@@ -78,7 +80,7 @@ export default function SearchPage() {
 
   return (
     <DocumentListPage
-      title="Full-text Search"
+      title={t("search.title")}
       onBack={() => navigate(routes.homepage)}
     >
       {/* Search Input */}
@@ -87,7 +89,7 @@ export default function SearchPage() {
         <input
           ref={inputRef}
           type="text"
-          placeholder="Search inside all documents…"
+          placeholder={t("search.placeholder")}
           value={query()}
           onInput={(e) => setQuery(e.currentTarget.value)}
           class="focus-ring w-full pl-12 pr-4 py-3 bg-elevated border border-base rounded-lg text-body placeholder-neutral-500 dark:placeholder-neutral-500 light:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-base transition-shadow"
@@ -112,7 +114,7 @@ export default function SearchPage() {
       <Show when={!loading() && !searched()}>
         <div class="text-center py-16 text-muted-body select-none">
           <div class="i-carbon-search w-16 h-16 mx-auto mb-4 opacity-20" />
-          <p class="text-base">Type to search inside all your documents</p>
+          <p class="text-base">{t("search.emptyHint")}</p>
         </div>
       </Show>
 
@@ -120,9 +122,9 @@ export default function SearchPage() {
       <Show when={!loading() && searched() && results().length === 0}>
         <div class="text-center py-16 text-muted-body select-none">
           <div class="i-carbon-document-unknown w-16 h-16 mx-auto mb-4 opacity-30" />
-          <p class="text-base font-medium">No results for "{query()}"</p>
+          <p class="text-base font-medium">{t("search.noResults", { query: query() })}</p>
           <p class="text-sm mt-1 opacity-70">
-            Try different keywords or check your spelling
+            {t("search.noResultsHint")}
           </p>
         </div>
       </Show>
@@ -130,8 +132,9 @@ export default function SearchPage() {
       {/* Results */}
       <Show when={!loading() && results().length > 0}>
         <p class="text-xs text-muted-body mb-3">
-          {results().length} result{results().length !== 1 ? "s" : ""} for "
-          {query()}"
+          {results().length === 1
+            ? t("search.resultsCount", { count: String(results().length), query: query() })
+            : t("search.resultsCountPlural", { count: String(results().length), query: query() })}
         </p>
         <div class="space-y-2">
           <For each={results()}>

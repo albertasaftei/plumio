@@ -4,6 +4,7 @@ import Button from "../Button";
 import AlertDialog from "../AlertDialog";
 import Toast from "../Toast";
 import { formatAbsoluteDate } from "~/utils/date.utils";
+import { useI18n } from "~/i18n";
 
 interface User {
   id: number;
@@ -35,6 +36,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel(props: AdminPanelProps) {
+  const { t } = useI18n();
   const [users, setUsers] = createSignal<User[]>([]);
   const [loading, setLoading] = createSignal(false);
   const [isOwner, setIsOwner] = createSignal(false);
@@ -74,7 +76,7 @@ export default function AdminPanel(props: AdminPanelProps) {
       setUsers(result.users);
     } catch (err: any) {
       console.error("Failed to load users:", err);
-      setError(err.message || "Failed to load users");
+      setError(err.message || t("admin.failedLoadUsers"));
     } finally {
       setLoading(false);
     }
@@ -101,7 +103,7 @@ export default function AdminPanel(props: AdminPanelProps) {
     setError("");
 
     if (password().length < 8) {
-      setError("Password must be at least 8 characters");
+      setError(t("admin.passwordTooShort"));
       return;
     }
 
@@ -114,7 +116,7 @@ export default function AdminPanel(props: AdminPanelProps) {
       setShowCreateForm(false);
       await loadUsers();
     } catch (err: any) {
-      setError(err.message || "Failed to create user");
+      setError(err.message || t("admin.failedCreateUser"));
     }
   };
 
@@ -122,12 +124,14 @@ export default function AdminPanel(props: AdminPanelProps) {
     try {
       await api.updateUserAdminStatus(user.id, newIsAdmin);
       setToast({
-        message: `Role updated to ${newIsAdmin ? "Admin" : "Member"}`,
+        message: t("admin.roleUpdatedTo", {
+          role: newIsAdmin ? t("admin.roleAdmin") : t("admin.roleMember"),
+        }),
         type: "success",
       });
       await loadUsers();
     } catch (err: any) {
-      setError(err.message || "Failed to update role");
+      setError(err.message || t("admin.failedUpdateRole"));
     }
   };
 
@@ -145,7 +149,7 @@ export default function AdminPanel(props: AdminPanelProps) {
       await loadUsers();
     } catch (err: any) {
       console.error("Failed to delete user:", err);
-      setError(err.message || "Failed to delete user");
+      setError(err.message || t("admin.failedDeleteUser"));
       setDeleteDialog({ isOpen: false, user: null });
     }
   };
@@ -184,11 +188,11 @@ export default function AdminPanel(props: AdminPanelProps) {
   ) => {
     try {
       await api.adminUpdateUserOrgRole(userId, orgId, role);
-      setToast({ message: "Role updated", type: "success" });
+      setToast({ message: t("admin.roleUpdated"), type: "success" });
       await refreshUserOrgs(userId);
     } catch (err: any) {
       setToast({
-        message: err.message || "Failed to update role",
+        message: err.message || t("admin.failedUpdateRole"),
         type: "error",
       });
     }
@@ -197,11 +201,11 @@ export default function AdminPanel(props: AdminPanelProps) {
   const handleRemoveFromOrg = async (userId: number, orgId: number) => {
     try {
       await api.adminRemoveUserFromOrg(userId, orgId);
-      setToast({ message: "Removed from organization", type: "success" });
+      setToast({ message: t("admin.removedFromOrg"), type: "success" });
       await refreshUserOrgs(userId);
     } catch (err: any) {
       setToast({
-        message: err.message || "Failed to remove from organization",
+        message: err.message || t("admin.failedRemoveFromOrg"),
         type: "error",
       });
     }
@@ -212,7 +216,7 @@ export default function AdminPanel(props: AdminPanelProps) {
     if (!form?.orgId) return;
     try {
       await api.adminAddUserToOrg(userId, form.orgId, form.role || "member");
-      setToast({ message: "Added to organization", type: "success" });
+      setToast({ message: t("admin.addedToOrg"), type: "success" });
       setAddOrgForm((prev) => {
         const next = { ...prev };
         delete next[userId];
@@ -221,7 +225,7 @@ export default function AdminPanel(props: AdminPanelProps) {
       await refreshUserOrgs(userId);
     } catch (err: any) {
       setToast({
-        message: err.message || "Failed to add to organization",
+        message: err.message || t("admin.failedAddToOrg"),
         type: "error",
       });
     }
@@ -238,8 +242,12 @@ export default function AdminPanel(props: AdminPanelProps) {
       {/* Create User Button */}
       <div class="mb-6 flex justify-between items-center">
         <div>
-          <h3 class="text-lg font-semibold text-body">Users</h3>
-          <p class="text-sm text-muted-body">{users().length} total users</p>
+          <h3 class="text-lg font-semibold text-body">
+            {t("admin.usersHeading")}
+          </h3>
+          <p class="text-sm text-muted-body">
+            {t("admin.totalUsers", { count: users().length })}
+          </p>
         </div>
         <Button
           onClick={() => setShowCreateForm(!showCreateForm())}
@@ -247,18 +255,20 @@ export default function AdminPanel(props: AdminPanelProps) {
           size="md"
         >
           <div class="i-carbon-user-follow w-5 h-5 mr-2" />
-          Create User
+          {t("admin.createUser")}
         </Button>
       </div>
 
       {/* Create User Form */}
       <Show when={showCreateForm()}>
         <div class="mb-6 p-4 bg-elevated/50 border border-base rounded-lg">
-          <h4 class="text-md font-semibold text-body mb-4">Create New User</h4>
+          <h4 class="text-md font-semibold text-body mb-4">
+            {t("admin.createUserTitle")}
+          </h4>
           <form onSubmit={handleCreateUser} class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-secondary-body mb-2">
-                Username
+                {t("admin.username")}
               </label>
               <input
                 type="text"
@@ -266,13 +276,13 @@ export default function AdminPanel(props: AdminPanelProps) {
                 onInput={(e) => setUsername(e.currentTarget.value)}
                 required
                 class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-base"
-                placeholder="Enter username"
+                placeholder={t("admin.usernamePlaceholder")}
               />
             </div>
 
             <div>
               <label class="block text-sm font-medium text-secondary-body mb-2">
-                Email
+                {t("admin.email")}
               </label>
               <input
                 type="email"
@@ -280,13 +290,13 @@ export default function AdminPanel(props: AdminPanelProps) {
                 onInput={(e) => setEmail(e.currentTarget.value)}
                 required
                 class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-base"
-                placeholder="Enter email"
+                placeholder={t("admin.emailPlaceholder")}
               />
             </div>
 
             <div>
               <label class="block text-sm font-medium text-secondary-body mb-2">
-                Password
+                {t("admin.password")}
               </label>
               <input
                 type="password"
@@ -295,7 +305,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                 required
                 minLength={8}
                 class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body placeholder-muted-body focus:outline-none focus:border-base"
-                placeholder="Min 8 characters"
+                placeholder={t("admin.passwordPlaceholder")}
               />
             </div>
 
@@ -311,13 +321,13 @@ export default function AdminPanel(props: AdminPanelProps) {
                 for="new-user-admin"
                 class="text-sm font-medium text-secondary-body cursor-pointer select-none"
               >
-                Grant app admin role
+                {t("admin.grantAdmin")}
               </label>
             </div>
 
             <div class="flex gap-2">
               <Button type="submit" variant="primary" size="md">
-                Create User
+                {t("admin.createUser")}
               </Button>
               <Button
                 onClick={() => {
@@ -331,7 +341,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                 variant="secondary"
                 size="md"
               >
-                Cancel
+                {t("admin.cancel")}
               </Button>
             </div>
           </form>
@@ -352,19 +362,19 @@ export default function AdminPanel(props: AdminPanelProps) {
             <thead class="bg-elevated/50">
               <tr>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-body uppercase tracking-wider">
-                  User
+                  {t("admin.colUser")}
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-body uppercase tracking-wider">
-                  Email
+                  {t("admin.colEmail")}
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-body uppercase tracking-wider">
-                  Role
+                  {t("admin.colRole")}
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-muted-body uppercase tracking-wider">
-                  Joined
+                  {t("admin.colJoined")}
                 </th>
                 <th class="px-4 py-3 text-right text-xs font-medium text-muted-body uppercase tracking-wider">
-                  Actions
+                  {t("admin.colActions")}
                 </th>
               </tr>
             </thead>
@@ -410,8 +420,12 @@ export default function AdminPanel(props: AdminPanelProps) {
                             }
                             class="px-2 py-1 text-xs font-medium bg-elevated border border-base rounded text-body focus:outline-none focus:border-neutral-600 dark:focus:border-neutral-600 light:focus:border-neutral-500"
                           >
-                            <option value="member">Member</option>
-                            <option value="admin">Admin</option>
+                            <option value="member">
+                              {t("admin.roleMember")}
+                            </option>
+                            <option value="admin">
+                              {t("admin.roleAdmin")}
+                            </option>
                           </select>
                         </Show>
                       </td>
@@ -429,7 +443,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                             }}
                             variant="icon"
                             size="sm"
-                            title="Delete user"
+                            title={t("admin.deleteUserTooltip")}
                             class="text-red-400 hover:text-red-300"
                           >
                             <div class="i-carbon-trash-can w-5 h-5" />
@@ -441,14 +455,14 @@ export default function AdminPanel(props: AdminPanelProps) {
                       <tr>
                         <td colspan="5" class="bg-base/40 px-6 py-4">
                           <div class="text-xs font-semibold text-muted-body uppercase tracking-wider mb-3">
-                            Organization Memberships
+                            {t("admin.orgMemberships")}
                           </div>
                           <Show
                             when={orgLoadingFor() !== user.id}
                             fallback={
                               <div class="flex items-center gap-2 text-sm text-muted-body py-2">
                                 <div class="i-carbon-circle-dash animate-spin w-4 h-4" />
-                                Loading…
+                                {t("orgPanel.loading")}
                               </div>
                             }
                           >
@@ -456,7 +470,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                               when={(userOrgsCache()[user.id] ?? []).length > 0}
                               fallback={
                                 <p class="text-sm text-muted-body mb-3">
-                                  No organization memberships.
+                                  {t("admin.noOrgMemberships")}
                                 </p>
                               }
                             >
@@ -464,10 +478,14 @@ export default function AdminPanel(props: AdminPanelProps) {
                                 <thead>
                                   <tr class="text-xs text-muted-body uppercase">
                                     <th class="text-left pb-2 pr-4">
-                                      Organization
+                                      {t("admin.colOrg")}
                                     </th>
-                                    <th class="text-left pb-2 pr-4">Role</th>
-                                    <th class="text-left pb-2 pr-4">Joined</th>
+                                    <th class="text-left pb-2 pr-4">
+                                      {t("admin.colRole")}
+                                    </th>
+                                    <th class="text-left pb-2 pr-4">
+                                      {t("admin.colJoined")}
+                                    </th>
                                     <th class="text-right pb-2" />
                                   </tr>
                                 </thead>
@@ -479,7 +497,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                                           {mem.orgName}
                                           <Show when={mem.isOwner}>
                                             <span class="ml-2 text-xs text-amber-400">
-                                              owner
+                                              {t("admin.ownerLabel")}
                                             </span>
                                           </Show>
                                         </td>
@@ -488,7 +506,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                                             when={!mem.isOwner}
                                             fallback={
                                               <span class="px-2 py-1 text-xs bg-amber-500/20 text-amber-400 rounded border border-amber-500/30">
-                                                owner
+                                                {t("admin.ownerLabel")}
                                               </span>
                                             }
                                           >
@@ -504,10 +522,10 @@ export default function AdminPanel(props: AdminPanelProps) {
                                               class="px-2 py-1 text-xs bg-elevated border border-base rounded text-body focus:outline-none"
                                             >
                                               <option value="member">
-                                                Member
+                                                {t("admin.roleMember")}
                                               </option>
                                               <option value="admin">
-                                                Admin
+                                                {t("admin.roleAdmin")}
                                               </option>
                                             </select>
                                           </Show>
@@ -526,7 +544,9 @@ export default function AdminPanel(props: AdminPanelProps) {
                                               }
                                               variant="icon"
                                               size="sm"
-                                              title="Remove from organization"
+                                              title={t(
+                                                "admin.removeFromOrgTooltip",
+                                              )}
                                               class="text-red-400 hover:text-red-300"
                                             >
                                               <div class="i-carbon-close w-4 h-4" />
@@ -542,7 +562,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                             {/* Add to organization */}
                             <div class="flex items-center gap-2 flex-wrap">
                               <span class="text-xs text-muted-body">
-                                Add to organization:
+                                {t("admin.addToOrg")}
                               </span>
                               <select
                                 value={addOrgForm()[user.id]?.orgId ?? ""}
@@ -558,7 +578,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                                 }}
                                 class="px-2 py-1 text-xs bg-elevated border border-base rounded text-body focus:outline-none"
                               >
-                                <option value="">Select org…</option>
+                                <option value="">{t("admin.selectOrg")}</option>
                                 <For
                                   each={allOrgs().filter(
                                     (o) =>
@@ -585,8 +605,12 @@ export default function AdminPanel(props: AdminPanelProps) {
                                 }}
                                 class="px-2 py-1 text-xs bg-elevated border border-base rounded text-body focus:outline-none"
                               >
-                                <option value="member">Member</option>
-                                <option value="admin">Admin</option>
+                                <option value="member">
+                                  {t("admin.roleMember")}
+                                </option>
+                                <option value="admin">
+                                  {t("admin.roleAdmin")}
+                                </option>
                               </select>
                               <Button
                                 onClick={() => handleAddToOrg(user.id)}
@@ -594,7 +618,7 @@ export default function AdminPanel(props: AdminPanelProps) {
                                 size="sm"
                                 disabled={!addOrgForm()[user.id]?.orgId}
                               >
-                                Add
+                                {t("admin.add")}
                               </Button>
                             </div>
                           </Show>
@@ -616,10 +640,12 @@ export default function AdminPanel(props: AdminPanelProps) {
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         isOpen={deleteDialog().isOpen}
-        title="Delete User"
-        message={`Are you sure you want to delete user "${deleteDialog().user?.username}"? This will also delete all their documents and cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t("admin.deleteUserTitle")}
+        message={t("admin.deleteUserConfirm", {
+          username: deleteDialog().user?.username ?? "",
+        })}
+        confirmText={t("admin.delete")}
+        cancelText={t("admin.cancel")}
         variant="danger"
         onConfirm={confirmDelete}
         onCancel={() => setDeleteDialog({ isOpen: false, user: null })}
@@ -628,12 +654,8 @@ export default function AdminPanel(props: AdminPanelProps) {
         <Show when={props.inline}>
           {/* Inline mode - just render content */}
           <div class="flex-1 overflow-auto">
-            <h2 class="text-xl font-bold text-body mb-2">
-              Global User Management
-            </h2>
-            <p class="text-sm text-muted-body mb-6">
-              Manage global users and access
-            </p>
+            <h2 class="text-xl font-bold text-body mb-2">{t("admin.title")}</h2>
+            <p class="text-sm text-muted-body mb-6">{t("admin.subtitle")}</p>
             {renderContent()}
           </div>
         </Show>
@@ -651,17 +673,17 @@ export default function AdminPanel(props: AdminPanelProps) {
               <div class="px-6 py-4 border-b border-base flex items-center justify-between">
                 <div>
                   <h2 class="text-2xl font-bold text-body">
-                    Global User Management
+                    {t("admin.title")}
                   </h2>
                   <p class="text-sm text-muted-body mt-1">
-                    Manage global users and access
+                    {t("admin.subtitle")}
                   </p>
                 </div>
                 <Button
                   onClick={props.onClose}
                   variant="icon"
                   size="md"
-                  title="Close"
+                  title={t("admin.close")}
                 >
                   <div class="i-carbon-close w-5 h-5" />
                 </Button>

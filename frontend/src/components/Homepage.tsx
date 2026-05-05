@@ -3,6 +3,7 @@ import { api, type Document } from "~/lib/api";
 import type { Tag } from "~/types/Tag.types";
 import { getDisplayName } from "~/utils/document.utils";
 import { formatRelativeDate } from "~/utils/date.utils";
+import { useI18n } from "~/i18n";
 
 interface HomepageProps {
   documents: Document[];
@@ -12,6 +13,7 @@ interface HomepageProps {
 }
 
 export default function Homepage(props: HomepageProps) {
+  const { t, locale } = useI18n();
   const [currentOrg, setCurrentOrg] = createSignal<{
     id: number;
     name: string;
@@ -43,13 +45,13 @@ export default function Homepage(props: HomepageProps) {
 
   const greeting = () => {
     const h = new Date().getHours();
-    if (h < 12) return "Good morning";
-    if (h < 17) return "Good afternoon";
-    return "Good evening";
+    if (h < 12) return t("homepage.greetingMorning");
+    if (h < 17) return t("homepage.greetingAfternoon");
+    return t("homepage.greetingEvening");
   };
 
   const todayLabel = () =>
-    new Date().toLocaleDateString("en-US", {
+    new Date().toLocaleDateString(locale(), {
       weekday: "long",
       month: "long",
       day: "numeric",
@@ -81,7 +83,7 @@ export default function Homepage(props: HomepageProps) {
               {greeting()}
             </p>
             <h1 class="text-xl font-semibold text-body truncate">
-              {currentOrg()?.name ?? "My Workspace"}
+              {currentOrg()?.name ?? t("homepage.myWorkspace")}
             </h1>
           </div>
 
@@ -92,7 +94,7 @@ export default function Homepage(props: HomepageProps) {
               <span class="font-medium text-secondary-body">
                 {props.documents.filter((d) => d.type === "file").length}
               </span>
-              <span class="ml-0.5">docs</span>
+              <span class="ml-0.5">{t("homepage.docs")}</span>
             </div>
             <div class="w-px h-4 bg-[var(--color-border)]" />
             <div class="flex items-center gap-1 text-muted-body text-sm">
@@ -100,7 +102,7 @@ export default function Homepage(props: HomepageProps) {
               <span class="font-medium text-secondary-body">
                 {props.documents.filter((d) => d.type === "folder").length}
               </span>
-              <span class="ml-0.5">folders</span>
+              <span class="ml-0.5">{t("homepage.folders")}</span>
             </div>
             <div class="w-px h-4 bg-[var(--color-border)]" />
             <div class="flex items-center gap-1 text-muted-body text-sm">
@@ -108,7 +110,7 @@ export default function Homepage(props: HomepageProps) {
               <span class="font-medium text-secondary-body">
                 {favoriteDocuments().length}
               </span>
-              <span class="ml-0.5">starred</span>
+              <span class="ml-0.5">{t("homepage.starred")}</span>
             </div>
             <div class="hidden sm:block w-px h-4 bg-[var(--color-border)]" />
             <span class="hidden sm:inline text-sm text-muted-body">
@@ -141,7 +143,7 @@ export default function Homepage(props: HomepageProps) {
           >
             {/* Favorites — first in DOM so it appears on top on mobile; pushed to right column on desktop via order */}
             <aside class="order-first lg:order-last">
-              <SectionLabel icon="i-carbon-star-filled" label="Pinned" />
+              <SectionLabel icon="i-carbon-star-filled" label={t("homepage.pinned")} />
               <div class="flex flex-col gap-2">
                 <For each={favoriteDocuments()}>
                   {(doc) => {
@@ -166,7 +168,7 @@ export default function Homepage(props: HomepageProps) {
                               when={parentFolder(doc.path)}
                               fallback={
                                 <span class="text-[11px] text-muted-body">
-                                  Root
+                                  {t("homepage.root")}
                                 </span>
                               }
                             >
@@ -234,6 +236,7 @@ function RecentSection(props: {
   tags: Tag[];
   tagMappings: Record<string, number[]>;
 }) {
+  const { t } = useI18n();
   const MAX_VISIBLE = 3;
 
   const getDocTags = (path: string): Tag[] => {
@@ -245,13 +248,13 @@ function RecentSection(props: {
 
   return (
     <section>
-      <SectionLabel icon="i-carbon-recently-viewed" label="Recently edited" />
+      <SectionLabel icon="i-carbon-recently-viewed" label={t("homepage.recentlyEdited")} />
       <Show
         when={props.docs.length > 0}
         fallback={
           <div class="flex flex-col items-center justify-center py-16 text-muted-body">
             <div class="i-carbon-document-blank w-10 h-10 mb-3 opacity-20" />
-            <p class="text-sm">No documents yet. Create one to get started!</p>
+            <p class="text-sm">{t("homepage.noDocuments")}</p>
           </div>
         }
       >
@@ -261,9 +264,9 @@ function RecentSection(props: {
             class="grid text-[11px] font-semibold tracking-wide uppercase text-muted-body px-4 py-2 border-b border-base"
             style="grid-template-columns: 1fr auto auto"
           >
-            <span>Name</span>
-            <span class="hidden sm:block text-right pr-6">Size</span>
-            <span class="text-right w-20">Modified</span>
+            <span>{t("homepage.colName")}</span>
+            <span class="hidden sm:block text-right pr-6">{t("homepage.colSize")}</span>
+            <span class="text-right w-20">{t("homepage.colModified")}</span>
           </div>
 
           <For each={props.docs}>
@@ -287,7 +290,7 @@ function RecentSection(props: {
                     fallback={
                       <div class="text-[11px] text-muted-body mt-0.5 pl-5 flex items-center gap-1">
                         <div class="i-carbon-folder-open w-3 h-3 shrink-0" />
-                        <span>Root</span>
+                        <span>{t("homepage.root")}</span>
                       </div>
                     }
                   >

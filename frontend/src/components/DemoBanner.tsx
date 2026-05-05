@@ -1,16 +1,16 @@
 import { Show, createSignal } from "solid-js";
 import { clearDemoStorage } from "../lib/demo/demo-storage";
 import Button from "./Button";
+import { useI18n } from "~/i18n";
 
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 
 export function DemoBanner() {
+  const { t } = useI18n();
   const [isOpen, setIsOpen] = createSignal(true);
 
   const handleReset = () => {
-    if (
-      confirm("This will clear all demo data and reload the page. Continue?")
-    ) {
+    if (confirm(t("demo.resetConfirm"))) {
       clearDemoStorage();
       window.location.reload();
     }
@@ -31,21 +31,20 @@ export function DemoBanner() {
           <div class="flex items-start justify-between mb-3">
             <div class="flex items-center gap-2">
               <div class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></div>
-              <h3 class="font-bold text-amber-400">Demo Mode</h3>
+              <h3 class="font-bold text-amber-400">{t("demo.title")}</h3>
             </div>
           </div>
 
           <p class="text-sm text-body mb-4">
-            All data is stored in your browser's localStorage. Changes are not
-            persisted to a server.
+            {t("demo.description")}
           </p>
 
           <div class="flex gap-2">
             <Button class="justify-center flex-1 bg-amber-400">
-              <span onClick={handleReset}>Reset demo data</span>
+              <span onClick={handleReset}>{t("demo.reset")}</span>
             </Button>
             <Button variant="secondary" class="justify-center">
-              <span onClick={() => setIsOpen(false)}>Close</span>
+              <span onClick={() => setIsOpen(false)}>{t("common.close")}</span>
             </Button>
           </div>
         </div>

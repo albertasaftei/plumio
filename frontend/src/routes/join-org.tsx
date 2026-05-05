@@ -6,6 +6,7 @@ import Toast from "~/components/Toast";
 import { routes } from "~/routes";
 import { formatAbsoluteDate } from "~/utils/date.utils";
 import DocumentListPage from "~/components/DocumentListPage";
+import { useI18n } from "~/i18n";
 
 interface DiscoverableOrg {
   id: number;
@@ -26,6 +27,7 @@ interface MyRequest {
 
 export default function JoinOrgPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [orgs, setOrgs] = createSignal<DiscoverableOrg[]>([]);
   const [myRequests, setMyRequests] = createSignal<MyRequest[]>([]);
   const [memberOrgIds, setMemberOrgIds] = createSignal<Set<number>>(new Set());
@@ -82,22 +84,16 @@ export default function JoinOrgPage() {
         joinMessage() || undefined,
       );
       if (result.autoAccepted) {
-        setToast({
-          message: "You've been automatically added to the organization!",
-          type: "success",
-        });
+        setToast({ message: t("joinOrg.autoAccepted"), type: "success" });
       } else {
-        setToast({
-          message: "Join request sent! The admin will review it.",
-          type: "info",
-        });
+        setToast({ message: t("joinOrg.requestSent"), type: "info" });
       }
       setJoiningOrgId(null);
       setJoinMessage("");
       await loadData();
     } catch (err: any) {
       setToast({
-        message: err.message || "Failed to send request",
+        message: err.message || t("joinOrg.failedSend"),
         type: "error",
       });
     } finally {
@@ -108,11 +104,11 @@ export default function JoinOrgPage() {
   const handleCancel = async (requestId: number) => {
     try {
       await api.cancelJoinRequest(requestId);
-      setToast({ message: "Join request cancelled", type: "info" });
+      setToast({ message: t("joinOrg.requestCancelled"), type: "info" });
       await loadData();
     } catch (err: any) {
       setToast({
-        message: err.message || "Failed to cancel request",
+        message: err.message || t("joinOrg.failedCancel"),
         type: "error",
       });
     }
@@ -129,7 +125,7 @@ export default function JoinOrgPage() {
 
   return (
     <DocumentListPage
-      title="Join an Organization"
+      title={t("joinOrg.title")}
       onBack={() => navigate(routes.homepage)}
       loading={loadingOrgs()}
     >
@@ -137,7 +133,7 @@ export default function JoinOrgPage() {
         {/* Browse Organizations */}
         <section>
           <h2 class="text-base font-semibold text-body mb-4">
-            Available Organizations
+            {t("joinOrg.availableOrgs")}
           </h2>
 
           <Show
@@ -153,7 +149,7 @@ export default function JoinOrgPage() {
               fallback={
                 <div class="text-center py-12 text-muted-body">
                   <div class="i-carbon-enterprise w-10 h-10 mx-auto mb-3 opacity-40" />
-                  <p>No organizations are currently discoverable.</p>
+                  <p>{t("joinOrg.noOrgs")}</p>
                 </div>
               }
             >
@@ -177,7 +173,7 @@ export default function JoinOrgPage() {
                             when={!alreadyMember()}
                             fallback={
                               <span class="px-2 py-1 text-xs rounded-md border bg-green-500/10 text-green-400 border-green-500/20">
-                                Member
+                                {t("joinOrg.member")}
                               </span>
                             }
                           >
@@ -187,7 +183,7 @@ export default function JoinOrgPage() {
                                 <span
                                   class={`px-2 py-1 text-xs rounded-md border ${statusBadge(existingRequest()!.status)}`}
                                 >
-                                  Request pending
+                                  {t("joinOrg.requestPending")}
                                 </span>
                               }
                             >
@@ -200,7 +196,7 @@ export default function JoinOrgPage() {
                                 }}
                               >
                                 <div class="i-carbon-user-follow w-4 h-4 mr-1.5" />
-                                Request to Join
+                                {t("joinOrg.requestToJoin")}
                               </Button>
                             </Show>
                           </Show>
@@ -211,9 +207,9 @@ export default function JoinOrgPage() {
                           <div class="mt-4 pt-4 border-t border-subtle space-y-3">
                             <div>
                               <label class="block text-xs font-medium text-secondary-body mb-1">
-                                Message to admin{" "}
+                                {t("joinOrg.messageLabel")}{" "}
                                 <span class="text-muted-body font-normal">
-                                  (optional)
+                                  {t("joinOrg.messageOptional")}
                                 </span>
                               </label>
                               <textarea
@@ -225,7 +221,7 @@ export default function JoinOrgPage() {
                                 maxLength={500}
                                 disabled={submitting()}
                                 class="w-full px-3 py-2 bg-base border border-subtle rounded-lg text-body text-sm placeholder-muted-body focus:outline-none focus:border-neutral-500 resize-none disabled:opacity-50"
-                                placeholder="Introduce yourself or explain why you'd like to join..."
+                                placeholder={t("joinOrg.messagePlaceholder")}
                               />
                             </div>
                             <div class="flex gap-2">
@@ -238,7 +234,9 @@ export default function JoinOrgPage() {
                                 <Show when={submitting()}>
                                   <div class="i-carbon-circle-dash animate-spin w-4 h-4 mr-1.5" />
                                 </Show>
-                                {submitting() ? "Sending..." : "Send Request"}
+                                {submitting()
+                                  ? t("joinOrg.sending")
+                                  : t("joinOrg.sendRequest")}
                               </Button>
                               <Button
                                 variant="secondary"
@@ -249,7 +247,7 @@ export default function JoinOrgPage() {
                                   setJoinMessage("");
                                 }}
                               >
-                                Cancel
+                                {t("joinOrg.cancel")}
                               </Button>
                             </div>
                           </div>
@@ -266,7 +264,9 @@ export default function JoinOrgPage() {
         {/* My Requests - only pending ones */}
         <Show when={myRequests().length > 0}>
           <section>
-            <h2 class="text-base font-semibold text-body mb-4">My Requests</h2>
+            <h2 class="text-base font-semibold text-body mb-4">
+              {t("joinOrg.myRequests")}
+            </h2>
             <div class="space-y-2">
               <For each={myRequests()}>
                 {(req) => (
@@ -276,7 +276,9 @@ export default function JoinOrgPage() {
                         {req.org_name}
                       </p>
                       <p class="text-xs text-muted-body">
-                        Requested {formatAbsoluteDate(req.created_at)}
+                        {t("joinOrg.requestedAt", {
+                          date: formatAbsoluteDate(req.created_at),
+                        })}
                       </p>
                       <Show when={req.message}>
                         <p class="text-xs text-secondary-body italic mt-0.5">
@@ -288,7 +290,11 @@ export default function JoinOrgPage() {
                       <span
                         class={`px-2 py-0.5 text-xs rounded-md border ${statusBadge(req.status)}`}
                       >
-                        {req.status}
+                        {req.status === "pending"
+                          ? t("joinOrg.statusPending")
+                          : req.status === "accepted"
+                            ? t("joinOrg.statusAccepted")
+                            : t("joinOrg.statusRejected")}
                       </span>
                       <Show when={req.status === "pending"}>
                         <Button
@@ -296,7 +302,7 @@ export default function JoinOrgPage() {
                           size="sm"
                           onClick={() => handleCancel(req.id)}
                         >
-                          Cancel
+                          {t("joinOrg.cancel")}
                         </Button>
                       </Show>
                     </div>

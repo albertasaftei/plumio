@@ -7,6 +7,7 @@ import { DemoBanner } from "./components/DemoBanner";
 import { AuthenticatedLayout } from "./components/AuthenticatedLayout";
 import { initializeTheme } from "./lib/theme";
 import { fetchConfig } from "./lib/config";
+import { I18nProvider } from "./i18n";
 
 export default function App() {
   onMount(() => {
@@ -16,17 +17,19 @@ export default function App() {
   });
 
   return (
-    <Router
-      root={(props) => (
-        <>
-          <DemoBanner />
-          <AuthenticatedLayout>
-            <Suspense>{props.children}</Suspense>
-          </AuthenticatedLayout>
-        </>
-      )}
-    >
-      <FileRoutes />
-    </Router>
+    <I18nProvider>
+      <Router
+        root={(props) => (
+          <>
+            <DemoBanner />
+            <AuthenticatedLayout>
+              <Suspense>{props.children}</Suspense>
+            </AuthenticatedLayout>
+          </>
+        )}
+      >
+        <FileRoutes />
+      </Router>
+    </I18nProvider>
   );
 }

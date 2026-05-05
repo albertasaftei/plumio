@@ -1,10 +1,12 @@
-import { createSignal, onMount } from "solid-js";
+import { createSignal, onMount, For } from "solid-js";
 import { Show } from "solid-js";
 import { api } from "~/lib/api";
 import Button from "~/components/Button";
 import Toast from "~/components/Toast";
+import { useI18n, SUPPORTED_LOCALES, LOCALE_NAMES } from "~/i18n";
 
 export default function Account() {
+  const { t, locale, setLocale } = useI18n();
   const [username, setUsername] = createSignal<string | null>(null);
   const [email, setEmail] = createSignal<string | null>(null);
   const [editingUsername, setEditingUsername] = createSignal(false);
@@ -60,11 +62,11 @@ export default function Account() {
     setPasswordError("");
 
     if (newPassword() !== confirmNewPassword()) {
-      setPasswordError("New passwords do not match");
+      setPasswordError(t("account.passwordsNoMatch"));
       return;
     }
     if (newPassword().length < 8) {
-      setPasswordError("New password must be at least 8 characters");
+      setPasswordError(t("account.passwordTooShort"));
       return;
     }
 
@@ -72,7 +74,7 @@ export default function Account() {
     try {
       await api.changePassword(currentPassword(), newPassword());
       resetPasswordModal();
-      setToast({ message: "Password changed successfully", type: "success" });
+      setToast({ message: t("account.passwordChanged"), type: "success" });
     } catch (err: any) {
       setPasswordError(err.message || "Failed to change password");
     } finally {
@@ -110,7 +112,7 @@ export default function Account() {
       await api.updateUsername(newUsername().trim());
       setUsername(newUsername().trim());
       setEditingUsername(false);
-      setToast({ message: "Username updated successfully", type: "success" });
+      setToast({ message: t("account.usernameUpdated"), type: "success" });
     } catch (err: any) {
       setUsernameError(err.message || "Failed to update username");
     } finally {
@@ -121,13 +123,15 @@ export default function Account() {
   return (
     <div class="space-y-4 bg-elevated rounded-lg p-6 border border-transparent light:border-base light:shadow-sm">
       <div>
-        <h3 class="text-lg font-semibold text-body mb-2">Profile</h3>
+        <h3 class="text-lg font-semibold text-body mb-2">
+          {t("account.profile")}
+        </h3>
         <div class="space-y-4">
           <div class="p-4 bg-surface border border-base rounded-lg">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-xs font-medium text-muted-body uppercase tracking-wider mb-1">
-                  Username
+                  {t("account.username")}
                 </p>
                 <Show
                   when={!editingUsername()}
@@ -154,7 +158,9 @@ export default function Account() {
                           size="sm"
                           disabled={savingUsername()}
                         >
-                          {savingUsername() ? "Saving\u2026" : "Save"}
+                          {savingUsername()
+                            ? t("account.saving")
+                            : t("account.save")}
                         </Button>
                         <Button
                           type="button"
@@ -165,7 +171,7 @@ export default function Account() {
                             setUsernameError("");
                           }}
                         >
-                          Cancel
+                          {t("account.cancel")}
                         </Button>
                       </div>
                       <Show when={usernameError()}>
@@ -175,7 +181,7 @@ export default function Account() {
                   }
                 >
                   <p class="text-base font-semibold text-body">
-                    {username() || "Loading..."}
+                    {username() || t("account.loading")}
                   </p>
                 </Show>
               </div>
@@ -189,7 +195,7 @@ export default function Account() {
                   }}
                 >
                   <div class="i-carbon-edit w-4 h-4 mr-1.5" />
-                  Edit
+                  {t("account.edit")}
                 </Button>
               </Show>
             </div>
@@ -199,11 +205,13 @@ export default function Account() {
             <div class="flex items-center justify-between gap-4">
               <div>
                 <p class="text-xs font-medium text-muted-body uppercase tracking-wider mb-1">
-                  Password
+                  {t("account.password")}
                 </p>
-                <p class="text-base font-semibold text-body">Change password</p>
+                <p class="text-base font-semibold text-body">
+                  {t("account.changePassword")}
+                </p>
                 <p class="text-sm text-muted-body mt-1">
-                  Update your password using your current one.
+                  {t("account.changePasswordDesc")}
                 </p>
               </div>
 
@@ -213,7 +221,7 @@ export default function Account() {
                 onClick={() => setChangingPassword(true)}
               >
                 <div class="i-carbon-password w-4 h-4 mr-1.5" />
-                Change
+                {t("account.change")}
               </Button>
             </div>
           </div>
@@ -239,10 +247,10 @@ export default function Account() {
                 </Button>
 
                 <h2 class="text-xl font-semibold text-body mb-1">
-                  Change Password
+                  {t("account.changePasswordTitle")}
                 </h2>
                 <p class="text-sm text-secondary-body mb-5">
-                  Enter your current password and choose a new one.
+                  {t("account.changePasswordSubtitle")}
                 </p>
 
                 <Show when={passwordError()}>
@@ -258,7 +266,7 @@ export default function Account() {
                   {/* Current password */}
                   <div>
                     <label class="block text-xs font-medium text-muted-body uppercase tracking-wider mb-1.5">
-                      Current Password
+                      {t("account.currentPassword")}
                     </label>
                     <div class="relative">
                       <input
@@ -271,7 +279,7 @@ export default function Account() {
                         autofocus
                         disabled={savingPassword()}
                         class="w-full px-3 py-1.5 pr-10 bg-base border border-subtle rounded-lg text-body text-sm focus:outline-none focus:border-neutral-500 disabled:opacity-50"
-                        placeholder="Current password"
+                        placeholder={t("account.currentPassword")}
                       />
                       <button
                         type="button"
@@ -295,7 +303,7 @@ export default function Account() {
                   {/* New password */}
                   <div>
                     <label class="block text-xs font-medium text-muted-body uppercase tracking-wider mb-1.5">
-                      New Password
+                      {t("account.newPassword")}
                     </label>
                     <div class="relative">
                       <input
@@ -305,7 +313,7 @@ export default function Account() {
                         required
                         disabled={savingPassword()}
                         class="w-full px-3 py-1.5 pr-10 bg-base border border-subtle rounded-lg text-body text-sm focus:outline-none focus:border-neutral-500 disabled:opacity-50"
-                        placeholder="At least 8 characters"
+                        placeholder={t("account.newPassword")}
                       />
                       <button
                         type="button"
@@ -327,7 +335,7 @@ export default function Account() {
                   {/* Confirm new password */}
                   <div>
                     <label class="block text-xs font-medium text-muted-body uppercase tracking-wider mb-1.5">
-                      Confirm New Password
+                      {t("account.confirmNewPassword")}
                     </label>
                     <div class="relative">
                       <input
@@ -339,7 +347,7 @@ export default function Account() {
                         required
                         disabled={savingPassword()}
                         class="w-full px-3 py-1.5 pr-10 bg-base border border-subtle rounded-lg text-body text-sm focus:outline-none focus:border-neutral-500 disabled:opacity-50"
-                        placeholder="Repeat new password"
+                        placeholder={t("account.confirmNewPassword")}
                       />
                       <button
                         type="button"
@@ -367,7 +375,7 @@ export default function Account() {
                       size="md"
                       onClick={resetPasswordModal}
                     >
-                      Cancel
+                      {t("account.cancel")}
                     </Button>
                     <Button
                       type="submit"
@@ -375,7 +383,9 @@ export default function Account() {
                       size="md"
                       disabled={savingPassword()}
                     >
-                      {savingPassword() ? "Saving…" : "Change Password"}
+                      {savingPassword()
+                        ? t("account.saving")
+                        : t("account.changePasswordBtn")}
                     </Button>
                   </div>
                 </form>
@@ -390,10 +400,10 @@ export default function Account() {
                   Email
                 </p>
                 <p class="text-base font-semibold text-body">
-                  {email() || "Loading..."}
+                  {email() || t("account.loading")}
                 </p>
                 <p class="text-sm text-muted-body mt-1">
-                  A confirmation link will be sent to your new address.
+                  {t("account.emailConfirmationDesc")}
                 </p>
               </div>
 
@@ -403,7 +413,7 @@ export default function Account() {
                 onClick={() => setChangingEmail(true)}
               >
                 <div class="i-carbon-email w-4 h-4 mr-1.5" />
-                Change
+                {t("account.change")}
               </Button>
             </div>
           </div>
@@ -429,13 +439,12 @@ export default function Account() {
                 </Button>
 
                 <h2 class="text-xl font-semibold text-body mb-1">
-                  Change Email
+                  {t("account.changeEmail")}
                 </h2>
 
                 <Show when={!emailChangeSent()}>
                   <p class="text-sm text-secondary-body mb-5">
-                    Enter your new email address. We'll send a confirmation link
-                    there.
+                    {t("account.changeEmailDesc")}
                   </p>
 
                   <Show when={emailChangeError()}>
@@ -450,7 +459,7 @@ export default function Account() {
                   >
                     <div>
                       <label class="block text-xs font-medium text-muted-body uppercase tracking-wider mb-1.5">
-                        New Email Address
+                        {t("account.newEmailAddress")}
                       </label>
                       <input
                         type="email"
@@ -474,7 +483,7 @@ export default function Account() {
                         size="md"
                         onClick={resetEmailModal}
                       >
-                        Cancel
+                        {t("account.cancel")}
                       </Button>
                       <Button
                         type="submit"
@@ -483,8 +492,8 @@ export default function Account() {
                         disabled={emailChangeSending()}
                       >
                         {emailChangeSending()
-                          ? "Sending…"
-                          : "Send Confirmation"}
+                          ? t("account.sending")
+                          : t("account.sendConfirmation")}
                       </Button>
                     </div>
                   </form>
@@ -492,15 +501,10 @@ export default function Account() {
 
                 <Show when={emailChangeSent()}>
                   <p class="text-sm text-secondary-body mb-5">
-                    Check your inbox at{" "}
-                    <span class="font-semibold text-body">
-                      {newEmailInput()}
-                    </span>{" "}
-                    for a confirmation link.
+                    {t("account.emailSentDesc", { email: newEmailInput() })}
                   </p>
                   <p class="text-sm text-muted-body mb-5">
-                    The link expires in 1 hour. Your email won't change until
-                    you click it.
+                    {t("account.emailExpiryDesc")}
                   </p>
                   <div class="flex justify-end">
                     <Button
@@ -509,13 +513,30 @@ export default function Account() {
                       size="md"
                       onClick={resetEmailModal}
                     >
-                      Done
+                      {t("account.done")}
                     </Button>
                   </div>
                 </Show>
               </div>
             </div>
           </Show>
+        </div>
+      </div>
+
+      <div class="p-4 bg-surface border border-base rounded-lg">
+        <div class="flex items-center justify-between gap-4">
+          <label class="text-xs font-medium text-body uppercase tracking-wider">
+            {t("locale.label")}
+          </label>
+          <select
+            value={locale()}
+            onChange={(e) => setLocale(e.currentTarget.value as any)}
+            class="px-3 py-1.5 bg-base border border-subtle rounded-lg text-body text-sm focus:outline-none focus:border-neutral-500 cursor-pointer"
+          >
+            <For each={SUPPORTED_LOCALES}>
+              {(loc) => <option value={loc}>{LOCALE_NAMES[loc]}</option>}
+            </For>
+          </select>
         </div>
       </div>
 

@@ -8,9 +8,11 @@ import { routes } from "~/routes";
 import { getDisplayName } from "~/utils/document.utils";
 import { useAppLayout } from "~/components/AppLayout";
 import { formatDayRelativeDate } from "~/utils/date.utils";
+import { useI18n } from "~/i18n";
 
 export default function ArchivePage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const { loadAllDocuments } = useAppLayout();
   const [archivedDocs, setArchivedDocs] = createSignal<Document[]>([]);
   const [loading, setLoading] = createSignal(true);
@@ -60,14 +62,14 @@ export default function ArchivePage() {
 
   return (
     <DocumentListPage
-      title="Archived Documents"
+      title={t("archive.title")}
       icon="i-carbon-archive"
       loading={loading()}
       onBack={() => navigate(routes.homepage)}
       emptyState={
         <div class="text-center py-12 text-secondary-body">
           <div class="i-carbon-folder-off w-16 h-16 mx-auto mb-4 opacity-50" />
-          <p>No archived documents</p>
+          <p>{t("archive.noItems")}</p>
         </div>
       }
     >
@@ -76,7 +78,7 @@ export default function ArchivePage() {
         fallback={
           <div class="text-center py-12 text-secondary-body">
             <div class="i-carbon-folder-off w-16 h-16 mx-auto mb-4 opacity-50" />
-            <p>No archived documents</p>
+            <p>{t("archive.noItems")}</p>
           </div>
         }
       >
@@ -92,7 +94,7 @@ export default function ArchivePage() {
                     </p>
                     <Show when={doc.archived_at}>
                       <p class="text-xs text-muted-body">
-                        Archived {formatDayRelativeDate(doc.archived_at)}
+                        {t("archive.archivedAt", { date: formatDayRelativeDate(doc.archived_at) })}
                       </p>
                     </Show>
                   </div>
@@ -125,14 +127,12 @@ export default function ArchivePage() {
 
       <AlertDialog
         isOpen={!!deleteConfirm()}
-        title="Delete Permanently?"
+        title={t("archive.deleteTitle")}
         onConfirm={() => deleteConfirm() && handleDelete(deleteConfirm()!)}
         onCancel={() => setDeleteConfirm(null)}
       >
         <p class="text-secondary-body">
-          Are you sure you want to permanently delete "
-          {deleteConfirm() && getDisplayName(deleteConfirm()!)}"? This action
-          cannot be undone.
+          {t("archive.deleteConfirm", { name: deleteConfirm() ? getDisplayName(deleteConfirm()!) : "" })}
         </p>
       </AlertDialog>
     </DocumentListPage>

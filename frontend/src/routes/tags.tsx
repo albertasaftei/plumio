@@ -7,9 +7,11 @@ import DocumentListPage from "~/components/DocumentListPage";
 import { routes } from "~/routes";
 import type { Tag } from "~/types/Tag.types";
 import { COLOR_PALETTE } from "~/utils/sidebar.utils";
+import { useI18n } from "~/i18n";
 
 export default function TagsPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [tags, setTags] = createSignal<Tag[]>([]);
   const [loading, setLoading] = createSignal(true);
   const [showCreateForm, setShowCreateForm] = createSignal(false);
@@ -71,7 +73,7 @@ export default function TagsPage() {
   const handleSubmit = async () => {
     const name = tagName().trim();
     if (!name) {
-      setError("Name is required");
+      setError(t("tags.nameRequired"));
       return;
     }
 
@@ -92,10 +94,10 @@ export default function TagsPage() {
     } catch (e: any) {
       const msg = e?.message || "";
       if (msg.includes("409") || msg.includes("already exists")) {
-        setError("A tag with this name already exists");
+        setError(t("tags.duplicateName"));
       } else {
         setError(
-          editingTag() ? "Failed to update tag" : "Failed to create tag",
+          editingTag() ? t("tags.failedUpdate") : t("tags.failedCreate"),
         );
       }
     }
@@ -110,7 +112,7 @@ export default function TagsPage() {
       setShowDeleteConfirm(false);
       setTagToDelete(null);
     } catch {
-      setError("Failed to delete tag");
+      setError(t("tags.failedDelete"));
     }
   };
 
@@ -120,23 +122,21 @@ export default function TagsPage() {
 
   return (
     <DocumentListPage
-      title="Tags"
+      title={t("tags.title")}
       icon="i-carbon-tag"
       loading={loading()}
       onBack={() => navigate(routes.homepage)}
       headerAction={() => (
         <Button onClick={openCreate} variant="primary" size="md">
           <div class="i-carbon-add w-4 h-4" />
-          New tag
+          {t("tags.newTag")}
         </Button>
       )}
       emptyState={
         <div class="text-center py-12 text-secondary-body">
           <div class="i-carbon-tag w-16 h-16 mx-auto mb-4 opacity-50" />
-          <p class="text-lg">No tags yet</p>
-          <p class="text-sm text-muted-body mt-2">
-            Create your first tag to start organizing your notes
-          </p>
+          <p class="text-lg">{t("tags.noTags")}</p>
+          <p class="text-sm text-muted-body mt-2">{t("tags.noTagsDesc")}</p>
         </div>
       }
     >
@@ -145,10 +145,8 @@ export default function TagsPage() {
         fallback={
           <div class="text-center py-12 text-secondary-body">
             <div class="i-carbon-tag w-16 h-16 mx-auto mb-4 opacity-50" />
-            <p class="text-lg">No tags yet</p>
-            <p class="text-sm text-muted-body mt-2">
-              Create your first tag to start organizing your notes
-            </p>
+            <p class="text-lg">{t("tags.noTags")}</p>
+            <p class="text-sm text-muted-body mt-2">{t("tags.noTagsDesc")}</p>
           </div>
         }
       >
@@ -188,7 +186,7 @@ export default function TagsPage() {
                     onClick={() => openEdit(tag)}
                     variant="secondary"
                     size="sm"
-                    title="Edit tag"
+                    title={t("tags.editTagTooltip")}
                   >
                     <div class="i-carbon-edit w-4 h-4" />
                   </Button>
@@ -199,7 +197,7 @@ export default function TagsPage() {
                     }}
                     variant="secondary"
                     size="sm"
-                    title="Delete tag"
+                    title={t("tags.deleteTagTooltip")}
                     class="text-red-500 hover:text-red-400"
                   >
                     <div class="i-carbon-trash-can w-4 h-4" />
@@ -214,24 +212,24 @@ export default function TagsPage() {
       {/* Create / Edit form modal */}
       <AlertDialog
         isOpen={showCreateForm()}
-        title={editingTag() ? "Edit Tag" : "New Tag"}
+        title={editingTag() ? t("tags.editTagTitle") : t("tags.newTagTitle")}
         onConfirm={handleSubmit}
         onCancel={() => {
           resetForm();
           setShowCreateForm(false);
           setEditingTag(null);
         }}
-        confirmText={editingTag() ? "Save" : "Create"}
+        confirmText={editingTag() ? t("tags.save") : t("tags.create")}
       >
         <div class="space-y-3">
           <div>
             <label class="block text-sm text-secondary-body mb-1">
-              Name
+              {t("tags.formName")}
             </label>
             <input
               ref={nameInputRef}
               type="text"
-              placeholder="Tag name"
+              placeholder={t("tags.formNamePlaceholder")}
               maxLength={50}
               value={tagName()}
               onInput={(e) => {
@@ -245,11 +243,11 @@ export default function TagsPage() {
 
           <div>
             <label class="block text-sm text-secondary-body mb-1">
-              Description (optional)
+              {t("tags.formDescription")}
             </label>
             <input
               type="text"
-              placeholder="What is this tag about?"
+              placeholder={t("tags.formDescriptionPlaceholder")}
               maxLength={200}
               value={tagDescription()}
               onInput={(e) => setTagDescription(e.currentTarget.value)}
@@ -259,7 +257,7 @@ export default function TagsPage() {
 
           <div>
             <label class="block text-sm text-secondary-body mb-2">
-              Color
+              {t("tags.formColor")}
             </label>
             <div class="flex flex-wrap items-center gap-2 mb-2">
               <For each={COLOR_PALETTE}>

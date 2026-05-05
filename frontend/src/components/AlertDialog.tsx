@@ -2,10 +2,12 @@ import { Show } from "solid-js";
 import Button from "./Button";
 import type { AlertDialogProps } from "~/types/AlertDialog.types";
 import "~/styles/animations.css";
+import { useI18n } from "~/i18n";
 
 export default function AlertDialog(props: AlertDialogProps) {
-  const confirmText = () => props.confirmText || "Confirm";
-  const cancelText = () => props.cancelText || "Cancel";
+  const { t } = useI18n();
+  const confirmText = () => props.confirmText || t("common.confirm");
+  const cancelText = () => props.cancelText || t("common.cancel");
   const showActions = () => props.showActions ?? true;
 
   const buttonVariant = () => {
@@ -38,7 +40,7 @@ export default function AlertDialog(props: AlertDialogProps) {
               onClick={props.onCancel}
               variant="icon"
               size="md"
-              title="Close"
+              title={t("common.close")}
               class="absolute top-4 right-4"
             >
               <div class="i-carbon-close w-5 h-5" />

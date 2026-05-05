@@ -1,6 +1,7 @@
 import { createSignal, onMount, Show } from "solid-js";
 import { api } from "~/lib/api";
 import { fetchConfig } from "~/lib/config";
+import { useI18n } from "~/i18n";
 
 interface ToggleProps {
   enabled: boolean;
@@ -34,6 +35,7 @@ function Toggle(props: ToggleProps) {
 }
 
 export default function AppConfiguration() {
+  const { t } = useI18n();
   const [registrationEnabled, setRegistrationEnabled] = createSignal(false);
   const [saving, setSaving] = createSignal(false);
   const [error, setError] = createSignal("");
@@ -46,7 +48,7 @@ export default function AppConfiguration() {
         result.settings["registration_enabled"] === "true",
       );
     } catch (err: any) {
-      setError(err.message || "Failed to load settings");
+      setError(err.message || t("appConfig.failedLoad"));
     }
   });
 
@@ -58,12 +60,12 @@ export default function AppConfiguration() {
     try {
       await api.updateAdminSetting(key, value ? "true" : "false");
       if (key === "registration_enabled") setRegistrationEnabled(value);
-      setSuccessMsg("Setting saved");
+      setSuccessMsg(t("appConfig.settingSaved"));
       // Re-fetch the global config store so other components react immediately
       await fetchConfig();
       setTimeout(() => setSuccessMsg(""), 2500);
     } catch (err: any) {
-      setError(err.message || "Failed to save setting");
+      setError(err.message || t("appConfig.failedSave"));
     } finally {
       setSaving(false);
     }
@@ -85,21 +87,20 @@ export default function AppConfiguration() {
 
       {/* Authentication */}
       <div class="bg-elevated rounded-lg p-6 border border-transparent light:border-base light:shadow-sm">
-        <h3 class="text-xl font-semibold text-body mb-1">Authentication</h3>
-        <p class="text-sm text-muted-body mb-4">
-          Control how users can access this instance.
-        </p>
+        <h3 class="text-xl font-semibold text-body mb-1">
+          {t("appConfig.authTitle")}
+        </h3>
+        <p class="text-sm text-muted-body mb-4">{t("appConfig.authDesc")}</p>
 
         <div class="space-y-4">
           {/* Registration toggle */}
           <div class="flex items-center justify-between gap-4">
             <div class="flex-1">
               <label class="block text-sm font-medium text-secondary-body mb-1">
-                Enable registration
+                {t("appConfig.registrationLabel")}
               </label>
               <p class="text-sm text-muted-body">
-                Allow new users to create an account. When disabled, only
-                admin-created accounts can be used to log in.
+                {t("appConfig.registrationDesc")}
               </p>
             </div>
             <Toggle
