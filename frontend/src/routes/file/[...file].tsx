@@ -200,6 +200,13 @@ export default function DocumentPage() {
                   content={currentContent()}
                   onChange={handleContentChange}
                   documentPath={getDocumentPath()}
+                  onInternalNavigate={(path) => {
+                    const encodedPath = path
+                      .split("/")
+                      .map(encodeURIComponent)
+                      .join("/");
+                    navigate(`/file${encodedPath}`);
+                  }}
                 />
               )}
             </For>

@@ -737,8 +737,13 @@ export default function MarkdownEditor(props: EditorProps) {
           const href = link.getAttribute("href");
           if (!href) return;
 
+          // Internal link: no protocol, starts with /
+          const isInternalLink = (url: string) =>
+            url.startsWith("/") && !url.match(/^[a-z][a-z0-9+.-]*:\/\//i);
+
           link.addEventListener("mouseenter", () => {
-            const normalizedHref = normalizeUrl(href);
+            const isInternal = isInternalLink(href);
+            const normalizedHref = isInternal ? href : normalizeUrl(href);
 
             if (tooltipTimeout) {
               clearTimeout(tooltipTimeout);
@@ -761,17 +766,29 @@ export default function MarkdownEditor(props: EditorProps) {
             tooltip.style.top = rect.bottom + 8 + "px";
 
             const linkText = document.createElement("div");
-            linkText.className = "truncate max-w-xs mb-2 text-secondary-body";
-            linkText.textContent = normalizedHref;
+            linkText.className =
+              "truncate max-w-xs mb-2 text-secondary-body flex items-center gap-1.5";
+            if (isInternal) {
+              linkText.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 32 32" style="flex-shrink:0"><path fill="currentColor" d="M25.7 9.3l-7-7A.908.908 0 0 0 18 2H8a2.006 2.006 0 0 0-2 2v24a2.006 2.006 0 0 0 2 2h16a2.006 2.006 0 0 0 2-2V10a.908.908 0 0 0-.3-.7M18 4.4l5.6 5.6H18ZM24 28H8V4h8v6a2.006 2.006 0 0 0 2 2h6Z"/></svg><span class="truncate">${href}</span>`;
+            } else {
+              linkText.textContent = normalizedHref;
+            }
 
             const buttonContainer = document.createElement("div");
             buttonContainer.className = "flex gap-2";
             const openBtn = document.createElement("button");
             openBtn.className =
               "px-3 py-1.5 bg-elevated border border-base hover:bg-surface rounded text-xs cursor-pointer transition-colors font-medium flex items-center gap-1.5";
-            openBtn.innerHTML = `
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32"><path fill="currentColor" d="M26 28H6a2.003 2.003 0 0 1-2-2V6a2.003 2.003 0 0 1 2-2h10v2H6v20h20V16h2v10a2.003 2.003 0 0 1-2 2"/><path fill="currentColor" d="M20 2v2h6.586L18 12.586L19.414 14L28 5.414V12h2V2z"/></svg>
-            `;
+            if (isInternal) {
+              openBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32"><path fill="currentColor" d="M25.7 9.3l-7-7A.908.908 0 0 0 18 2H8a2.006 2.006 0 0 0-2 2v24a2.006 2.006 0 0 0 2 2h16a2.006 2.006 0 0 0 2-2V10a.908.908 0 0 0-.3-.7M18 4.4l5.6 5.6H18ZM24 28H8V4h8v6a2.006 2.006 0 0 0 2 2h6Z"/></svg>
+                Open
+              `;
+            } else {
+              openBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32"><path fill="currentColor" d="M26 28H6a2.003 2.003 0 0 1-2-2V6a2.003 2.003 0 0 1 2-2h10v2H6v20h20V16h2v10a2.003 2.003 0 0 1-2 2"/><path fill="currentColor" d="M20 2v2h6.586L18 12.586L19.414 14L28 5.414V12h2V2z"/></svg>
+              `;
+            }
             openBtn.onmousedown = (e: any) => {
               e.preventDefault();
               e.stopPropagation();
@@ -779,7 +796,11 @@ export default function MarkdownEditor(props: EditorProps) {
             openBtn.onclick = (e: any) => {
               e.preventDefault();
               e.stopPropagation();
-              window.open(normalizedHref, "_blank", "noopener,noreferrer");
+              if (isInternal && props.onInternalNavigate) {
+                props.onInternalNavigate(href);
+              } else {
+                window.open(normalizedHref, "_blank", "noopener,noreferrer");
+              }
               removeTooltip(link);
             };
 
@@ -869,6 +890,36 @@ export default function MarkdownEditor(props: EditorProps) {
             };
 
             buttonContainer.appendChild(openBtn);
+
+            if (isInternal) {
+              const newTabBtn = document.createElement("button");
+              newTabBtn.className =
+                "px-3 py-1.5 bg-elevated border border-base hover:bg-surface rounded text-xs cursor-pointer transition-colors font-medium flex items-center gap-1.5";
+              newTabBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32"><path fill="currentColor" d="M26 28H6a2.003 2.003 0 0 1-2-2V6a2.003 2.003 0 0 1 2-2h10v2H6v20h20V16h2v10a2.003 2.003 0 0 1-2 2"/><path fill="currentColor" d="M20 2v2h6.586L18 12.586L19.414 14L28 5.414V12h2V2z"/></svg>
+              `;
+              newTabBtn.title = "Open in new tab";
+              newTabBtn.onmousedown = (e: any) => {
+                e.preventDefault();
+                e.stopPropagation();
+              };
+              newTabBtn.onclick = (e: any) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const encodedPath = href
+                  .split("/")
+                  .map(encodeURIComponent)
+                  .join("/");
+                window.open(
+                  `/file${encodedPath}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+                removeTooltip(link);
+              };
+              buttonContainer.appendChild(newTabBtn);
+            }
+
             buttonContainer.appendChild(editBtn);
             buttonContainer.appendChild(removeBtn);
             tooltip.appendChild(linkText);
