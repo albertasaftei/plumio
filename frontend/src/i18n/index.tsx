@@ -103,11 +103,26 @@ function detectLocale(): Locale {
 
 const flatEnDict = i18n.flatten(enDict);
 
+const LOCALE_IMPORTS: Record<
+  Exclude<Locale, "en">,
+  () => Promise<{ default: Partial<RawDictionary> }>
+> = {
+  ro: () => import("./ro.json"),
+  it: () => import("./it.json"),
+  fr: () => import("./fr.json"),
+  es: () => import("./es.json"),
+  de: () => import("./de.json"),
+  zh: () => import("./zh.json"),
+  ja: () => import("./ja.json"),
+  nl: () => import("./nl.json"),
+  pt: () => import("./pt.json"),
+  ru: () => import("./ru.json"),
+  pl: () => import("./pl.json"),
+};
+
 async function fetchDictionary(locale: Locale): Promise<Dictionary> {
   if (locale === "en") return flatEnDict;
-  const raw = (await import(`./${locale}.json`)) as {
-    default: Partial<RawDictionary>;
-  };
+  const raw = await LOCALE_IMPORTS[locale]();
   // Merge with English as fallback for any missing keys
   return i18n.flatten({ ...enDict, ...raw.default } as RawDictionary);
 }
