@@ -4,12 +4,13 @@ import { api } from "~/lib/api";
 import Button from "~/components/Button";
 import Toast from "~/components/Toast";
 import { useI18n, SUPPORTED_LOCALES, LOCALE_NAMES } from "~/i18n";
+import { isMobile } from "~/utils/device.utils";
 
 export default function Account() {
   const { t, locale, setLocale } = useI18n();
   const [username, setUsername] = createSignal<string | null>(null);
   const [email, setEmail] = createSignal<string | null>(null);
-  const [editingUsername, setEditingUsername] = createSignal(false);
+  const [changingUsername, setChangingUsername] = createSignal(false);
   const [newUsername, setNewUsername] = createSignal("");
   const [savingUsername, setSavingUsername] = createSignal(false);
   const [usernameError, setUsernameError] = createSignal("");
@@ -36,6 +37,13 @@ export default function Account() {
   const [emailChangeError, setEmailChangeError] = createSignal("");
   const [emailChangeSending, setEmailChangeSending] = createSignal(false);
   const [emailChangeSent, setEmailChangeSent] = createSignal(false);
+
+  const resetUsernameModal = () => {
+    setNewUsername("");
+    setUsernameError("");
+    setSavingUsername(false);
+    setChangingUsername(false);
+  };
 
   const resetEmailModal = () => {
     setNewEmailInput("");
@@ -109,9 +117,10 @@ export default function Account() {
     setUsernameError("");
     setSavingUsername(true);
     try {
-      await api.updateUsername(newUsername().trim());
-      setUsername(newUsername().trim());
-      setEditingUsername(false);
+      const trimmed = newUsername().trim();
+      await api.updateUsername(trimmed);
+      setUsername(trimmed);
+      setChangingUsername(false);
       setToast({ message: t("account.usernameUpdated"), type: "success" });
     } catch (err: any) {
       setUsernameError(err.message || "Failed to update username");
@@ -133,73 +142,103 @@ export default function Account() {
                 <p class="text-xs font-medium text-muted-body uppercase tracking-wider mb-1">
                   {t("account.username")}
                 </p>
-                <Show
-                  when={!editingUsername()}
-                  fallback={
-                    <form
-                      onSubmit={handleRenameUsername}
-                      class="flex flex-col gap-2 mt-1"
-                    >
-                      <div class="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={newUsername()}
-                          onInput={(e) => {
-                            setNewUsername(e.currentTarget.value);
-                            setUsernameError("");
-                          }}
-                          required
-                          autofocus
-                          class="px-3 py-1.5 bg-base border border-subtle rounded-lg text-body text-sm focus:outline-none focus:border-neutral-500"
-                        />
-                        <Button
-                          type="submit"
-                          variant="primary"
-                          size="sm"
-                          disabled={savingUsername()}
-                        >
-                          {savingUsername()
-                            ? t("account.saving")
-                            : t("account.save")}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => {
-                            setEditingUsername(false);
-                            setUsernameError("");
-                          }}
-                        >
-                          {t("account.cancel")}
-                        </Button>
-                      </div>
-                      <Show when={usernameError()}>
-                        <p class="text-xs text-red-400">{usernameError()}</p>
-                      </Show>
-                    </form>
-                  }
-                >
-                  <p class="text-base font-semibold text-body">
-                    {username() || t("account.loading")}
-                  </p>
-                </Show>
+                <p class="text-base font-semibold text-body">
+                  {username() || t("account.loading")}
+                </p>
               </div>
-              <Show when={!editingUsername()}>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setNewUsername(username() || "");
-                    setEditingUsername(true);
-                  }}
-                >
-                  <div class="i-carbon-edit w-4 h-4 mr-1.5" />
-                  {t("account.edit")}
-                </Button>
-              </Show>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setNewUsername(username() || "");
+                  setChangingUsername(true);
+                }}
+              >
+                <div class="i-carbon-edit w-4 h-4" />
+                {isMobile() ? "" : t("account.edit")}
+              </Button>
             </div>
           </div>
+
+          {/* Change Username Modal */}
+          <Show when={changingUsername()}>
+            <div
+              class="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4 animate-dialog-fade-in"
+              onClick={resetUsernameModal}
+            >
+              <div
+                class="bg-surface border border-base rounded-lg shadow-xl light:shadow-2xl max-w-md w-full p-6 animate-dialog-scale-in relative"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Button
+                  onClick={resetUsernameModal}
+                  variant="icon"
+                  size="md"
+                  title="Close"
+                  class="absolute top-4 right-4"
+                >
+                  <div class="i-carbon-close w-5 h-5" />
+                </Button>
+
+                <h2 class="text-xl font-semibold text-body mb-1">
+                  {t("account.changeUsername")}
+                </h2>
+                <p class="text-sm text-secondary-body mb-5">
+                  {t("account.changeUsernameSubtitle")}
+                </p>
+
+                <Show when={usernameError()}>
+                  <div class="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+                    {usernameError()}
+                  </div>
+                </Show>
+
+                <form
+                  onSubmit={handleRenameUsername}
+                  class="flex flex-col gap-4"
+                >
+                  <div>
+                    <label class="block text-xs font-medium text-muted-body uppercase tracking-wider mb-1.5">
+                      {t("account.username")}
+                    </label>
+                    <input
+                      type="text"
+                      value={newUsername()}
+                      onInput={(e) => {
+                        setNewUsername(e.currentTarget.value);
+                        setUsernameError("");
+                      }}
+                      required
+                      autofocus
+                      disabled={savingUsername()}
+                      class="w-full px-3 py-1.5 bg-base border border-subtle rounded-lg text-body text-sm focus:outline-none focus:border-neutral-500 disabled:opacity-50"
+                    />
+                  </div>
+
+                  <div class="flex gap-3 justify-end mt-1">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="md"
+                      onClick={resetUsernameModal}
+                    >
+                      {t("account.cancel")}
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="md"
+                      disabled={savingUsername()}
+                    >
+                      {savingUsername()
+                        ? t("account.saving")
+                        : t("account.save")}
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </Show>
 
           <div class="p-4 bg-surface border border-base rounded-lg">
             <div class="flex items-center justify-between gap-4">
@@ -220,8 +259,8 @@ export default function Account() {
                 size="sm"
                 onClick={() => setChangingPassword(true)}
               >
-                <div class="i-carbon-password w-4 h-4 mr-1.5" />
-                {t("account.change")}
+                <div class="i-carbon-edit w-4 h-4" />
+                {isMobile() ? "" : t("account.edit")}
               </Button>
             </div>
           </div>
@@ -412,8 +451,8 @@ export default function Account() {
                 size="sm"
                 onClick={() => setChangingEmail(true)}
               >
-                <div class="i-carbon-email w-4 h-4 mr-1.5" />
-                {t("account.change")}
+                <div class="i-carbon-edit w-4 h-4" />
+                {isMobile() ? "" : t("account.edit")}
               </Button>
             </div>
           </div>

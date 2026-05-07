@@ -1,17 +1,16 @@
 import { A } from "@solidjs/router";
 import Logo from "~/components/Logo";
+import SafeAreaPage from "~/components/SafeAreaPage";
 
 export default function NotFound() {
   return (
-    <main class="min-h-screen flex items-center justify-center bg-base p-4">
+    <SafeAreaPage>
       <div class="flex flex-col items-center gap-6 max-w-sm w-full text-center">
         <div class="text-8xl font-bold text-[var(--color-bg-elevated)] select-none leading-none">
           404
         </div>
         <div class="flex flex-col gap-2">
-          <h1 class="text-xl font-semibold text-body">
-            Page not found
-          </h1>
+          <h1 class="text-xl font-semibold text-body">Page not found</h1>
           <p class="text-sm text-secondary-body leading-relaxed">
             The page you're looking for doesn't exist or has been moved.
           </p>
@@ -36,6 +35,6 @@ export default function NotFound() {
           </button>
         </div>
       </div>
-    </main>
+    </SafeAreaPage>
   );
 }

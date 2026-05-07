@@ -253,7 +253,8 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     <>
       <Show when={isMounted() && isMobile()}>
         <aside
-          class="w-80 h-full border-r border-base bg-base flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out"
+          class="w-80 h-full border-r border-base bg-base flex flex-col fixed inset-y-0 left-0 z-50 overflow-hidden transition-transform duration-300 ease-in-out"
+          style="padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px)"
           classList={{
             "-translate-x-full": !props.sidebarOpen,
             "translate-x-0": props.sidebarOpen,

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <title>Plumio</title>
+    <link rel="stylesheet" href="connect.css" />
+  </head>
+  <body>
+    <div class="connect-screen">
+      <div class="connect-card">
+        <div class="connect-logo">
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 19l7-7 3 3-7 7-3-3z" />
+            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+            <path d="M2 2l7.586 7.586" />
+            <circle cx="11" cy="11" r="2" />
+          </svg>
+        </div>
+
+        <h1 class="connect-title">Plumio</h1>
+        <p class="connect-subtitle">Connect to your server</p>
+
+        <form id="connect-form" autocomplete="off">
+          <div class="input-group">
+            <label for="server-url">Server URL</label>
+            <input
+              type="url"
+              id="server-url"
+              placeholder="https://plumio.example.com:3000"
+              autocapitalize="none"
+              autocorrect="off"
+              spellcheck="false"
+              required
+            />
+          </div>
+
+          <div id="error-message" class="error-message" hidden></div>
+
+          <button type="submit" id="connect-btn" class="connect-btn">
+            <span class="btn-text">Connect</span>
+            <span class="btn-spinner" hidden></span>
+          </button>
+        </form>
+
+        <p class="connect-hint">
+          Enter the URL where Plumio is running (the address you open in your
+          browser, not the backend API port).
+        </p>
+      </div>
+
+      <div class="connect-footer">
+        <button type="button" id="clear-btn" class="clear-btn" hidden>
+          Forget saved server
+        </button>
+      </div>
+    </div>
+
+    <script type="module" src="connect.js"></script>
+  </body>
+</html>

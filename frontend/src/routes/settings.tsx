@@ -62,7 +62,10 @@ export default function SettingsPage() {
   };
 
   return (
-    <div class="flex h-screen overflow-hidden bg-base">
+    <div
+      class="flex h-screen overflow-hidden bg-base"
+      style="padding-right: env(safe-area-inset-right, 0px)"
+    >
       {/* Sidebar Overlay for mobile */}
       <Show when={sidebarOpen()}>
         <div

@@ -5,6 +5,7 @@ import Logo from "~/components/Logo";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
 import { useI18n } from "~/i18n";
+import SafeAreaPage from "~/components/SafeAreaPage";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -35,13 +36,11 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div class="min-h-screen bg-base flex items-center justify-center p-4">
+    <SafeAreaPage>
       <div class="w-full max-w-md">
         <div class="flex gap-4 items-center justify-center mb-8">
           <Logo color="#2a9d8f" size="48" />
-          <span class="text-4xl font-bold text-body mb-2">
-            plumio
-          </span>
+          <span class="text-4xl font-bold text-body mb-2">plumio</span>
         </div>
 
         <div class="bg-surface rounded-lg p-8 border border-base">
@@ -83,7 +82,9 @@ export default function ForgotPassword() {
                 fullWidth
                 disabled={loading()}
               >
-                {loading() ? t("forgotPassword.sending") : t("forgotPassword.sendLink")}
+                {loading()
+                  ? t("forgotPassword.sending")
+                  : t("forgotPassword.sendLink")}
               </Button>
             </form>
           </Show>
@@ -104,6 +105,6 @@ export default function ForgotPassword() {
           </div>
         </div>
       </div>
-    </div>
+    </SafeAreaPage>
   );
 }

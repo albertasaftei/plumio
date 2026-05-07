@@ -1,0 +1,46 @@
+PODS:
+  - Capacitor (7.6.2):
+    - CapacitorCordova
+  - CapacitorCordova (7.6.2)
+  - CapacitorKeyboard (7.0.6):
+    - Capacitor
+  - CapacitorPreferences (7.0.4):
+    - Capacitor
+  - CapacitorSplashScreen (7.0.5):
+    - Capacitor
+  - CapacitorStatusBar (7.0.6):
+    - Capacitor
+
+DEPENDENCIES:
+  - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
+  - "CapacitorPreferences (from `../../node_modules/@capacitor/preferences`)"
+  - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
+  - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
+
+EXTERNAL SOURCES:
+  Capacitor:
+    :path: "../../node_modules/@capacitor/ios"
+  CapacitorCordova:
+    :path: "../../node_modules/@capacitor/ios"
+  CapacitorKeyboard:
+    :path: "../../node_modules/@capacitor/keyboard"
+  CapacitorPreferences:
+    :path: "../../node_modules/@capacitor/preferences"
+  CapacitorSplashScreen:
+    :path: "../../node_modules/@capacitor/splash-screen"
+  CapacitorStatusBar:
+    :path: "../../node_modules/@capacitor/status-bar"
+
+SPEC CHECKSUMS:
+  Capacitor: 5d4e6523047feb0e4755e5e922ded0372c2dde24
+  CapacitorCordova: 8214697bed435f6e7c5e3ed86d1632a8c42f7d77
+  CapacitorKeyboard: a2e0869edd229490ce36aed2549c0d6b95e27ee8
+  CapacitorPreferences: 69d9991307507aeab8ef8019c10b9babfda0e9ca
+  CapacitorSplashScreen: 409eeaaeac603d264f209c0fcb718aa22fe1f7bb
+  CapacitorStatusBar: 416e9e53fd6397e668d4a181cd2131617d949bd6
+
+PODFILE CHECKSUM: afa7608228de5d9e048476ef7694e386143a850a
+
+COCOAPODS: 1.16.2

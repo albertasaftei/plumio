@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Plumio</string>
+    <string name="title_activity_main">Plumio</string>
+    <string name="package_name">app.plumio.mobile</string>
+    <string name="custom_url_scheme">app.plumio.mobile</string>
+</resources>

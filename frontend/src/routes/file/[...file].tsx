@@ -128,7 +128,7 @@ export default function DocumentPage() {
   return (
     <>
       {/* Document Actions Toolbar */}
-      <div class="h-12 border-b border-subtle flex items-center justify-between p-2 sm:px-4 bg-base">
+      <div class="h-12 border-b border-subtle flex items-center justify-between py-2 px-4 sm:px-4 bg-base">
         {/* View Mode Toggle */}
         <div class="flex items-center border border-subtle rounded-md overflow-hidden">
           <Button

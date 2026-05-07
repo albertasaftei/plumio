@@ -6,6 +6,7 @@ import Logo from "~/components/Logo";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
 import { useI18n } from "~/i18n";
+import SafeAreaPage from "~/components/SafeAreaPage";
 
 interface DiscoverableOrg {
   id: number;
@@ -99,7 +100,7 @@ export default function Register() {
   };
 
   return (
-    <div class="min-h-screen bg-base flex items-center justify-center p-4">
+    <SafeAreaPage>
       <div class="w-full max-w-md">
         <div class="flex gap-4 items-center justify-center mb-8">
           <Logo color="#2a9d8f" size="48" />
@@ -107,7 +108,9 @@ export default function Register() {
         </div>
 
         <div class="bg-surface rounded-lg p-8 border border-subtle light:shadow-xl">
-          <h2 class="text-2xl font-semibold text-body mb-6">{t("auth.createAccount")}</h2>
+          <h2 class="text-2xl font-semibold text-body mb-6">
+            {t("auth.createAccount")}
+          </h2>
 
           <Show when={success()}>
             <div class="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400">
@@ -257,6 +260,6 @@ export default function Register() {
           {t("auth.dataEncrypted")}
         </p>
       </div>
-    </div>
+    </SafeAreaPage>
   );
 }

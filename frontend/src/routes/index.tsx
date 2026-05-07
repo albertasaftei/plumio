@@ -6,6 +6,7 @@ import Logo from "~/components/Logo";
 import Button from "~/components/Button";
 import { routes } from "~/routes";
 import { useI18n } from "~/i18n";
+import SafeAreaPage from "~/components/SafeAreaPage";
 
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 
@@ -46,9 +47,7 @@ export default function Home() {
       }
     } catch (err) {
       console.error("Failed to check setup:", err);
-      setError(
-        t("auth.connectFailed"),
-      );
+      setError(t("auth.connectFailed"));
     } finally {
       setLoading(false);
     }
@@ -94,7 +93,7 @@ export default function Home() {
   };
 
   return (
-    <div class="min-h-screen bg-base flex items-center justify-center p-4">
+    <SafeAreaPage>
       <Show
         when={!loading()}
         fallback={
@@ -106,9 +105,7 @@ export default function Home() {
         <div class="w-full max-w-md">
           <div class="flex gap-4 items-center justify-center mb-8">
             <Logo color="#2a9d8f" size="48" />
-            <span class="text-4xl font-bold text-body mb-2">
-              plumio
-            </span>
+            <span class="text-4xl font-bold text-body mb-2">plumio</span>
           </div>
 
           <div class="bg-surface rounded-lg p-8 border border-base">
@@ -116,9 +113,7 @@ export default function Home() {
               <h2 class="text-2xl font-semibold text-body mb-6">
                 {t("auth.initialSetup")}
               </h2>
-              <p class="text-secondary-body mb-6 ">
-                {t("auth.setupSubtitle")}
-              </p>
+              <p class="text-secondary-body mb-6 ">{t("auth.setupSubtitle")}</p>
             </Show>
 
             <Show when={!isSetup() && !needsSetup()}>
@@ -181,7 +176,11 @@ export default function Home() {
                     type="button"
                     onClick={() => setShowPassword(!showPassword())}
                     class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-body hover:text-body transition-colors cursor-pointer"
-                    title={showPassword() ? t("auth.hidePassword") : t("auth.showPassword")}
+                    title={
+                      showPassword()
+                        ? t("auth.hidePassword")
+                        : t("auth.showPassword")
+                    }
                   >
                     <div
                       class={
@@ -244,9 +243,7 @@ export default function Home() {
 
             <Show when={!isSetup()}>
               <div class="mt-6 text-center">
-                <span class="text-secondary-body">
-                  {t("auth.noAccount")}
-                </span>
+                <span class="text-secondary-body">{t("auth.noAccount")}</span>
                 <button
                   onClick={() => navigate(routes.register)}
                   class="ml-2 text-primary hover:underline cursor-pointer"
@@ -270,6 +267,6 @@ export default function Home() {
           </p>
         </div>
       </Show>
-    </div>
+    </SafeAreaPage>
   );
 }

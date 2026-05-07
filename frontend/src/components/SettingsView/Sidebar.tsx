@@ -3,6 +3,9 @@ import Button from "../Button";
 import { api } from "~/lib/api";
 import { useI18n } from "~/i18n";
 
+const isCapacitor = () =>
+  typeof window !== "undefined" && !!(window as any).Capacitor;
+
 export type SettingsSection =
   | "account"
   | "editor"
@@ -39,9 +42,23 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
       .catch(() => {});
   });
 
+  const handleChangeServer = async () => {
+    try {
+      const cap = (window as any).Capacitor;
+      if (cap?.Plugins?.Preferences) {
+        await cap.Plugins.Preferences.remove({ key: "plumio_server_url" });
+        await cap.Plugins.Preferences.remove({ key: "plumio_prefs_version" });
+      }
+    } catch {
+      // ignore
+    }
+    window.location.replace("capacitor://localhost");
+  };
+
   return (
     <aside
-      class="w-80 h-full border-r py-2 border-subtle bg-surface flex flex-col fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto transition-transform duration-300 ease-in-out"
+      class="w-80 h-full border-r py-2 border-subtle bg-surface flex flex-col fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto overflow-hidden transition-transform duration-300 ease-in-out"
+      style="padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px)"
       classList={{
         "-translate-x-full lg:translate-x-0": !props.isOpen,
         "translate-x-0": props.isOpen,
@@ -153,6 +170,18 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
           </div>
 
           <div class="border-t border-subtle my-2" />
+
+          <Show when={isCapacitor()}>
+            <Button
+              onClick={handleChangeServer}
+              variant="ghost"
+              size="md"
+              fullWidth
+            >
+              <div class="i-carbon-network-4 w-4 h-4" />
+              <span class="ml-2">Change Server</span>
+            </Button>
+          </Show>
 
           <Button
             onClick={props.onLogout}

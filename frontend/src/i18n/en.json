@@ -176,6 +176,8 @@
   "account.newPassword": "New Password",
   "account.confirmNewPassword": "Confirm New Password",
   "account.changePasswordBtn": "Change Password",
+  "account.changeUsername": "Change Username",
+  "account.changeUsernameSubtitle": "Enter a new username for your account.",
   "account.changeEmail": "Change Email",
   "account.changeEmailDesc": "Enter your new email address. We'll send a confirmation link there.",
   "account.newEmailAddress": "New Email Address",

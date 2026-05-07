@@ -292,7 +292,10 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
 
   return (
     <AppLayoutContext.Provider value={contextValue}>
-      <div class="h-dvh flex flex-col overflow-hidden bg-surface">
+      <div
+        class="h-dvh flex flex-col overflow-hidden bg-surface"
+        style="padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px)"
+      >
         {/* Delete Confirmation Dialog */}
         <AlertDialog
           isOpen={deleteDialog().isOpen}
