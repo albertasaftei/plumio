@@ -22,3 +22,4 @@ overrides:
   dompurify: ^3.4.0
   postcss: ^8.5.10
   uuid: ^14.0.0
+  nitropack: ^2.13.4
