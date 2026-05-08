@@ -779,6 +779,10 @@ export const codeBlockViewPlugin = $prose(() => {
             "viewBox",
             `0 0 ${SKETCH_WIDTH} ${SKETCH_HEIGHT}`,
           );
+          // preserveAspectRatio="none" makes the SVG content stretch to fill
+          // the exact DOM bounding box, so getBoundingClientRect() coordinates
+          // map 1:1 to viewBox coordinates without letterboxing offsets.
+          sketchSvg.setAttribute("preserveAspectRatio", "none");
           sketchSvg.setAttribute("xmlns", SVG_NS);
           sketchSvg.className.baseVal = "sketch-canvas";
 
