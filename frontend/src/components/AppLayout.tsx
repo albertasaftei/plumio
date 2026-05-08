@@ -344,6 +344,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
               onViewDeleted={() => navigateAndClose(routes.deleted)}
               onViewSearch={() => navigateAndClose(routes.search)}
               onViewTags={() => navigateAndClose(routes.tags)}
+              onViewOrgs={() => navigateAndClose(routes.joinOrg)}
             />
           )}
 

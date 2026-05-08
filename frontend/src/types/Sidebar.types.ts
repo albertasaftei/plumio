@@ -34,6 +34,7 @@ export interface SidebarProps {
   onViewDeleted: () => void;
   onViewSearch: () => void;
   onViewTags: () => void;
+  onViewOrgs: () => void;
 }
 
 export interface TreeNode extends Document {

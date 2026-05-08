@@ -89,7 +89,7 @@ export default function SidebarContent(props: SidebarContentProps) {
           <div class="i-carbon-tag w-5 h-5 flex-shrink-0" />
         </Button>
         <Button
-          onClick={() => navigate(routes.joinOrg)}
+          onClick={() => props.onViewOrgs()}
           variant="icon"
           size="md"
           title={t("sidebar.joinOrg")}
@@ -122,7 +122,9 @@ export default function SidebarContent(props: SidebarContentProps) {
             size="md"
             title={
               props.versionInfo()?.updateAvailable
-                ? t("sidebar.settingsUpdateAvailable", { version: props.versionInfo()?.latestVersion ?? "" })
+                ? t("sidebar.settingsUpdateAvailable", {
+                    version: props.versionInfo()?.latestVersion ?? "",
+                  })
                 : t("sidebar.settings")
             }
           >
