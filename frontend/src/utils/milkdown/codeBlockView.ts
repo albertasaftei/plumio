@@ -197,9 +197,12 @@ export const codeBlockViewPlugin = $prose(() => {
             mermaidZoomLabel.textContent = `${Math.round(scale * 100)}%`;
           };
 
-          const setMermaidPreviewVisibility = (isMermaid: boolean) => {
-            pre.style.display = isMermaid ? "none" : "";
+          const updateBlockVisibility = (lang: string) => {
+            const isMermaid = lang === "mermaid";
+            const isSketch = lang === "sketch";
+            pre.style.display = isMermaid || isSketch ? "none" : "";
             mermaidPreview.style.display = isMermaid ? "block" : "none";
+            sketchContainer.style.display = isSketch ? "flex" : "none";
             copyBtn.textContent = "Copy";
           };
 
@@ -939,11 +942,6 @@ export const codeBlockViewPlugin = $prose(() => {
           sketchSvg.addEventListener("pointerup", finalizeSketchStroke);
           sketchSvg.addEventListener("pointercancel", finalizeSketchStroke);
 
-          const setSketchVisibility = (visible: boolean) => {
-            sketchContainer.style.display = visible ? "flex" : "none";
-            pre.style.display = visible ? "none" : "";
-          };
-
           wrapper.appendChild(header);
           wrapper.appendChild(pre);
           wrapper.appendChild(mermaidPreview);
@@ -965,13 +963,10 @@ export const codeBlockViewPlugin = $prose(() => {
             });
           }
 
-          setMermaidPreviewVisibility(initLang === "mermaid");
+          updateBlockVisibility(initLang);
           if (initLang === "mermaid") {
             scheduleMermaidRender(0);
           }
-
-          // Init sketch from stored data
-          setSketchVisibility(initLang === "sketch");
           if (initLang === "sketch") {
             const data = parseSketchData(initialNode.textContent || "");
             sketchStrokes = data.strokes;
@@ -992,8 +987,7 @@ export const codeBlockViewPlugin = $prose(() => {
                 lang ||
                 "Plain Text";
 
-              setMermaidPreviewVisibility(lang === "mermaid");
-              setSketchVisibility(lang === "sketch");
+              updateBlockVisibility(lang);
 
               if (lang) {
                 pre.dataset.language = lang;
