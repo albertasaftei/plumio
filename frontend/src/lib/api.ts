@@ -9,6 +9,12 @@ const getApiUrl = () => {
     return `http://localhost:${process.env.BACKEND_INTERNAL_PORT || 3001}`;
   }
 
+  // Desktop Electron mode: backend URL injected by the preload script via
+  // contextBridge. This takes priority over all other URL resolution strategies.
+  if ((window as any).__plumio__?.backendUrl) {
+    return (window as any).__plumio__.backendUrl as string;
+  }
+
   // Check for build-time env var first
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;

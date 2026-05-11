@@ -5,6 +5,7 @@ dist
 .netlify
 .vinxi
 app.config.timestamp_*.js
+release
 
 # Environment
 .env
@@ -15,6 +16,7 @@ backups/
 *.tar.gz
 
 # dependencies
+node_modules
 /*/node_modules
 
 # IDEs and editors
@@ -36,3 +38,5 @@ Thumbs.db
 /backend/data/
 
 .vscode
+.agents
+mobile
