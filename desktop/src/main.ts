@@ -6,6 +6,7 @@ import {
   net as electronNet,
   utilityProcess,
   Menu,
+  dialog,
 } from "electron";
 import type { UtilityProcess } from "electron";
 import { autoUpdater } from "electron-updater";
@@ -105,10 +106,12 @@ function findFreePort(start: number): Promise<number> {
 
 async function waitForBackend(
   port: number,
-  retries = 30,
-  delayMs = 300,
+  retries = 60,
+  delayMs = 500,
 ): Promise<void> {
   for (let i = 0; i < retries; i++) {
+    // If the process already exited, stop waiting immediately
+    if (backendExited) break;
     try {
       const res = await fetch(`http://127.0.0.1:${port}/api/health`);
       if (res.ok) return;
@@ -140,6 +143,7 @@ function getOrCreateSecret(userData: string): string {
 
 let backendPort = 47147;
 let backendProcess: UtilityProcess | null = null;
+let backendExited = false;
 let mainWindow: BrowserWindow | null = null;
 let currentConfig: DesktopConfig | null = null;
 
@@ -177,8 +181,17 @@ async function startBackend(): Promise<void> {
     DOCUMENTS_PATH: path.join(userData, "documents"),
     JWT_SECRET: getOrCreateSecret(userData),
     NODE_ENV: "production",
+    // Explicitly add the unpacked node_modules to NODE_PATH so that
+    // require('better-sqlite3') and require('bcrypt') resolve correctly
+    // in the utility process on all platforms (especially Windows).
+    NODE_PATH: isDev
+      ? path.join(__dirname, "..", "node_modules")
+      : getUnpackedPath("node_modules"),
   };
 
+  console.log("[desktop] Backend entry:", backendEntry);
+
+  backendExited = false;
   backendProcess = utilityProcess.fork(backendEntry, [], {
     serviceName: "plumio-backend",
     env,
@@ -193,10 +206,9 @@ async function startBackend(): Promise<void> {
   );
 
   backendProcess.on("exit", (code) => {
+    backendExited = true;
     if (code !== 0) {
       console.error(`[desktop] Backend exited with code ${code}`);
-      // Surface the crash to the renderer so the user sees something useful
-      // instead of the app silently failing to connect.
       mainWindow?.webContents.executeJavaScript(
         `console.error("[plumio] Backend process exited with code ${code}. Check that native modules were rebuilt for Electron.")`,
       );
@@ -204,6 +216,19 @@ async function startBackend(): Promise<void> {
   });
 
   await waitForBackend(backendPort);
+
+  if (backendExited) {
+    // Process crashed before it became healthy — show a native error dialog
+    // so the user isn't staring at a silent "connection refused" screen.
+    dialog.showErrorBox(
+      "Plumio — Backend Failed to Start",
+      "The embedded backend process exited unexpectedly.\n\n" +
+        "Open DevTools (Ctrl+Shift+I) and check the Console for the error details.\n\n" +
+        "Common causes:\n" +
+        "\u2022 Missing Visual C++ Redistributable (Windows)\n" +
+        "\u2022 Native modules not rebuilt for this Electron version",
+    );
+  }
 }
 
 // ── Window ────────────────────────────────────────────────────────────────────
