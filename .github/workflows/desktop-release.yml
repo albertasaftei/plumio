@@ -34,6 +34,10 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm build:desktop
 
+      - name: Install backend deps
+        working-directory: backend
+        run: npm install
+
       - name: Install desktop deps + rebuild native modules
         working-directory: desktop
         run: npm install
@@ -70,6 +74,10 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm build:desktop
+
+      - name: Install backend deps
+        working-directory: backend
+        run: npm install
 
       - name: Install desktop deps + rebuild native modules
         working-directory: desktop
