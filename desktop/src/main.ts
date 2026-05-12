@@ -181,12 +181,6 @@ async function startBackend(): Promise<void> {
     DOCUMENTS_PATH: path.join(userData, "documents"),
     JWT_SECRET: getOrCreateSecret(userData),
     NODE_ENV: "production",
-    // Explicitly add the unpacked node_modules to NODE_PATH so that
-    // require('better-sqlite3') and require('bcrypt') resolve correctly
-    // in the utility process on all platforms (especially Windows).
-    NODE_PATH: isDev
-      ? path.join(__dirname, "..", "node_modules")
-      : getUnpackedPath("node_modules"),
   };
 
   console.log("[desktop] Backend entry:", backendEntry);

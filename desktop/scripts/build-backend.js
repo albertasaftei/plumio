@@ -35,7 +35,20 @@ esbuild
     // it does NOT auto-shim it, so we inject a single definition at the top of
     // the bundle and replace every `import.meta.url` occurrence with it.
     banner: {
-      js: 'const __esm_import_meta_url = require("url").pathToFileURL(__filename).href;',
+      js: [
+        // Shim import.meta.url for ESM→CJS bundles
+        'const __esm_import_meta_url = require("url").pathToFileURL(__filename).href;',
+        // Inject the unpacked node_modules into Node's global module search
+        // paths BEFORE any require() call runs.  This ensures better-sqlite3
+        // and bcrypt are found from app.asar.unpacked/node_modules/ in packaged
+        // builds on both macOS and Windows, without relying on NODE_PATH being
+        // read correctly by the utility process.
+        "(function () {",
+        '  const _mod = require("module");',
+        '  const _np = require("path").resolve(__dirname, "..", "node_modules");',
+        "  if (!_mod.globalPaths.includes(_np)) _mod.globalPaths.unshift(_np);",
+        "})();",
+      ].join("\n"),
     },
     define: {
       "import.meta.url": "__esm_import_meta_url",
