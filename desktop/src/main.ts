@@ -162,7 +162,16 @@ async function startBackend(): Promise<void> {
   const userData = app.getPath("userData");
   backendPort = await findFreePort(47147);
 
+  // Inherit the parent process environment so that native modules (better-sqlite3,
+  // bcrypt) can find their DLLs/dylibs via PATH, and so that OS-level env vars
+  // like TEMP/TMP (Windows) and HOME (macOS/Linux) are available.
+  // We then override only the keys specific to the embedded backend.
+  const parentEnv = Object.fromEntries(
+    Object.entries(process.env).filter(([, v]) => v !== undefined),
+  ) as Record<string, string>;
+
   const env: Record<string, string> = {
+    ...parentEnv,
     BACKEND_INTERNAL_PORT: String(backendPort),
     DB_PATH: path.join(userData, "data", "plumio.db"),
     DOCUMENTS_PATH: path.join(userData, "documents"),
