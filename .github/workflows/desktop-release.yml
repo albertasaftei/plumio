@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      prerelease:
+        description: "Mark as pre-release"
+        type: boolean
+        default: true
 
 permissions:
   contents: write # needed to create/upload GitHub Releases
@@ -41,6 +47,7 @@ jobs:
       - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
+          prerelease: ${{ contains(github.ref_name, '-') || inputs.prerelease }}
           files: |
             desktop/release/*.dmg
             desktop/release/latest-mac.yml
@@ -77,6 +84,7 @@ jobs:
       - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
+          prerelease: ${{ contains(github.ref_name, '-') || inputs.prerelease }}
           files: |
             desktop/release/*.exe
             desktop/release/latest.yml
