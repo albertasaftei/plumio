@@ -25,7 +25,11 @@ const isDev = !app.isPackaged;
  * have no asar support, so we must hand them the real, unpacked path.
  */
 function getUnpackedPath(...parts: string[]): string {
-  const base = app.getAppPath().replace(/(app\.asar)([/\\])/, "$1.unpacked$2");
+  // app.getAppPath() returns the path to app.asar with NO trailing separator,
+  // e.g. "/path/to/resources/app.asar" or "C:\path\to\resources\app.asar".
+  // Replace the trailing "app.asar" with "app.asar.unpacked" so utilityProcess
+  // can load the real file on disk (asar interception does not apply there).
+  const base = app.getAppPath().replace(/app\.asar$/, "app.asar.unpacked");
   return path.join(base, ...parts);
 }
 
@@ -169,11 +173,24 @@ async function startBackend(): Promise<void> {
   backendProcess = utilityProcess.fork(backendEntry, [], {
     serviceName: "plumio-backend",
     env,
+    stdio: "pipe",
   });
+
+  backendProcess.stdout?.on("data", (d: Buffer) =>
+    console.log("[backend]", d.toString().trim()),
+  );
+  backendProcess.stderr?.on("data", (d: Buffer) =>
+    console.error("[backend]", d.toString().trim()),
+  );
 
   backendProcess.on("exit", (code) => {
     if (code !== 0) {
       console.error(`[desktop] Backend exited with code ${code}`);
+      // Surface the crash to the renderer so the user sees something useful
+      // instead of the app silently failing to connect.
+      mainWindow?.webContents.executeJavaScript(
+        `console.error("[plumio] Backend process exited with code ${code}. Check that native modules were rebuilt for Electron.")`,
+      );
     }
   });
 
