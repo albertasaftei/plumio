@@ -5,7 +5,7 @@
   "description": "Plumio desktop app for macOS and Windows",
   "main": "dist/main.js",
   "scripts": {
-    "postinstall": "electron-rebuild -f -w better-sqlite3,bcrypt",
+    "postinstall": "electron-rebuild -f -w better-sqlite3",
     "build:backend": "node scripts/build-backend.js",
     "build:main": "tsc",
     "build": "npm run build:backend && npm run build:main",
@@ -16,17 +16,15 @@
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",
-    "bcrypt": "^6.0.0",
     "electron-updater": "^6.6.0"
   },
   "devDependencies": {
-    "@electron/rebuild": "^3.7.0",
-    "@types/bcrypt": "^5.0.2",
+    "@electron/rebuild": "^4.0.0",
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.5",
-    "esbuild": "^0.25.0",
     "electron": "^36.0.0",
     "electron-builder": "^26.0.0",
+    "esbuild": "^0.25.0",
     "typescript": "^5.7.3"
   },
   "build": {
@@ -44,7 +42,8 @@
       "dist/schema.sql",
       "package.json",
       "node_modules/better-sqlite3/**",
-      "node_modules/bcrypt/**"
+      "node_modules/bindings/**",
+      "node_modules/file-uri-to-path/**"
     ],
     "extraResources": [
       {

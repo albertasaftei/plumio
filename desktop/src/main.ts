@@ -162,14 +162,62 @@ protocol.registerSchemesAsPrivileged([
 
 // ── Backend ───────────────────────────────────────────────────────────────────
 
+// Resolve the unpacked node_modules path — used for NODE_PATH and pre-flight checks
+const unpackedNodeModules = isDev
+  ? path.join(__dirname, "..", "node_modules")
+  : getUnpackedPath("node_modules");
+
+function preflightCheck(): string[] {
+  const missing: string[] = [];
+  if (!fs.existsSync(backendEntry)) {
+    missing.push(`Backend bundle: ${backendEntry}`);
+  }
+  const schemaPath = path.join(path.dirname(backendEntry), "schema.sql");
+  if (!fs.existsSync(schemaPath)) {
+    missing.push(`Schema file: ${schemaPath}`);
+  }
+  // Check that the better-sqlite3 native binary exists
+  const bsq3Binding = path.join(
+    unpackedNodeModules,
+    "better-sqlite3",
+    "build",
+    "Release",
+    "better_sqlite3.node",
+  );
+  if (!fs.existsSync(bsq3Binding)) {
+    missing.push(`better-sqlite3 native binding: ${bsq3Binding}`);
+  }
+  return missing;
+}
+
 async function startBackend(): Promise<void> {
   const userData = app.getPath("userData");
+
+  // ── Pre-flight: verify all required files exist ───────────────────────────
+  const missing = preflightCheck();
+  if (missing.length > 0) {
+    const detail = missing.map((m) => `  • ${m}`).join("\n");
+    console.error(
+      `[desktop] Pre-flight check failed — missing files:\n${detail}`,
+    );
+    dialog.showErrorBox(
+      "Plumio — Missing Files",
+      "The following required files were not found in the packaged app:\n\n" +
+        detail +
+        "\n\nThis usually means the build did not complete correctly.\n" +
+        "Please re-download Plumio or report this issue.",
+    );
+    return; // Don't try to start — it will just crash
+  }
+
   backendPort = await findFreePort(47147);
 
-  // Inherit the parent process environment so that native modules (better-sqlite3,
-  // bcrypt) can find their DLLs/dylibs via PATH, and so that OS-level env vars
-  // like TEMP/TMP (Windows) and HOME (macOS/Linux) are available.
-  // We then override only the keys specific to the embedded backend.
+  // Path for the backend to write crash diagnostics to
+  const crashLogPath = path.join(userData, "backend-crash.log");
+
+  // Inherit the parent process environment so that native modules can find
+  // their DLLs/dylibs via PATH, and so that OS-level env vars like TEMP/TMP
+  // (Windows) and HOME (macOS/Linux) are available.
   const parentEnv = Object.fromEntries(
     Object.entries(process.env).filter(([, v]) => v !== undefined),
   ) as Record<string, string>;
@@ -181,46 +229,79 @@ async function startBackend(): Promise<void> {
     DOCUMENTS_PATH: path.join(userData, "documents"),
     JWT_SECRET: getOrCreateSecret(userData),
     NODE_ENV: "production",
+    // Tell the backend bundle where to write crash diagnostics
+    CRASH_LOG_PATH: crashLogPath,
+    // Set NODE_PATH so require() can find native modules in the unpacked dir.
+    // This is the standard mechanism — more reliable than module.globalPaths.
+    NODE_PATH: unpackedNodeModules,
   };
 
   console.log("[desktop] Backend entry:", backendEntry);
+  console.log("[desktop] NODE_PATH:", unpackedNodeModules);
 
   backendExited = false;
+
+  // Collect backend output for diagnostics
+  let backendOutput = "";
   backendProcess = utilityProcess.fork(backendEntry, [], {
     serviceName: "plumio-backend",
     env,
     stdio: "pipe",
   });
 
-  backendProcess.stdout?.on("data", (d: Buffer) =>
-    console.log("[backend]", d.toString().trim()),
-  );
-  backendProcess.stderr?.on("data", (d: Buffer) =>
-    console.error("[backend]", d.toString().trim()),
-  );
+  backendProcess.stdout?.on("data", (d: Buffer) => {
+    const line = d.toString().trim();
+    backendOutput += line + "\n";
+    console.log("[backend]", line);
+  });
+  backendProcess.stderr?.on("data", (d: Buffer) => {
+    const line = d.toString().trim();
+    backendOutput += line + "\n";
+    console.error("[backend]", line);
+  });
 
   backendProcess.on("exit", (code) => {
     backendExited = true;
     if (code !== 0) {
       console.error(`[desktop] Backend exited with code ${code}`);
-      mainWindow?.webContents.executeJavaScript(
-        `console.error("[plumio] Backend process exited with code ${code}. Check that native modules were rebuilt for Electron.")`,
-      );
     }
   });
 
   await waitForBackend(backendPort);
 
   if (backendExited) {
-    // Process crashed before it became healthy — show a native error dialog
-    // so the user isn't staring at a silent "connection refused" screen.
+    // Read crash log if the backend wrote one
+    let crashDetail = "";
+    try {
+      if (fs.existsSync(crashLogPath)) {
+        crashDetail = fs.readFileSync(crashLogPath, "utf-8").trim();
+      }
+    } catch {
+      // ignore read errors
+    }
+
+    const errorParts = [
+      "The embedded backend process exited unexpectedly.",
+      "",
+    ];
+
+    if (crashDetail) {
+      errorParts.push("Error:", crashDetail, "");
+    } else if (backendOutput.trim()) {
+      // Show last few lines of backend output as a fallback
+      const lastLines = backendOutput.trim().split("\n").slice(-10).join("\n");
+      errorParts.push("Backend output:", lastLines, "");
+    }
+
+    errorParts.push(
+      "Common causes:",
+      "\u2022 Native modules not rebuilt for this Electron version",
+      "\u2022 Missing Visual C++ Redistributable (Windows)",
+    );
+
     dialog.showErrorBox(
       "Plumio — Backend Failed to Start",
-      "The embedded backend process exited unexpectedly.\n\n" +
-        "Open DevTools (Ctrl+Shift+I) and check the Console for the error details.\n\n" +
-        "Common causes:\n" +
-        "\u2022 Missing Visual C++ Redistributable (Windows)\n" +
-        "\u2022 Native modules not rebuilt for this Electron version",
+      errorParts.join("\n"),
     );
   }
 }

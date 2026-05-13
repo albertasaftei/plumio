@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { SignJWT } from "jose";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { JWT_SECRET } from "../../config.js";
 import {

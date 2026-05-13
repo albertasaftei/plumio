@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: 22
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           version: 10
 
@@ -38,9 +38,19 @@ jobs:
         working-directory: backend
         run: npm install
 
-      - name: Install desktop deps + rebuild native modules
+      - name: Install desktop deps
         working-directory: desktop
-        run: npm install
+        run: npm install --ignore-scripts
+
+      - name: Rebuild native modules for Electron
+        working-directory: desktop
+        run: npx electron-rebuild -f -w better-sqlite3
+
+      - name: Verify native module
+        working-directory: desktop
+        run: |
+          ls -la node_modules/better-sqlite3/build/Release/better_sqlite3.node
+          file node_modules/better-sqlite3/build/Release/better_sqlite3.node
 
       - name: Package .dmg
         working-directory: desktop
@@ -65,7 +75,7 @@ jobs:
         with:
           node-version: 22
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           version: 10
 
@@ -79,9 +89,20 @@ jobs:
         working-directory: backend
         run: npm install
 
-      - name: Install desktop deps + rebuild native modules
+      - name: Install desktop deps
         working-directory: desktop
-        run: npm install
+        run: npm install --ignore-scripts
+
+      - name: Rebuild native modules for Electron
+        working-directory: desktop
+        run: npx electron-rebuild -f -w better-sqlite3
+
+      - name: Verify native module
+        working-directory: desktop
+        run: |
+          if (!(Test-Path "node_modules/better-sqlite3/build/Release/better_sqlite3.node")) { throw "better-sqlite3 native binding not found" }
+          Write-Host "better-sqlite3 native binding OK"
+        shell: pwsh
 
       - name: Package .exe
         working-directory: desktop
