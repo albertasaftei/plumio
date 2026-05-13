@@ -108,21 +108,19 @@ async function waitForBackend(
   port: number,
   retries = 60,
   delayMs = 500,
-): Promise<void> {
+): Promise<boolean> {
   for (let i = 0; i < retries; i++) {
     // If the process already exited, stop waiting immediately
-    if (backendExited) break;
+    if (backendExited) return false;
     try {
       const res = await fetch(`http://127.0.0.1:${port}/api/health`);
-      if (res.ok) return;
+      if (res.ok) return true;
     } catch {
       // not ready yet — keep polling
     }
     await new Promise((r) => setTimeout(r, delayMs));
   }
-  console.warn(
-    "[desktop] Backend did not respond in time — opening window anyway",
-  );
+  return false;
 }
 
 // ── Persistent JWT secret ─────────────────────────────────────────────────────
@@ -267,43 +265,68 @@ async function startBackend(): Promise<void> {
     }
   });
 
-  await waitForBackend(backendPort);
+  const healthy = await waitForBackend(backendPort);
 
+  if (healthy) {
+    console.log("[desktop] Backend is healthy on port", backendPort);
+    return;
+  }
+
+  // Backend did NOT become healthy — diagnose why
+  let crashDetail = "";
+  try {
+    if (fs.existsSync(crashLogPath)) {
+      crashDetail = fs.readFileSync(crashLogPath, "utf-8").trim();
+    }
+  } catch {
+    // ignore read errors
+  }
+
+  // Write a full diagnostic log for troubleshooting
+  const diagLines = [
+    `Timestamp: ${new Date().toISOString()}`,
+    `Backend exited: ${backendExited}`,
+    `Backend entry: ${backendEntry}`,
+    `Backend entry exists: ${fs.existsSync(backendEntry)}`,
+    `NODE_PATH: ${unpackedNodeModules}`,
+    `NODE_PATH exists: ${fs.existsSync(unpackedNodeModules)}`,
+    `Port: ${backendPort}`,
+    `Crash log: ${crashDetail || "(none)"}`,
+    `--- Backend output ---`,
+    backendOutput || "(no output captured)",
+  ];
+  const diagPath = path.join(userData, "backend-diagnostic.log");
+  try {
+    fs.writeFileSync(diagPath, diagLines.join("\n"), "utf-8");
+  } catch {
+    // best effort
+  }
+
+  const errorParts: string[] = [];
   if (backendExited) {
-    // Read crash log if the backend wrote one
-    let crashDetail = "";
-    try {
-      if (fs.existsSync(crashLogPath)) {
-        crashDetail = fs.readFileSync(crashLogPath, "utf-8").trim();
-      }
-    } catch {
-      // ignore read errors
-    }
-
-    const errorParts = [
-      "The embedded backend process exited unexpectedly.",
-      "",
-    ];
-
-    if (crashDetail) {
-      errorParts.push("Error:", crashDetail, "");
-    } else if (backendOutput.trim()) {
-      // Show last few lines of backend output as a fallback
-      const lastLines = backendOutput.trim().split("\n").slice(-10).join("\n");
-      errorParts.push("Backend output:", lastLines, "");
-    }
-
+    errorParts.push("The embedded backend process exited unexpectedly.", "");
+  } else {
     errorParts.push(
-      "Common causes:",
-      "\u2022 Native modules not rebuilt for this Electron version",
-      "\u2022 Missing Visual C++ Redistributable (Windows)",
-    );
-
-    dialog.showErrorBox(
-      "Plumio — Backend Failed to Start",
-      errorParts.join("\n"),
+      "The embedded backend process did not respond within 30 seconds.",
+      "",
     );
   }
+
+  if (crashDetail) {
+    errorParts.push("Error:", crashDetail, "");
+  } else if (backendOutput.trim()) {
+    const lastLines = backendOutput.trim().split("\n").slice(-10).join("\n");
+    errorParts.push("Backend output:", lastLines, "");
+  } else {
+    errorParts.push("No backend output was captured.", "");
+  }
+
+  errorParts.push(`Full diagnostic log: ${diagPath}`);
+
+  dialog.showErrorBox(
+    "Plumio — Backend Failed to Start",
+    errorParts.join("\n"),
+  );
 }
 
 // ── Window ────────────────────────────────────────────────────────────────────
