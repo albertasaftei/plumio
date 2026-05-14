@@ -1,6 +1,7 @@
 import { Show, For } from "solid-js";
 import Button from "~/components/Button";
 import AlertDialog from "~/components/AlertDialog";
+import { useI18n } from "~/i18n";
 import { EVENT_GROUPS, type FormState } from "./types";
 
 interface WebhookFormDialogProps {
@@ -19,10 +20,15 @@ interface WebhookFormDialogProps {
 }
 
 export default function WebhookFormDialog(props: WebhookFormDialogProps) {
+  const { t } = useI18n();
   return (
     <AlertDialog
       isOpen={props.show}
-      title={props.editingId ? "Edit webhook" : "New webhook"}
+      title={
+        props.editingId
+          ? t("webhooks.formEditTitle")
+          : t("webhooks.formNewTitle")
+      }
       showActions={false}
       showCloseIcon
       onCancel={props.onClose}
@@ -32,7 +38,7 @@ export default function WebhookFormDialog(props: WebhookFormDialogProps) {
         {/* Name */}
         <div>
           <label class="block text-sm font-medium text-secondary-body mb-1">
-            Name
+            {t("webhooks.formName")}
           </label>
           <input
             type="text"
@@ -40,7 +46,7 @@ export default function WebhookFormDialog(props: WebhookFormDialogProps) {
             onInput={(e) =>
               props.setForm({ ...props.form, name: e.currentTarget.value })
             }
-            placeholder="My webhook"
+            placeholder={t("webhooks.formNamePlaceholder")}
             class="w-full px-3 py-2 bg-base border border-base rounded-md text-body text-sm placeholder:text-muted-body focus:outline-none focus:border-primary"
           />
         </div>
@@ -48,7 +54,7 @@ export default function WebhookFormDialog(props: WebhookFormDialogProps) {
         {/* URL */}
         <div>
           <label class="block text-sm font-medium text-secondary-body mb-1">
-            Payload URL
+            {t("webhooks.formUrl")}
           </label>
           <input
             type="url"
@@ -56,7 +62,7 @@ export default function WebhookFormDialog(props: WebhookFormDialogProps) {
             onInput={(e) =>
               props.setForm({ ...props.form, url: e.currentTarget.value })
             }
-            placeholder="https://example.com/webhook"
+            placeholder={t("webhooks.formUrlPlaceholder")}
             class="w-full px-3 py-2 bg-base border border-base rounded-md text-body text-sm placeholder:text-muted-body focus:outline-none focus:border-primary"
           />
         </div>
@@ -64,8 +70,8 @@ export default function WebhookFormDialog(props: WebhookFormDialogProps) {
         {/* Secret */}
         <div>
           <label class="block text-sm font-medium text-secondary-body mb-1">
-            Secret
-            {props.editingId ? " (leave blank to keep unchanged)" : ""}
+            {t("webhooks.formSecret")}
+            {props.editingId ? t("webhooks.formSecretEditHint") : ""}
           </label>
           <div class="relative">
             <input
@@ -79,8 +85,8 @@ export default function WebhookFormDialog(props: WebhookFormDialogProps) {
               }
               placeholder={
                 props.editingId
-                  ? "Enter new secret to change"
-                  : "Min. 8 characters"
+                  ? t("webhooks.formSecretEditPlaceholder")
+                  : t("webhooks.formSecretPlaceholder")
               }
               class="w-full px-3 py-2 pr-10 bg-base border border-base rounded-md text-body text-sm placeholder:text-muted-body focus:outline-none focus:border-primary"
             />
@@ -99,16 +105,14 @@ export default function WebhookFormDialog(props: WebhookFormDialogProps) {
             </button>
           </div>
           <p class="text-xs text-muted-body mt-1">
-            Used to sign requests via{" "}
-            <code class="bg-base px-1 rounded text-xs">X-Plumio-Signature</code>
-            . Verify it on your server to confirm authenticity.
+            {t("webhooks.formSecretDesc")}
           </p>
         </div>
 
         {/* Events */}
         <div>
           <label class="block text-sm font-medium text-secondary-body mb-2">
-            Events
+            {t("webhooks.formEvents")}
           </label>
           <div class="space-y-3">
             <For each={EVENT_GROUPS}>
@@ -130,7 +134,7 @@ export default function WebhookFormDialog(props: WebhookFormDialogProps) {
                           "i-carbon-checkbox": !groupSelected(),
                         }}
                       />
-                      {group.label}
+                      {t(group.label as any)}
                     </button>
                     <div class="grid grid-cols-2 gap-1">
                       <For each={group.events as unknown as string[]}>
@@ -178,7 +182,7 @@ export default function WebhookFormDialog(props: WebhookFormDialogProps) {
             size="md"
             type="button"
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             type="submit"
@@ -187,10 +191,10 @@ export default function WebhookFormDialog(props: WebhookFormDialogProps) {
             disabled={props.saving}
           >
             {props.saving
-              ? "Saving…"
+              ? t("webhooks.formSaving")
               : props.editingId
-                ? "Save changes"
-                : "Create webhook"}
+                ? t("webhooks.formSaveChanges")
+                : t("webhooks.formCreate")}
           </Button>
         </div>
       </form>

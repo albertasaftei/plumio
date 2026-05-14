@@ -1,6 +1,7 @@
 import { For, Show } from "solid-js";
 import AlertDialog from "~/components/AlertDialog";
 import { formatAbsoluteDate } from "~/utils/date.utils";
+import { useI18n } from "~/i18n";
 import type { Webhook, Delivery } from "./types";
 
 interface DeliveriesDialogProps {
@@ -11,10 +12,11 @@ interface DeliveriesDialogProps {
 }
 
 export default function DeliveriesDialog(props: DeliveriesDialogProps) {
+  const { t } = useI18n();
   return (
     <AlertDialog
       isOpen={!!props.webhook}
-      title="Recent deliveries"
+      title={t("webhooks.deliveriesTitle")}
       showActions={false}
       showCloseIcon
       onCancel={props.onClose}
@@ -25,14 +27,16 @@ export default function DeliveriesDialog(props: DeliveriesDialogProps) {
         <Show
           when={!props.loading}
           fallback={
-            <p class="text-muted-body text-sm text-center py-8">Loading…</p>
+            <p class="text-muted-body text-sm text-center py-8">
+              {t("common.loading")}
+            </p>
           }
         >
           <Show
             when={props.deliveries.length > 0}
             fallback={
               <p class="text-muted-body text-sm text-center py-8">
-                No deliveries yet.
+                {t("webhooks.noDeliveries")}
               </p>
             }
           >
@@ -40,10 +44,18 @@ export default function DeliveriesDialog(props: DeliveriesDialogProps) {
               <table class="w-full text-sm min-w-[380px]">
                 <thead>
                   <tr class="border-b border-base text-muted-body text-xs">
-                    <th class="text-left pb-2 pr-4 font-medium">Event</th>
-                    <th class="text-left pb-2 pr-4 font-medium">Status</th>
-                    <th class="text-left pb-2 pr-4 font-medium">HTTP</th>
-                    <th class="text-left pb-2 font-medium">Time</th>
+                    <th class="text-left pb-2 pr-4 font-medium">
+                      {t("webhooks.colEvent")}
+                    </th>
+                    <th class="text-left pb-2 pr-4 font-medium">
+                      {t("webhooks.colStatus")}
+                    </th>
+                    <th class="text-left pb-2 pr-4 font-medium">
+                      {t("webhooks.colHttp")}
+                    </th>
+                    <th class="text-left pb-2 font-medium">
+                      {t("webhooks.colTime")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-[var(--color-border)]">

@@ -115,7 +115,7 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
               fullWidth
             >
               <div class="i-carbon-webhook w-4 h-4" />
-              <span class="ml-2">Webhooks</span>
+              <span class="ml-2">{t("settings.webhooks")}</span>
             </Button>
           </Show>
 

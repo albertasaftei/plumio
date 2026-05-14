@@ -47,7 +47,7 @@ export const ALL_EVENTS = [
 
 export const EVENT_GROUPS = [
   {
-    label: "Documents",
+    label: "webhooks.groupDocuments",
     events: [
       "document.created",
       "document.updated",
@@ -61,11 +61,11 @@ export const EVENT_GROUPS = [
     ],
   },
   {
-    label: "Folders",
+    label: "webhooks.groupFolders",
     events: ["folder.created", "folder.deleted"],
   },
   {
-    label: "Tags",
+    label: "webhooks.groupTags",
     events: ["tag.created", "tag.updated", "tag.deleted"],
   },
 ] as const;

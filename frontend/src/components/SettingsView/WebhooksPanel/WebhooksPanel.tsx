@@ -5,6 +5,7 @@ import AlertDialog from "~/components/AlertDialog";
 import Toast from "~/components/Toast";
 import Toggle from "~/components/Toggle";
 import { formatAbsoluteDate } from "~/utils/date.utils";
+import { useI18n } from "~/i18n";
 import WebhookFormDialog from "./WebhookFormDialog";
 import DeliveriesDialog from "./DeliveriesDialog";
 import type { Webhook, Delivery, FormState } from "./types";
@@ -20,6 +21,7 @@ function emptyForm(): FormState {
 }
 
 export default function WebhooksPanel() {
+  const { t } = useI18n();
   const [webhooks, setWebhooks] = createSignal<Webhook[]>([]);
   const [loading, setLoading] = createSignal(true);
   const [toast, setToast] = createSignal<{
@@ -61,7 +63,7 @@ export default function WebhooksPanel() {
       const { webhooks: data } = await api.listWebhooks();
       setWebhooks(data);
     } catch {
-      setToast({ message: "Failed to load webhooks", type: "error" });
+      setToast({ message: t("webhooks.failedLoad"), type: "error" });
     } finally {
       setLoading(false);
     }
@@ -122,20 +124,20 @@ export default function WebhooksPanel() {
     const f = form();
 
     if (!f.name.trim()) {
-      setFormError("Name is required.");
+      setFormError(t("webhooks.errorNameRequired"));
       return;
     }
     if (!f.url.trim()) {
-      setFormError("URL is required.");
+      setFormError(t("webhooks.errorUrlRequired"));
       return;
     }
     if (f.events.length === 0) {
-      setFormError("Select at least one event.");
+      setFormError(t("webhooks.errorNoEvents"));
       return;
     }
     const id = editingId();
     if (!id && f.secret.length < 8) {
-      setFormError("Secret must be at least 8 characters.");
+      setFormError(t("webhooks.errorSecretTooShort"));
       return;
     }
 
@@ -154,7 +156,7 @@ export default function WebhooksPanel() {
         }
         const { webhook } = await api.updateWebhook(id, payload);
         setWebhooks((prev) => prev.map((w) => (w.id === id ? webhook : w)));
-        setToast({ message: "Webhook updated", type: "success" });
+        setToast({ message: t("webhooks.toastUpdated"), type: "success" });
       } else {
         const { webhook } = await api.createWebhook({
           name: f.name.trim(),
@@ -163,11 +165,11 @@ export default function WebhooksPanel() {
           events: f.events,
         });
         setWebhooks((prev) => [webhook, ...prev]);
-        setToast({ message: "Webhook created", type: "success" });
+        setToast({ message: t("webhooks.toastCreated"), type: "success" });
       }
       closeForm();
     } catch (err: any) {
-      setFormError(err.message || "Failed to save webhook.");
+      setFormError(err.message || t("webhooks.failedSave"));
     } finally {
       setSaving(false);
     }
@@ -181,10 +183,10 @@ export default function WebhooksPanel() {
       await api.deleteWebhook(wh.id);
       setWebhooks((prev) => prev.filter((w) => w.id !== wh.id));
       setDeleteDialog({ isOpen: false, webhook: null });
-      setToast({ message: "Webhook deleted", type: "success" });
+      setToast({ message: t("webhooks.toastDeleted"), type: "success" });
     } catch (err: any) {
       setToast({
-        message: err.message || "Failed to delete webhook",
+        message: err.message || t("webhooks.failedDelete"),
         type: "error",
       });
     } finally {
@@ -196,10 +198,10 @@ export default function WebhooksPanel() {
     setTestingId(wh.id);
     try {
       await api.testWebhook(wh.id);
-      setToast({ message: "Test ping sent", type: "success" });
+      setToast({ message: t("webhooks.toastTestPingSent"), type: "success" });
     } catch (err: any) {
       setToast({
-        message: err.message || "Failed to send test ping",
+        message: err.message || t("webhooks.failedTestPing"),
         type: "error",
       });
     } finally {
@@ -227,7 +229,7 @@ export default function WebhooksPanel() {
       setWebhooks((prev) => prev.map((w) => (w.id === wh.id ? webhook : w)));
     } catch (err: any) {
       setToast({
-        message: err.message || "Failed to update webhook",
+        message: err.message || t("webhooks.failedUpdate"),
         type: "error",
       });
     }
@@ -236,10 +238,10 @@ export default function WebhooksPanel() {
   return (
     <div class="space-y-4">
       <Show when={toast()}>
-        {(t) => (
+        {(toastMsg) => (
           <Toast
-            message={t().message}
-            type={t().type}
+            message={toastMsg().message}
+            type={toastMsg().type}
             onClose={() => setToast(null)}
           />
         )}
@@ -247,9 +249,7 @@ export default function WebhooksPanel() {
 
       {/* Header */}
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <p class="text-sm text-muted-body">
-          Receive HTTP POST requests when events occur in your organization.
-        </p>
+        <p class="text-sm text-muted-body">{t("webhooks.description")}</p>
         <Button
           onClick={openCreate}
           variant="primary"
@@ -257,7 +257,7 @@ export default function WebhooksPanel() {
           class="self-start sm:self-auto flex-shrink-0"
         >
           <div class="i-carbon-add w-4 h-4 mr-2" />
-          Add webhook
+          {t("webhooks.addWebhook")}
         </Button>
       </div>
 
@@ -265,7 +265,9 @@ export default function WebhooksPanel() {
       <Show
         when={!loading()}
         fallback={
-          <div class="text-muted-body text-sm py-8 text-center">Loading…</div>
+          <div class="text-muted-body text-sm py-8 text-center">
+            {t("common.loading")}
+          </div>
         }
       >
         <Show
@@ -273,9 +275,9 @@ export default function WebhooksPanel() {
           fallback={
             <div class="text-center py-12 border border-dashed border-base rounded-lg">
               <div class="i-carbon-webhook w-10 h-10 mx-auto mb-3 opacity-30 text-primary" />
-              <p class="text-secondary-body text-sm">No webhooks yet.</p>
+              <p class="text-secondary-body text-sm">{t("webhooks.empty")}</p>
               <p class="text-muted-body text-xs mt-1">
-                Add one to start receiving event notifications.
+                {t("webhooks.emptyHint")}
               </p>
             </div>
           }
@@ -292,7 +294,11 @@ export default function WebhooksPanel() {
                         "bg-green-400": wh.active === 1,
                         "bg-red-400": wh.active !== 1,
                       }}
-                      title={wh.active === 1 ? "Active" : "Inactive"}
+                      title={
+                        wh.active === 1
+                          ? t("webhooks.titleActive")
+                          : t("webhooks.titleInactive")
+                      }
                     />
                   </div>
 
@@ -305,8 +311,12 @@ export default function WebhooksPanel() {
                           {wh.name}
                         </span>
                         <span class="text-xs text-muted-body bg-surface px-2 py-0.5 rounded border border-base">
-                          {wh.events.length} event
-                          {wh.events.length !== 1 ? "s" : ""}
+                          {t(
+                            wh.events.length !== 1
+                              ? "webhooks.eventCount_other"
+                              : "webhooks.eventCount_one",
+                            { count: wh.events.length },
+                          )}
                         </span>
                       </div>
                       <p
@@ -316,7 +326,9 @@ export default function WebhooksPanel() {
                         {wh.url}
                       </p>
                       <p class="text-xs text-muted-body mt-0.5">
-                        Created {formatAbsoluteDate(wh.created_at)}
+                        {t("webhooks.createdAt", {
+                          date: formatAbsoluteDate(wh.created_at),
+                        })}
                       </p>
                     </div>
 
@@ -330,7 +342,7 @@ export default function WebhooksPanel() {
                         onClick={() => handleTest(wh)}
                         variant="secondary"
                         size="sm"
-                        title="Send test ping"
+                        title={t("webhooks.titleTestPing")}
                         disabled={testingId() === wh.id}
                       >
                         <Show
@@ -346,7 +358,7 @@ export default function WebhooksPanel() {
                         onClick={() => openDeliveries(wh)}
                         variant="secondary"
                         size="sm"
-                        title="View deliveries"
+                        title={t("webhooks.titleViewDeliveries")}
                       >
                         <div class="i-carbon-data-table w-5 h-5" />
                       </Button>
@@ -354,7 +366,7 @@ export default function WebhooksPanel() {
                         onClick={() => openEdit(wh)}
                         variant="secondary"
                         size="sm"
-                        title="Edit"
+                        title={t("webhooks.titleEdit")}
                       >
                         <div class="i-carbon-edit w-5 h-5" />
                       </Button>
@@ -364,7 +376,7 @@ export default function WebhooksPanel() {
                         }
                         variant="secondary"
                         size="sm"
-                        title="Delete"
+                        title={t("webhooks.titleDelete")}
                         class="text-red-400 hover:text-red-300"
                       >
                         <div class="i-carbon-trash-can w-5 h-5" />
@@ -396,11 +408,13 @@ export default function WebhooksPanel() {
       {/* Delete confirmation */}
       <AlertDialog
         isOpen={deleteDialog().isOpen}
-        title="Delete webhook"
-        message={`Delete "${deleteDialog().webhook?.name}"? This will also remove all delivery logs.`}
+        title={t("webhooks.deleteTitle")}
+        message={t("webhooks.deleteConfirm", {
+          name: deleteDialog().webhook?.name ?? "",
+        })}
         onConfirm={handleDelete}
         onCancel={() => setDeleteDialog({ isOpen: false, webhook: null })}
-        confirmText={deleting() ? "Deleting…" : "Delete"}
+        confirmText={deleting() ? t("webhooks.deleting") : t("common.delete")}
         variant="danger"
       />
 
