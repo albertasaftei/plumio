@@ -116,3 +116,28 @@ export interface Notification {
 export interface TagWithCount extends Tag {
   document_count: number;
 }
+
+export interface Webhook {
+  id: number;
+  org_id: number;
+  name: string;
+  url: string;
+  secret: string;
+  events: string; // JSON array stored as text
+  active: number; // 1 = active, 0 = inactive
+  created_at: string;
+  created_by: number;
+}
+
+export interface WebhookDelivery {
+  id: number;
+  webhook_id: number;
+  event: string;
+  payload: string; // JSON stored as text
+  status: "success" | "failed" | "pending";
+  response_status: number | null;
+  response_body: string | null;
+  attempts: number;
+  delivered_at: string | null;
+  created_at: string;
+}

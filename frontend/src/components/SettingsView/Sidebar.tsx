@@ -8,6 +8,7 @@ export type SettingsSection =
   | "editor"
   | "import-export"
   | "organization"
+  | "webhooks"
   | "admin"
   | "app-configuration"
   | "build-information"
@@ -104,6 +105,17 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
             >
               <div class="i-carbon-enterprise w-4 h-4" />
               <span class="ml-2">{t("settings.organization")}</span>
+            </Button>
+            <Button
+              onClick={() => props.onSectionChange("webhooks")}
+              variant={
+                props.activeSection === "webhooks" ? "secondary" : "ghost"
+              }
+              size="md"
+              fullWidth
+            >
+              <div class="i-carbon-webhook w-4 h-4" />
+              <span class="ml-2">Webhooks</span>
             </Button>
           </Show>
 

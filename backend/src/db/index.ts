@@ -16,6 +16,8 @@ import {
   Tag,
   TagWithCount,
   User,
+  Webhook,
+  WebhookDelivery,
 } from "./index.types.js";
 import fsp from "fs/promises";
 import pathMod from "path";
@@ -692,6 +694,43 @@ export const notificationQueries = {
   ),
 };
 
+// === Webhook Queries ===
+export const webhookQueries = {
+  create: db.prepare<[number, string, string, string, string, number]>(
+    "INSERT INTO webhooks (org_id, name, url, secret, events, created_by) VALUES (?, ?, ?, ?, ?, ?)",
+  ),
+  findById: db.prepare<[number], Webhook>(
+    "SELECT * FROM webhooks WHERE id = ?",
+  ),
+  listByOrg: db.prepare<[number], Webhook>(
+    "SELECT * FROM webhooks WHERE org_id = ? ORDER BY created_at DESC",
+  ),
+  listActiveForOrgAndEvent: db.prepare<[number], Webhook>(
+    "SELECT * FROM webhooks WHERE org_id = ? AND active = 1",
+  ),
+  update: db.prepare<[string, string, string, string, number, number]>(
+    "UPDATE webhooks SET name = ?, url = ?, secret = ?, events = ?, active = ? WHERE id = ?",
+  ),
+  delete: db.prepare<[number]>("DELETE FROM webhooks WHERE id = ?"),
+};
+
+export const webhookDeliveryQueries = {
+  insert: db.prepare<[number, string, string]>(
+    "INSERT INTO webhook_deliveries (webhook_id, event, payload) VALUES (?, ?, ?)",
+  ),
+  updateResult: db.prepare<
+    [string, number | null, string | null, number, number]
+  >(
+    "UPDATE webhook_deliveries SET status = ?, response_status = ?, response_body = ?, attempts = attempts + ?, delivered_at = CASE WHEN ? = 1 THEN CURRENT_TIMESTAMP ELSE NULL END WHERE id = ?",
+  ),
+  listByWebhook: db.prepare<[number, number, number], WebhookDelivery>(
+    "SELECT * FROM webhook_deliveries WHERE webhook_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+  ),
+  deleteOld: db.prepare<[string]>(
+    "DELETE FROM webhook_deliveries WHERE created_at < ?",
+  ),
+};
+
 // Cleanup expired sessions periodically (skip during tests)
 if (process.env.NODE_ENV !== "test") {
   setInterval(
@@ -705,6 +744,9 @@ if (process.env.NODE_ENV !== "test") {
       const ninetyDaysAgo = new Date();
       ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
       notificationQueries.deleteOld.run(ninetyDaysAgo.toISOString());
+
+      // Cleanup old webhook deliveries (90+ days)
+      webhookDeliveryQueries.deleteOld.run(ninetyDaysAgo.toISOString());
     },
     60 * 60 * 1000,
   ); // Every hour

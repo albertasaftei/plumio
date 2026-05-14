@@ -40,6 +40,7 @@ import {
   duplicateItemSchema,
   reorderDocumentSchema,
 } from "./helpers/schemas.js";
+import { deliverWebhook } from "../../utils/webhooks.js";
 
 type Variables = {
   user: UserJWTPayload;
@@ -266,14 +267,22 @@ documentsRouter.post("/save", async (c) => {
       escapeHtmlForFts(content),
     );
 
+    deliverWebhook(
+      organizationId,
+      isNew ? "document.created" : "document.updated",
+      {
+        path: uniquePath,
+        title,
+        size: stats.size,
+      },
+    );
+
     return c.json({ message: "Document saved successfully", path: uniquePath });
   } catch (error) {
     console.error("Error saving document:", error);
     return c.json({ error: "Failed to save document" }, 500);
   }
 });
-
-// Create folder
 documentsRouter.post("/folder", async (c) => {
   const parsed = createFolderSchema.safeParse(await c.req.json());
   const user = c.get("user");
@@ -304,6 +313,7 @@ documentsRouter.post("/folder", async (c) => {
 
   try {
     await fs.mkdir(fullPath, { recursive: true });
+    deliverWebhook(organizationId, "folder.created", { path: folderPath });
     return c.json({ message: "Folder created successfully", path: folderPath });
   } catch (error) {
     console.error("Error creating folder:", error);
@@ -385,6 +395,7 @@ documentsRouter.delete("/delete", async (c) => {
 
       // Hard-delete the now-empty (or fully renamed) folder
       await fs.rm(fullPath, { recursive: true });
+      deliverWebhook(organizationId, "folder.deleted", { path: filePath });
     } else {
       // Soft delete: rename file with .deleted-{timestamp} suffix
       const timestamp = Date.now();
@@ -443,6 +454,7 @@ documentsRouter.delete("/delete", async (c) => {
       } catch {
         // Metadata file might not exist, which is fine
       }
+      deliverWebhook(organizationId, "document.deleted", { path: filePath });
     }
 
     return c.json({ message: "Deleted successfully" });
@@ -519,6 +531,7 @@ documentsRouter.post("/rename", async (c) => {
       documentQueries.updatePath.run(newPath, organizationId, oldPath);
     }
 
+    deliverWebhook(organizationId, "document.renamed", { oldPath, newPath });
     return c.json({ message: "Renamed successfully", newPath });
   } catch (error) {
     console.error("Error renaming:", error);
@@ -612,6 +625,10 @@ documentsRouter.post("/move", async (c) => {
       documentQueries.updatePath.run(newPath, organizationId, sourcePath);
     }
 
+    deliverWebhook(organizationId, "document.renamed", {
+      oldPath: sourcePath,
+      newPath,
+    });
     return c.json({ message: "Moved successfully", newPath });
   } catch (error) {
     console.error("Error moving:", error);
@@ -1154,6 +1171,10 @@ documentsRouter.post("/archive", async (c) => {
     `,
     ).run(archivedPath, user.userId, user.currentOrgId, docPath);
 
+    deliverWebhook(user.currentOrgId, "document.archived", {
+      path: docPath,
+      archivedPath,
+    });
     return c.json({ success: true, archivedPath });
   } catch (error) {
     console.error("Error archiving document:", error);
@@ -1217,6 +1238,9 @@ documentsRouter.post("/unarchive", async (c) => {
     `,
     ).run(restoredPath, user.currentOrgId, docPath);
 
+    deliverWebhook(user.currentOrgId, "document.unarchived", {
+      path: restoredPath,
+    });
     return c.json({ success: true, restoredPath });
   } catch (error) {
     console.error("Error unarchiving document:", error);
@@ -1401,6 +1425,9 @@ documentsRouter.post("/deleted/restore", async (c) => {
     `,
     ).run(restoredPath, user.currentOrgId, docPath);
 
+    deliverWebhook(user.currentOrgId, "document.restored", {
+      path: restoredPath,
+    });
     return c.json({ success: true, restoredPath });
   } catch (error) {
     console.error("Error restoring document:", error);

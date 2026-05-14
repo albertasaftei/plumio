@@ -8,6 +8,10 @@ import {
   setDocumentTagsSchema,
   bulkTagSchema,
 } from "./helpers/schemas.js";
+import { deliverWebhook } from "../../utils/webhooks.js";
+
+// Neutral gray used as the display fallback when a tag has no color assigned
+const DEFAULT_TAG_COLOR = "#6b7280";
 
 type Variables = {
   user: UserJWTPayload;
@@ -67,6 +71,11 @@ tagsRouter.post("/", async (c) => {
       Number(result.lastInsertRowid),
       user.userId,
     );
+    deliverWebhook(user.currentOrgId, "tag.created", {
+      id: tag?.id,
+      name: tag?.name,
+      color: tag?.color ?? DEFAULT_TAG_COLOR,
+    });
     return c.json({ tag }, 201);
   } catch (error) {
     return c.json({ error: "Failed to create tag" }, 500);
@@ -117,6 +126,13 @@ tagsRouter.put("/:id", async (c) => {
 
   tagQueries.update.run(name, color, description, tagId, user.userId);
   const updated = tagQueries.findById.get(tagId, user.userId);
+  if (updated && user.currentOrgId) {
+    deliverWebhook(user.currentOrgId, "tag.updated", {
+      id: updated.id,
+      name: updated.name,
+      color: updated.color ?? DEFAULT_TAG_COLOR,
+    });
+  }
   return c.json({ tag: updated });
 });
 
@@ -134,6 +150,12 @@ tagsRouter.delete("/:id", (c) => {
   }
 
   tagQueries.delete.run(tagId, user.userId);
+  if (user.currentOrgId) {
+    deliverWebhook(user.currentOrgId, "tag.deleted", {
+      id: existing.id,
+      name: existing.name,
+    });
+  }
   return c.json({ message: "Tag deleted" });
 });
 
@@ -219,9 +241,30 @@ tagsRouter.post("/document", async (c) => {
     }
   }
 
+  // Capture old tags before update for diffing
+  const oldTags = tagQueries.getTagsForDocument.all(doc.id, user.userId);
+  const oldTagIds = new Set(oldTags.map((t) => t.id));
+  const newTagIds = new Set(parsed.data.tagIds);
+
   tagQueries.setDocumentTags(doc.id, parsed.data.tagIds);
 
   const tags = tagQueries.getTagsForDocument.all(doc.id, user.userId);
+
+  const added = parsed.data.tagIds.filter((id) => !oldTagIds.has(id));
+  const removed = [...oldTagIds].filter((id) => !newTagIds.has(id));
+  if (added.length > 0) {
+    deliverWebhook(user.currentOrgId, "document.tagged", {
+      documentPath: parsed.data.path,
+      addedTagIds: added,
+    });
+  }
+  if (removed.length > 0) {
+    deliverWebhook(user.currentOrgId, "document.untagged", {
+      documentPath: parsed.data.path,
+      removedTagIds: removed,
+    });
+  }
+
   return c.json({ tags });
 });
 

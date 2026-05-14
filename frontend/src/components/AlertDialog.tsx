@@ -31,7 +31,7 @@ export default function AlertDialog(props: AlertDialogProps) {
       >
         {/* Dialog */}
         <div
-          class="bg-surface border border-base rounded-lg shadow-xl light:shadow-2xl max-w-xl w-full p-6 animate-dialog-scale-in relative"
+          class={`bg-surface border border-base rounded-lg shadow-xl light:shadow-2xl w-full p-6 animate-dialog-scale-in relative ${props.dialogClass ?? "max-w-xl"}`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close Icon */}

@@ -4,35 +4,7 @@ import { initializeTheme, Theme, THEME_META, useTheme } from "~/lib/theme";
 import ThemeSwatch from "~/components/ThemeSwatch";
 import { api } from "~/lib/api";
 import { useI18n } from "~/i18n";
-
-interface ToggleProps {
-  enabled: boolean;
-  onChange: (value: boolean) => void;
-}
-
-function Toggle(props: ToggleProps) {
-  return (
-    <button
-      onClick={() => props.onChange(!props.enabled)}
-      class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-neutral-800 light:focus:ring-offset-white"
-      classList={{
-        "bg-primary": props.enabled,
-        "bg-neutral-600 dark:bg-neutral-600 light:bg-neutral-300":
-          !props.enabled,
-      }}
-      role="switch"
-      aria-checked={props.enabled}
-    >
-      <span
-        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-        classList={{
-          "translate-x-6": props.enabled,
-          "translate-x-1": !props.enabled,
-        }}
-      />
-    </button>
-  );
-}
+import Toggle from "~/components/Toggle";
 
 export default function EditorPreferences() {
   const { t } = useI18n();
@@ -64,9 +36,7 @@ export default function EditorPreferences() {
         <h3 class="text-xl font-semibold text-body mb-1">
           {t("editorPrefs.themeTitle")}
         </h3>
-        <p class="text-sm text-muted-body mb-4">
-          {t("editorPrefs.themeDesc")}
-        </p>
+        <p class="text-sm text-muted-body mb-4">{t("editorPrefs.themeDesc")}</p>
         <div class="grid grid-cols-3 sm:grid-cols-5 gap-3">
           <For each={themes}>
             {([id]) => (
@@ -95,9 +65,7 @@ export default function EditorPreferences() {
               <label class="block text-sm font-medium text-secondary-body mb-1">
                 {t("editorPrefs.vimLabel")}
               </label>
-              <p class="text-sm text-muted-body">
-                {t("editorPrefs.vimDesc")}
-              </p>
+              <p class="text-sm text-muted-body">{t("editorPrefs.vimDesc")}</p>
             </div>
             <Toggle enabled={vimEnabled()} onChange={handleVimToggle} />
           </div>
@@ -165,8 +133,7 @@ export default function EditorPreferences() {
               </p>
               <div class="space-y-1 font-mono text-muted-body">
                 <p>
-                  <span class="text-body">x</span>{" "}
-                  {t("editorPrefs.vimEdit1")}
+                  <span class="text-body">x</span> {t("editorPrefs.vimEdit1")}
                 </p>
                 <p>
                   <span class="text-body">dd / yy</span>{" "}
@@ -189,16 +156,14 @@ export default function EditorPreferences() {
               </p>
               <div class="space-y-1 font-mono text-muted-body">
                 <p>
-                  <span class="text-body">v</span>{" "}
-                  {t("editorPrefs.vimVisual1")}
+                  <span class="text-body">v</span> {t("editorPrefs.vimVisual1")}
                 </p>
                 <p>
                   <span class="text-body">h j k l w b</span>{" "}
                   {t("editorPrefs.vimVisual2")}
                 </p>
                 <p>
-                  <span class="text-body">y</span>{" "}
-                  {t("editorPrefs.vimVisual3")}
+                  <span class="text-body">y</span> {t("editorPrefs.vimVisual3")}
                 </p>
                 <p>
                   <span class="text-body">d / x</span>{" "}

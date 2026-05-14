@@ -12,4 +12,5 @@ export interface AlertDialogProps {
   variant?: "danger" | "warning" | "info";
   showActions?: boolean;
   showCloseIcon?: boolean;
+  dialogClass?: string;
 }
