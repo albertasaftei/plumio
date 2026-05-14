@@ -272,6 +272,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             onViewArchive={props.onViewArchive}
             onViewDeleted={props.onViewDeleted}
             onViewTags={props.onViewTags}
+            onViewOrgs={props.onViewOrgs}
             onOrgSwitch={props.onOrgSwitch}
             saveStatus={props.saveStatus}
             setSidebarOpen={props.setSidebarOpen}
@@ -329,6 +330,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             onViewArchive={props.onViewArchive}
             onViewDeleted={props.onViewDeleted}
             onViewTags={props.onViewTags}
+            onViewOrgs={props.onViewOrgs}
             onOrgSwitch={props.onOrgSwitch}
             saveStatus={props.saveStatus}
             setSidebarOpen={props.setSidebarOpen}

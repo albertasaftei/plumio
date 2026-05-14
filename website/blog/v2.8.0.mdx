@@ -1,0 +1,41 @@
+---
+slug: v2.8.0
+title: v2.8.0
+authors: [alburt]
+date: 2026-05-08
+tags: [release, minor]
+---
+
+Version <span style={{color: "#2a9d8f", fontWeight: "bold"}}>2.8.0</span> of plumio is here!
+
+{/* truncate */}
+
+This release includes:
+
+### Major highlights
+
+- Added <span style={{color: "#2a9d8f", fontWeight: "bold"}}>join request system for organizations</span>. Users can now request to join an organization, and admins can approve or reject these requests from the admin panel.
+    - Newly registering users can also select an existing organization to **request access** to **during signup**.
+    - Added a new section in the sidebar with an organization list where users can send join requests, and see the status of their requests (pending/approved/rejected).
+    - Added notifications for organization admins when a new join request is submitted. Emails will be sent to all org admins as well if **SMTP** is configured.
+    - Organization admins can allow users to discover the organization in the join request sidebar by toggling the dedicated setting in the organization settings page.
+    - Organization admins can set **auto-accept** for incoming join requests, allowing users to immediately join the organization without admin approval in the organization settings page.
+- Added <span style={{color: "#2a9d8f", fontWeight: "bold"}}>download options for documents in markdown and PDF formats</span>. Users can download their documents in their preferred format for offline access or sharing.
+    - All "special"features like Mermaid diagrams, math equations, and syntax highlighting are supported in the downloaded markdown and PDF files.
+    - PDF files attached directly in the editor will be rendered as pages in the downloaded document.
+- Added <span style={{color: "#2a9d8f", fontWeight: "bold"}}>Vim motions support in the editor</span>. This setting can be enabled in the new Editor settings page.
+- The Move tool now supports moving documents and folders across organizations for users who are members of multiple organizations. When moving an item to another organization, users will have the option to either keep the original item in the source organization or remove it after the move is complete.
+- Added <span style={{color: "#2a9d8f", fontWeight: "bold"}}>internationalization support for some languages</span> (contributions welcome!)
+- Added <span style={{color: "#2a9d8f", fontWeight: "bold"}}>sketching support</span> in the editor, allowing users to create and insert freehand drawings into their documents. The sketching tool supports various stroke colors, sizes, and opacities, and the resulting sketches are saved as part of the document content.
+- Added <span style={{color: "#2a9d8f", fontWeight: "bold"}}>internal file navigation support</span> in the editor. Users can now navigate to other documents within the same organization by clicking on links that point to those documents.
+
+### Minor highlights
+
+- Peaked some UI elements for a better visual hierarchy and readability.
+- Moved Themes section inside the new Editor settings page.
+
+### Security
+
+- Updated dependencies to fix security vulnerabilities.
+
+Thank you for using plumio! 🎉

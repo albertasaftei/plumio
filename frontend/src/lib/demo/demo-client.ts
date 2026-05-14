@@ -101,7 +101,7 @@ export const demoClient = {
 
     const user = getDemoUser();
     const org = getDemoOrg();
-    return { user, orgs: [org] };
+    return { valid: true as const, theme: "dark", user, orgs: [org] };
   },
 
   async register(email: string, username: string, password: string) {
