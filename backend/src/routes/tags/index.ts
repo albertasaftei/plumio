@@ -1,6 +1,10 @@
 import { Hono } from "hono";
 import { documentQueries, tagQueries } from "../../db/index.js";
-import { authMiddleware } from "../../middlewares/auth.js";
+import {
+  combinedAuthMiddleware,
+  requirePermission,
+  requireAnyPermission,
+} from "../../middlewares/auth.js";
 import { UserJWTPayload } from "../../middlewares/auth.types.js";
 import {
   createTagSchema,
@@ -19,10 +23,10 @@ type Variables = {
 
 const tagsRouter = new Hono<{ Variables: Variables }>();
 
-tagsRouter.use("*", authMiddleware);
+tagsRouter.use("*", combinedAuthMiddleware);
 
 // List all tags for the current user + org (with document counts)
-tagsRouter.get("/", (c) => {
+tagsRouter.get("/", requirePermission("tags:read"), (c) => {
   const user = c.get("user");
   if (!user.currentOrgId) {
     return c.json({ error: "No organization selected" }, 400);
@@ -32,7 +36,7 @@ tagsRouter.get("/", (c) => {
 });
 
 // Create a new tag
-tagsRouter.post("/", async (c) => {
+tagsRouter.post("/", requirePermission("tags:create"), async (c) => {
   const user = c.get("user");
   if (!user.currentOrgId) {
     return c.json({ error: "No organization selected" }, 400);
@@ -83,7 +87,7 @@ tagsRouter.post("/", async (c) => {
 });
 
 // Update a tag
-tagsRouter.put("/:id", async (c) => {
+tagsRouter.put("/:id", requirePermission("tags:update"), async (c) => {
   const user = c.get("user");
   const tagId = parseInt(c.req.param("id"), 10);
   if (isNaN(tagId)) {
@@ -137,7 +141,7 @@ tagsRouter.put("/:id", async (c) => {
 });
 
 // Delete a tag
-tagsRouter.delete("/:id", (c) => {
+tagsRouter.delete("/:id", requirePermission("tags:delete"), (c) => {
   const user = c.get("user");
   const tagId = parseInt(c.req.param("id"), 10);
   if (isNaN(tagId)) {
@@ -160,7 +164,7 @@ tagsRouter.delete("/:id", (c) => {
 });
 
 // Get documents for a tag
-tagsRouter.get("/:id/documents", (c) => {
+tagsRouter.get("/:id/documents", requirePermission("tags:read"), (c) => {
   const user = c.get("user");
   if (!user.currentOrgId) {
     return c.json({ error: "No organization selected" }, 400);
@@ -190,7 +194,7 @@ tagsRouter.get("/:id/documents", (c) => {
 });
 
 // Get tags for a specific document (by path)
-tagsRouter.get("/document", (c) => {
+tagsRouter.get("/document", requirePermission("tags:read"), (c) => {
   const user = c.get("user");
   if (!user.currentOrgId) {
     return c.json({ error: "No organization selected" }, 400);
@@ -210,109 +214,117 @@ tagsRouter.get("/document", (c) => {
 });
 
 // Set tags for a document (replace all)
-tagsRouter.post("/document", async (c) => {
-  const user = c.get("user");
-  if (!user.currentOrgId) {
-    return c.json({ error: "No organization selected" }, 400);
-  }
-
-  const body = await c.req.json();
-  const parsed = setDocumentTagsSchema.safeParse(body);
-  if (!parsed.success) {
-    return c.json(
-      { error: "Invalid input", details: parsed.error.issues },
-      400,
-    );
-  }
-
-  const doc = documentQueries.findByOrgAndPath.get(
-    user.currentOrgId,
-    parsed.data.path,
-  );
-  if (!doc) {
-    return c.json({ error: "Document not found" }, 404);
-  }
-
-  // Verify all tag IDs belong to this user
-  for (const tagId of parsed.data.tagIds) {
-    const tag = tagQueries.findById.get(tagId, user.userId);
-    if (!tag) {
-      return c.json({ error: `Tag ${tagId} not found` }, 404);
+tagsRouter.post(
+  "/document",
+  requireAnyPermission(["tags:create", "tags:update"]),
+  async (c) => {
+    const user = c.get("user");
+    if (!user.currentOrgId) {
+      return c.json({ error: "No organization selected" }, 400);
     }
-  }
 
-  // Capture old tags before update for diffing
-  const oldTags = tagQueries.getTagsForDocument.all(doc.id, user.userId);
-  const oldTagIds = new Set(oldTags.map((t) => t.id));
-  const newTagIds = new Set(parsed.data.tagIds);
+    const body = await c.req.json();
+    const parsed = setDocumentTagsSchema.safeParse(body);
+    if (!parsed.success) {
+      return c.json(
+        { error: "Invalid input", details: parsed.error.issues },
+        400,
+      );
+    }
 
-  tagQueries.setDocumentTags(doc.id, parsed.data.tagIds);
-
-  const tags = tagQueries.getTagsForDocument.all(doc.id, user.userId);
-
-  const added = parsed.data.tagIds.filter((id) => !oldTagIds.has(id));
-  const removed = [...oldTagIds].filter((id) => !newTagIds.has(id));
-  if (added.length > 0) {
-    deliverWebhook(user.currentOrgId, "document.tagged", {
-      documentPath: parsed.data.path,
-      addedTagIds: added,
-    });
-  }
-  if (removed.length > 0) {
-    deliverWebhook(user.currentOrgId, "document.untagged", {
-      documentPath: parsed.data.path,
-      removedTagIds: removed,
-    });
-  }
-
-  return c.json({ tags });
-});
-
-// Bulk add/remove tag from multiple documents
-tagsRouter.post("/bulk", async (c) => {
-  const user = c.get("user");
-  if (!user.currentOrgId) {
-    return c.json({ error: "No organization selected" }, 400);
-  }
-
-  const body = await c.req.json();
-  const parsed = bulkTagSchema.safeParse(body);
-  if (!parsed.success) {
-    return c.json(
-      { error: "Invalid input", details: parsed.error.issues },
-      400,
-    );
-  }
-
-  const tag = tagQueries.findById.get(parsed.data.tagId, user.userId);
-  if (!tag) {
-    return c.json({ error: "Tag not found" }, 404);
-  }
-
-  const documentIds: number[] = [];
-  for (const docPath of parsed.data.documentPaths) {
     const doc = documentQueries.findByOrgAndPath.get(
       user.currentOrgId,
-      docPath,
+      parsed.data.path,
     );
-    if (doc) {
-      documentIds.push(doc.id);
+    if (!doc) {
+      return c.json({ error: "Document not found" }, 404);
     }
-  }
 
-  if (parsed.data.action === "add") {
-    tagQueries.bulkAddTag(documentIds, parsed.data.tagId);
-  } else {
-    tagQueries.bulkRemoveTag(documentIds, parsed.data.tagId);
-  }
+    // Verify all tag IDs belong to this user
+    for (const tagId of parsed.data.tagIds) {
+      const tag = tagQueries.findById.get(tagId, user.userId);
+      if (!tag) {
+        return c.json({ error: `Tag ${tagId} not found` }, 404);
+      }
+    }
 
-  return c.json({
-    message: `Tag ${parsed.data.action === "add" ? "added to" : "removed from"} ${documentIds.length} documents`,
-  });
-});
+    // Capture old tags before update for diffing
+    const oldTags = tagQueries.getTagsForDocument.all(doc.id, user.userId);
+    const oldTagIds = new Set(oldTags.map((t) => t.id));
+    const newTagIds = new Set(parsed.data.tagIds);
+
+    tagQueries.setDocumentTags(doc.id, parsed.data.tagIds);
+
+    const tags = tagQueries.getTagsForDocument.all(doc.id, user.userId);
+
+    const added = parsed.data.tagIds.filter((id) => !oldTagIds.has(id));
+    const removed = [...oldTagIds].filter((id) => !newTagIds.has(id));
+    if (added.length > 0) {
+      deliverWebhook(user.currentOrgId, "document.tagged", {
+        documentPath: parsed.data.path,
+        addedTagIds: added,
+      });
+    }
+    if (removed.length > 0) {
+      deliverWebhook(user.currentOrgId, "document.untagged", {
+        documentPath: parsed.data.path,
+        removedTagIds: removed,
+      });
+    }
+
+    return c.json({ tags });
+  },
+);
+
+// Bulk add/remove tag from multiple documents
+tagsRouter.post(
+  "/bulk",
+  requireAnyPermission(["tags:create", "tags:delete"]),
+  async (c) => {
+    const user = c.get("user");
+    if (!user.currentOrgId) {
+      return c.json({ error: "No organization selected" }, 400);
+    }
+
+    const body = await c.req.json();
+    const parsed = bulkTagSchema.safeParse(body);
+    if (!parsed.success) {
+      return c.json(
+        { error: "Invalid input", details: parsed.error.issues },
+        400,
+      );
+    }
+
+    const tag = tagQueries.findById.get(parsed.data.tagId, user.userId);
+    if (!tag) {
+      return c.json({ error: "Tag not found" }, 404);
+    }
+
+    const documentIds: number[] = [];
+    for (const docPath of parsed.data.documentPaths) {
+      const doc = documentQueries.findByOrgAndPath.get(
+        user.currentOrgId,
+        docPath,
+      );
+      if (doc) {
+        documentIds.push(doc.id);
+      }
+    }
+
+    if (parsed.data.action === "add") {
+      tagQueries.bulkAddTag(documentIds, parsed.data.tagId);
+    } else {
+      tagQueries.bulkRemoveTag(documentIds, parsed.data.tagId);
+    }
+
+    return c.json({
+      message: `Tag ${parsed.data.action === "add" ? "added to" : "removed from"} ${documentIds.length} documents`,
+    });
+  },
+);
 
 // Get all document-tag mappings for the current user+org (for sidebar filtering)
-tagsRouter.get("/mappings", (c) => {
+tagsRouter.get("/mappings", requirePermission("tags:read"), (c) => {
   const user = c.get("user");
   if (!user.currentOrgId) {
     return c.json({ error: "No organization selected" }, 400);

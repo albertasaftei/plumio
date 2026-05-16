@@ -18,6 +18,7 @@ import {
   User,
   Webhook,
   WebhookDelivery,
+  ApiKey,
 } from "./index.types.js";
 import fsp from "fs/promises";
 import pathMod from "path";
@@ -728,6 +729,27 @@ export const webhookDeliveryQueries = {
   ),
   deleteOld: db.prepare<[string]>(
     "DELETE FROM webhook_deliveries WHERE created_at < ?",
+  ),
+};
+
+// === API Key Queries ===
+export const apiKeyQueries = {
+  insert: db.prepare<[number, string, string, string, string, string | null]>(`
+    INSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, expires_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `),
+  findByHash: db.prepare<[string], ApiKey>(
+    "SELECT * FROM api_keys WHERE key_hash = ?",
+  ),
+  listByUser: db.prepare<[number], Omit<ApiKey, "key_hash">>(`
+    SELECT id, user_id, name, key_prefix, permissions, created_at, last_used_at, expires_at
+    FROM api_keys WHERE user_id = ? ORDER BY created_at DESC
+  `),
+  deleteById: db.prepare<[number, number]>(
+    "DELETE FROM api_keys WHERE id = ? AND user_id = ?",
+  ),
+  updateLastUsed: db.prepare<[number]>(
+    "UPDATE api_keys SET last_used_at = CURRENT_TIMESTAMP WHERE id = ?",
   ),
 };
 

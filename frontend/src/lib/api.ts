@@ -1528,6 +1528,51 @@ export class ApiClient {
       method: "POST",
     });
   }
+
+  // API Keys
+  async listApiKeys() {
+    return this.request<{
+      apiKeys: Array<{
+        id: number;
+        user_id: number;
+        name: string;
+        key_prefix: string;
+        permissions: string[];
+        created_at: string;
+        last_used_at: string | null;
+        expires_at: string | null;
+      }>;
+    }>("/api/api-keys");
+  }
+
+  async createApiKey(data: {
+    name: string;
+    permissions: string[];
+    expires_at?: string | null;
+  }) {
+    return this.request<{
+      apiKey: {
+        id: number;
+        user_id: number;
+        name: string;
+        key_prefix: string;
+        permissions: string[];
+        created_at: string;
+        last_used_at: string | null;
+        expires_at: string | null;
+        key: string;
+      };
+    }>("/api/api-keys", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteApiKey(id: number) {
+    return this.request<{ message: string }>(`/api/api-keys/${id}`, {
+      method: "DELETE",
+    });
+  }
 }
 
 // Conditional API client - uses demo client in demo mode, otherwise real API client

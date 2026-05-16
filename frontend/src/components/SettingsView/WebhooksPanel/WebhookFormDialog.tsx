@@ -124,12 +124,12 @@ export default function WebhookFormDialog(props: WebhookFormDialogProps) {
                     <button
                       type="button"
                       onClick={() => props.onToggleGroupEvents(group.events)}
-                      class="flex items-center gap-2 mb-2 text-sm font-medium text-body hover:text-blue-400 cursor-pointer transition-colors"
+                      class="flex items-center gap-2 mb-2 text-sm font-medium text-body hover:text-primary cursor-pointer transition-colors"
                     >
                       <div
                         class="w-4 h-4 flex-shrink-0"
                         classList={{
-                          "i-carbon-checkbox-checked text-blue-400":
+                          "i-carbon-checkbox-checked text-primary":
                             groupSelected(),
                           "i-carbon-checkbox": !groupSelected(),
                         }}
@@ -149,7 +149,7 @@ export default function WebhookFormDialog(props: WebhookFormDialogProps) {
                             <div
                               class="w-4 h-4 flex-shrink-0 transition-colors"
                               classList={{
-                                "i-carbon-checkbox-checked text-blue-400":
+                                "i-carbon-checkbox-checked text-primary":
                                   props.form.events.includes(event),
                                 "i-carbon-checkbox text-muted-body group-hover:text-body":
                                   !props.form.events.includes(event),

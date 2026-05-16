@@ -141,3 +141,15 @@ export interface WebhookDelivery {
   delivered_at: string | null;
   created_at: string;
 }
+
+export interface ApiKey {
+  id: number;
+  user_id: number;
+  name: string;
+  key_hash: string;
+  key_prefix: string;
+  permissions: string; // JSON array stored as text
+  created_at: string;
+  last_used_at: string | null;
+  expires_at: string | null;
+}
