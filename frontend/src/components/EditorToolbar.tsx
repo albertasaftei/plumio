@@ -16,6 +16,7 @@ interface ActiveState {
   taskList?: boolean;
   blockquote?: boolean;
   codeBlock?: boolean;
+  inTable?: boolean;
 }
 
 const TEXT_COLORS = [
@@ -106,6 +107,8 @@ export default function EditorToolbar(props: ToolbarProps) {
   const s = () => props.activeState || {};
   const [showColorPicker, setShowColorPicker] = createSignal(false);
   const [showFontPicker, setShowFontPicker] = createSignal(false);
+  const [showTablePicker, setShowTablePicker] = createSignal(false);
+  const [hoveredTable, setHoveredTable] = createSignal({ rows: 0, cols: 0 });
 
   // Derive a short display label for the active font
   const activeFontLabel = () => {
@@ -406,6 +409,90 @@ export default function EditorToolbar(props: ToolbarProps) {
         title="Horizontal Rule"
         onClick={() => props.onCommand("insertHorizontalRule")}
       />
+
+      {/* Insert Table */}
+      <Popover open={showTablePicker()} onOpenChange={setShowTablePicker}>
+        <Popover.Trigger
+          as={(triggerProps: any) => (
+            <button
+              {...triggerProps}
+              type="button"
+              onMouseDown={(e: MouseEvent) => {
+                e.preventDefault();
+                triggerProps.onClick?.(e);
+              }}
+              title="Insert Table"
+              class="toolbar-button p-1.5 rounded transition-colors duration-150 cursor-pointer text-secondary-body hover:text-body hover:bg-elevated active:bg-elevated"
+            >
+              <div class="i-carbon-table-split w-4 h-4" />
+            </button>
+          )}
+        />
+        <Popover.Portal>
+          <Popover.Content class="mt-1 bg-surface border border-base rounded-lg shadow-lg p-2 z-50 animate-slide-down">
+            <p class="text-[10px] text-muted-body uppercase tracking-wide mb-2 px-0.5">
+              Insert Table
+            </p>
+            <div
+              class="flex flex-col gap-0.5"
+              onMouseLeave={() => setHoveredTable({ rows: 0, cols: 0 })}
+            >
+              {Array.from({ length: 8 }, (_, rowIdx) => (
+                <div class="flex gap-0.5">
+                  {Array.from({ length: 8 }, (_, colIdx) => (
+                    <button
+                      type="button"
+                      class={`w-5 h-5 rounded-sm border transition-colors cursor-pointer ${
+                        rowIdx < hoveredTable().rows &&
+                        colIdx < hoveredTable().cols
+                          ? "bg-[var(--color-primary)] border-[var(--color-primary)] opacity-80"
+                          : "bg-elevated border-base hover:border-[var(--color-primary)]"
+                      }`}
+                      onMouseEnter={() =>
+                        setHoveredTable({ rows: rowIdx + 1, cols: colIdx + 1 })
+                      }
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        const { rows, cols } = hoveredTable();
+                        if (rows > 0 && cols > 0) {
+                          props.onCommand("insertTable", { rows, cols });
+                          setShowTablePicker(false);
+                          setHoveredTable({ rows: 0, cols: 0 });
+                        }
+                      }}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+            <p class="text-[11px] text-muted-body text-center mt-2">
+              {hoveredTable().rows > 0
+                ? `${hoveredTable().rows} × ${hoveredTable().cols}`
+                : "Hover to select size"}
+            </p>
+          </Popover.Content>
+        </Popover.Portal>
+      </Popover>
+
+      <Show when={s().inTable}>
+        <ToolbarDivider />
+
+        <ToolbarButton
+          label="+↓"
+          title="Add Row Below"
+          onClick={() => props.onCommand("addRowAfter")}
+        />
+        <ToolbarButton
+          label="+←"
+          title="Add Column Left"
+          onClick={() => props.onCommand("addColBefore")}
+        />
+        <ToolbarButton
+          label="+→"
+          title="Add Column Right"
+          onClick={() => props.onCommand("addColAfter")}
+        />
+      </Show>
 
       <ToolbarDivider />
 

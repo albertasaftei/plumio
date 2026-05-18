@@ -68,6 +68,7 @@ export default function MarkdownEditor(props: EditorProps) {
     taskList: false,
     blockquote: false,
     codeBlock: false,
+    inTable: false,
   });
 
   const updateSelectionState = async () => {
@@ -97,6 +98,7 @@ export default function MarkdownEditor(props: EditorProps) {
       let taskList = false;
       let blockquote = false;
       let codeBlock = false;
+      let inTable = false;
 
       for (let d = $from.depth; d > 0; d--) {
         const node = $from.node(d);
@@ -107,6 +109,7 @@ export default function MarkdownEditor(props: EditorProps) {
         if (name === "list_item" && node.attrs.checked != null) taskList = true;
         if (name === "blockquote") blockquote = true;
         if (name === "code_block") codeBlock = true;
+        if (name === "table") inTable = true;
       }
 
       // Detect active text color
@@ -161,6 +164,7 @@ export default function MarkdownEditor(props: EditorProps) {
         taskList,
         blockquote,
         codeBlock,
+        inTable,
       });
 
       // Update link data
@@ -604,6 +608,34 @@ export default function MarkdownEditor(props: EditorProps) {
             }
             break;
           }
+          case "insertTable": {
+            const { insertTableCommand } = await import("@milkdown/preset-gfm");
+            const { rows, cols } = payload as { rows: number; cols: number };
+            callCommand(insertTableCommand.key, { row: rows, col: cols })(ctx);
+            break;
+          }
+          case "addRowBefore": {
+            const { addRowBeforeCommand } =
+              await import("@milkdown/preset-gfm");
+            callCommand(addRowBeforeCommand.key)(ctx);
+            break;
+          }
+          case "addRowAfter": {
+            const { addRowAfterCommand } = await import("@milkdown/preset-gfm");
+            callCommand(addRowAfterCommand.key)(ctx);
+            break;
+          }
+          case "addColBefore": {
+            const { addColBeforeCommand } =
+              await import("@milkdown/preset-gfm");
+            callCommand(addColBeforeCommand.key)(ctx);
+            break;
+          }
+          case "addColAfter": {
+            const { addColAfterCommand } = await import("@milkdown/preset-gfm");
+            callCommand(addColAfterCommand.key)(ctx);
+            break;
+          }
         }
       });
 
@@ -994,6 +1026,172 @@ export default function MarkdownEditor(props: EditorProps) {
           ?.querySelectorAll('li[data-item-type="task"]')
           .forEach((li) => setupTaskListItem(li as HTMLElement));
 
+        // Floating + Row / + Col buttons on table hover
+        const activeTableButtons: HTMLElement[] = [];
+
+        const setupTableControls = (tableEl: HTMLElement) => {
+          if ((tableEl as any)._tableControlsSetup) return;
+          (tableEl as any)._tableControlsSetup = true;
+
+          let rowBtn: HTMLElement | null = null;
+          let colBtn: HTMLElement | null = null;
+          let leaveTimeout: any = null;
+          let removeScroll: (() => void) | null = null;
+
+          const removeButtons = () => {
+            removeScroll?.();
+            removeScroll = null;
+            if (rowBtn) {
+              const ri = activeTableButtons.indexOf(rowBtn);
+              if (ri > -1) activeTableButtons.splice(ri, 1);
+              rowBtn.remove();
+              rowBtn = null;
+            }
+            if (colBtn) {
+              const ci = activeTableButtons.indexOf(colBtn);
+              if (ci > -1) activeTableButtons.splice(ci, 1);
+              colBtn.remove();
+              colBtn = null;
+            }
+          };
+
+          const cancelRemove = () => {
+            if (leaveTimeout) {
+              clearTimeout(leaveTimeout);
+              leaveTimeout = null;
+            }
+          };
+
+          const scheduleRemove = () => {
+            leaveTimeout = setTimeout(removeButtons, 150);
+          };
+
+          const makeButton = (
+            label: string,
+            title: string,
+          ): HTMLButtonElement => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className =
+              "fixed bg-surface border border-base text-secondary-body hover:text-body hover:bg-elevated rounded text-xs font-medium px-2 py-0.5 cursor-pointer transition-colors z-50 shadow-sm select-none";
+            btn.textContent = label;
+            btn.title = title;
+            btn.addEventListener("mouseenter", cancelRemove);
+            btn.addEventListener("mouseleave", scheduleRemove);
+            return btn;
+          };
+
+          tableEl.addEventListener("mouseenter", () => {
+            cancelRemove();
+            if (rowBtn) return;
+
+            rowBtn = makeButton("+ Row", "Add row below");
+            rowBtn.addEventListener("mousedown", async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!editorInstance) return;
+              await editorInstance.action(async (ctx: any) => {
+                const { editorViewCtx } = await import("@milkdown/core");
+                const { TextSelection } = await import("@milkdown/prose/state");
+                const { callCommand } = await import("@milkdown/utils");
+                const { addRowAfterCommand } =
+                  await import("@milkdown/preset-gfm");
+                const view = ctx.get(editorViewCtx);
+                view.focus();
+                const rows = tableEl.querySelectorAll("tr");
+                if (!rows.length) return;
+                const lastRow = rows[rows.length - 1];
+                const cells = lastRow.querySelectorAll("td, th");
+                if (!cells.length) return;
+                const lastCell = cells[cells.length - 1] as HTMLElement;
+                try {
+                  const pos = view.posAtDOM(lastCell, 0);
+                  const { state, dispatch } = view;
+                  dispatch(
+                    state.tr.setSelection(
+                      TextSelection.near(state.doc.resolve(pos)),
+                    ),
+                  );
+                  callCommand(addRowAfterCommand.key)(ctx);
+                } catch {}
+              });
+              removeButtons();
+            });
+
+            colBtn = makeButton("+ Col", "Add column to the right");
+            colBtn.addEventListener("mousedown", async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!editorInstance) return;
+              await editorInstance.action(async (ctx: any) => {
+                const { editorViewCtx } = await import("@milkdown/core");
+                const { TextSelection } = await import("@milkdown/prose/state");
+                const { callCommand } = await import("@milkdown/utils");
+                const { addColAfterCommand } =
+                  await import("@milkdown/preset-gfm");
+                const view = ctx.get(editorViewCtx);
+                view.focus();
+                const rows = tableEl.querySelectorAll("tr");
+                if (!rows.length) return;
+                const firstRow = rows[0];
+                const cells = firstRow.querySelectorAll("td, th");
+                if (!cells.length) return;
+                const lastCell = cells[cells.length - 1] as HTMLElement;
+                try {
+                  const pos = view.posAtDOM(lastCell, 0);
+                  const { state, dispatch } = view;
+                  dispatch(
+                    state.tr.setSelection(
+                      TextSelection.near(state.doc.resolve(pos)),
+                    ),
+                  );
+                  callCommand(addColAfterCommand.key)(ctx);
+                } catch {}
+              });
+              removeButtons();
+            });
+
+            const updatePositions = () => {
+              if (!rowBtn || !colBtn) return;
+              const r = tableEl.getBoundingClientRect();
+              rowBtn.style.left = r.left + r.width / 2 - 24 + "px";
+              rowBtn.style.top = r.bottom + 4 + "px";
+              colBtn.style.left = r.right + 4 + "px";
+              colBtn.style.top = r.top + r.height / 2 - 12 + "px";
+            };
+
+            updatePositions();
+
+            const scrollTarget = tableEl.closest(".overflow-auto") ?? document;
+            let rafId: number | null = null;
+            const onScroll = () => {
+              if (rafId) cancelAnimationFrame(rafId);
+              rafId = requestAnimationFrame(() => {
+                updatePositions();
+                rafId = null;
+              });
+            };
+            scrollTarget.addEventListener("scroll", onScroll, {
+              passive: true,
+            });
+            removeScroll = () => {
+              scrollTarget.removeEventListener("scroll", onScroll);
+              if (rafId) cancelAnimationFrame(rafId);
+            };
+
+            document.body.appendChild(rowBtn);
+            document.body.appendChild(colBtn);
+            activeTableButtons.push(rowBtn, colBtn);
+          });
+
+          tableEl.addEventListener("mouseleave", scheduleRemove);
+        };
+
+        // Initial setup for existing tables
+        editorRef
+          ?.querySelectorAll("table")
+          .forEach((t) => setupTableControls(t as HTMLElement));
+
         // Watch for newly added links via MutationObserver
         const observer = new MutationObserver((mutations) => {
           mutations.forEach((mutation) => {
@@ -1012,6 +1210,13 @@ export default function MarkdownEditor(props: EditorProps) {
                   element
                     .querySelectorAll('li[data-item-type="task"]')
                     .forEach((li) => setupTaskListItem(li as HTMLElement));
+                  if (element.tagName === "TABLE") {
+                    setupTableControls(element);
+                  } else {
+                    element
+                      .querySelectorAll("table")
+                      .forEach((t) => setupTableControls(t as HTMLElement));
+                  }
                 }
               }
             });
@@ -1027,6 +1232,8 @@ export default function MarkdownEditor(props: EditorProps) {
         // Cleanup observer on unmount
         onCleanup(() => {
           observer.disconnect();
+          activeTableButtons.forEach((b) => b.remove());
+          activeTableButtons.length = 0;
         });
       }
     } catch (error) {
