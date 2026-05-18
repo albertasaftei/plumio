@@ -8,6 +8,8 @@ export type SettingsSection =
   | "editor"
   | "import-export"
   | "organization"
+  | "webhooks"
+  | "api-keys"
   | "admin"
   | "app-configuration"
   | "build-information"
@@ -102,7 +104,7 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
               size="md"
               fullWidth
             >
-              <div class="i-carbon-enterprise w-4 h-4" />
+              <div class="i-carbon-enterprise w-4 h-4" />{" "}
               <span class="ml-2">{t("settings.organization")}</span>
             </Button>
           </Show>
@@ -132,6 +134,26 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
               <span class="ml-2">{t("settings.appConfiguration")}</span>
             </Button>
           </Show>
+
+          <Button
+            onClick={() => props.onSectionChange("api-keys")}
+            variant={props.activeSection === "api-keys" ? "secondary" : "ghost"}
+            size="md"
+            fullWidth
+          >
+            <div class="i-carbon-api w-4 h-4" />
+            <span class="ml-2">{t("settings.apiKeys")}</span>
+          </Button>
+
+          <Button
+            onClick={() => props.onSectionChange("webhooks")}
+            variant={props.activeSection === "webhooks" ? "secondary" : "ghost"}
+            size="md"
+            fullWidth
+          >
+            <div class="i-carbon-webhook w-4 h-4" />
+            <span class="ml-2">{t("settings.webhooks")}</span>
+          </Button>
 
           <div class="relative">
             <Button

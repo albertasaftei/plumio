@@ -1439,6 +1439,146 @@ export class ApiClient {
       "/api/tags/mappings",
     );
   }
+
+  // Webhooks
+  async listWebhooks() {
+    return this.request<{
+      webhooks: Array<{
+        id: number;
+        org_id: number;
+        name: string;
+        url: string;
+        events: string[];
+        active: number;
+        created_at: string;
+        created_by: number;
+      }>;
+    }>("/api/webhooks");
+  }
+
+  async createWebhook(data: {
+    name: string;
+    url: string;
+    secret: string;
+    events: string[];
+  }) {
+    return this.request<{
+      webhook: {
+        id: number;
+        org_id: number;
+        name: string;
+        url: string;
+        events: string[];
+        active: number;
+        created_at: string;
+        created_by: number;
+      };
+    }>("/api/webhooks", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateWebhook(
+    id: number,
+    data: {
+      name?: string;
+      url?: string;
+      secret?: string;
+      events?: string[];
+      active?: boolean;
+    },
+  ) {
+    return this.request<{
+      webhook: {
+        id: number;
+        org_id: number;
+        name: string;
+        url: string;
+        events: string[];
+        active: number;
+        created_at: string;
+        created_by: number;
+      };
+    }>(`/api/webhooks/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteWebhook(id: number) {
+    return this.request(`/api/webhooks/${id}`, { method: "DELETE" });
+  }
+
+  async getWebhookDeliveries(id: number, page = 1, limit = 20) {
+    return this.request<{
+      deliveries: Array<{
+        id: number;
+        webhook_id: number;
+        event: string;
+        payload: string;
+        status: "success" | "failed" | "pending";
+        response_status: number | null;
+        response_body: string | null;
+        attempts: number;
+        delivered_at: string | null;
+        created_at: string;
+      }>;
+      page: number;
+      limit: number;
+    }>(`/api/webhooks/${id}/deliveries?page=${page}&limit=${limit}`);
+  }
+
+  async testWebhook(id: number) {
+    return this.request<{ message: string }>(`/api/webhooks/${id}/test`, {
+      method: "POST",
+    });
+  }
+
+  // API Keys
+  async listApiKeys() {
+    return this.request<{
+      apiKeys: Array<{
+        id: number;
+        user_id: number;
+        name: string;
+        key_prefix: string;
+        permissions: string[];
+        created_at: string;
+        last_used_at: string | null;
+        expires_at: string | null;
+      }>;
+    }>("/api/api-keys");
+  }
+
+  async createApiKey(data: {
+    name: string;
+    permissions: string[];
+    expires_at?: string | null;
+  }) {
+    return this.request<{
+      apiKey: {
+        id: number;
+        user_id: number;
+        name: string;
+        key_prefix: string;
+        permissions: string[];
+        created_at: string;
+        last_used_at: string | null;
+        expires_at: string | null;
+        key: string;
+      };
+    }>("/api/api-keys", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteApiKey(id: number) {
+    return this.request<{ message: string }>(`/api/api-keys/${id}`, {
+      method: "DELETE",
+    });
+  }
 }
 
 // Conditional API client - uses demo client in demo mode, otherwise real API client

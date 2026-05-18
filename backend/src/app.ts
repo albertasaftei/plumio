@@ -13,6 +13,8 @@ import { organizationsRouter } from "./routes/organizations/index.js";
 import { tagsRouter } from "./routes/tags/index.js";
 import { joinRequestsRouter } from "./routes/join-requests/index.js";
 import { notificationsRouter } from "./routes/notifications/index.js";
+import { webhooksRouter } from "./routes/webhooks/index.js";
+import { apiKeysRouter } from "./routes/api-keys/index.js";
 import { UserJWTPayload } from "./middlewares/auth.types.js";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -59,7 +61,7 @@ app.use(
     },
     credentials: true,
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization"],
+    allowHeaders: ["Content-Type", "Authorization", "X-Org-Id"],
   }),
 );
 
@@ -154,3 +156,5 @@ app.route("/api/attachments", attachmentsRouter);
 app.route("/api/tags", tagsRouter);
 app.route("/api/join-requests", joinRequestsRouter);
 app.route("/api/notifications", notificationsRouter);
+app.route("/api/webhooks", webhooksRouter);
+app.route("/api/api-keys", apiKeysRouter);
