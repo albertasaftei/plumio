@@ -15,8 +15,7 @@
     "dist:win": "npm run build && electron-builder --win"
   },
   "dependencies": {
-    "better-sqlite3": "^11.8.1",
-    "electron-updater": "^6.6.0"
+    "better-sqlite3": "^11.8.1"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.0.0",
@@ -91,11 +90,6 @@
     },
     "directories": {
       "output": "release"
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "albertasaftei",
-      "repo": "plumio"
     }
   }
 }

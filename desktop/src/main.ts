@@ -9,7 +9,6 @@ import {
   dialog,
 } from "electron";
 import type { UtilityProcess } from "electron";
-import { autoUpdater } from "electron-updater";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
@@ -495,19 +494,6 @@ app.whenReady().then(async () => {
     }
   }
 
-  // Auto-update: only runs in packaged builds.
-  // On macOS Squirrel.Mac requires code-signing — if the build is unsigned the
-  // check throws harmlessly and the app continues to work normally.
-  if (!isDev) {
-    try {
-      autoUpdater.checkForUpdatesAndNotify();
-    } catch (err) {
-      console.warn(
-        "[desktop] Auto-update check skipped:",
-        (err as Error).message,
-      );
-    }
-  }
 
   // macOS: re-create the window when the dock icon is clicked and no windows are open
   app.on("activate", () => {
