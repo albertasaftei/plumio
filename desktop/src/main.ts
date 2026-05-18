@@ -204,7 +204,7 @@ async function startBackend(): Promise<void> {
         "\n\nThis usually means the build did not complete correctly.\n" +
         "Please re-download Plumio or report this issue.",
     );
-    return; // Don't try to start — it will just crash
+    throw new Error(`Preflight check failed — missing files:\n${detail}`);
   }
 
   backendPort = await findFreePort(47147);
@@ -326,6 +326,40 @@ async function startBackend(): Promise<void> {
     "Plumio — Backend Failed to Start",
     errorParts.join("\n"),
   );
+
+  const reason = backendExited
+    ? "Backend process exited unexpectedly"
+    : "Backend startup timed out after 30 s";
+  throw new Error(reason);
+}
+
+// ── Startup routing ─────────────────────────────────────────────────────────
+// Decides which URL to load based on saved config.
+// Safe to call more than once (e.g. macOS activate): startBackend() is skipped
+// when a backend process is already running.
+
+async function applyStartupRouting(): Promise<void> {
+  if (currentConfig?.mode === "remote" && currentConfig.remoteUrl) {
+    // Remote mode: navigate directly to the saved server — no local backend needed.
+    console.log(`[desktop] Remote mode → ${currentConfig.remoteUrl}`);
+    mainWindow?.loadURL(currentConfig.remoteUrl);
+  } else {
+    // Local mode OR first launch: ensure the embedded backend is running.
+    if (!backendProcess) {
+      try {
+        await startBackend();
+      } catch {
+        // startBackend already showed an error dialog; don't load the SPA.
+        return;
+      }
+    }
+    if (currentConfig?.mode === "local") {
+      mainWindow?.loadURL("app://plumio/");
+    } else {
+      // First launch — show connect screen.
+      mainWindow?.loadURL("app://plumio/connect/");
+    }
+  }
 }
 
 // ── Window ────────────────────────────────────────────────────────────────────
@@ -425,6 +459,20 @@ app.whenReady().then(async () => {
   // Async actions — called from the connect screen.
 
   ipcMain.on("connect-to-server", (_event, url: string) => {
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      console.warn("[desktop] connect-to-server: invalid URL rejected:", url);
+      return;
+    }
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      console.warn(
+        "[desktop] connect-to-server: non-http(s) protocol rejected:",
+        parsed.protocol,
+      );
+      return;
+    }
     const cleanUrl = url.replace(/\/+$/, "");
     writeConfig({ mode: "remote", remoteUrl: cleanUrl });
     currentConfig = { mode: "remote", remoteUrl: cleanUrl };
@@ -434,7 +482,16 @@ app.whenReady().then(async () => {
   ipcMain.on("use-local-mode", async () => {
     writeConfig({ mode: "local" });
     currentConfig = { mode: "local" };
-    // Backend is already running (we start it proactively on first launch).
+    // Ensure the backend is running — it may not be if the user arrived here
+    // from a previous remote-mode session via "Change Server".
+    if (!backendProcess) {
+      try {
+        await startBackend();
+      } catch {
+        // startBackend already showed an error dialog; don't load the SPA.
+        return;
+      }
+    }
     mainWindow?.loadURL("app://plumio/");
   });
 
@@ -447,6 +504,9 @@ app.whenReady().then(async () => {
 
   // ── Protocol: serve connect screen + SPA ──────────────────────────────────
 
+  const resolvedConnectDir = path.resolve(connectDir);
+  const resolvedSpaDir = path.resolve(spaDir);
+
   protocol.handle("app", (request) => {
     const url = new URL(request.url);
     const pathname = url.pathname;
@@ -457,47 +517,47 @@ app.whenReady().then(async () => {
         pathname === "/connect" || pathname === "/connect/"
           ? "index.html"
           : pathname.replace(/^\/connect\/?/, "");
-      const filePath = path.join(connectDir, relPath || "index.html");
-      if (fs.existsSync(filePath)) {
-        return electronNet.fetch(pathToFileURL(filePath).href);
+      const resolved = path.resolve(
+        resolvedConnectDir,
+        relPath || "index.html",
+      );
+      // Deny path traversal outside connectDir
+      if (
+        resolved !== resolvedConnectDir &&
+        !resolved.startsWith(resolvedConnectDir + path.sep)
+      ) {
+        return new Response(null, { status: 403 });
+      }
+      if (fs.existsSync(resolved)) {
+        return electronNet.fetch(pathToFileURL(resolved).href);
       }
     }
 
     // Everything else → SPA (fall back to index.html for client-side routing)
     const spaPath = pathname === "/" ? "index.html" : pathname;
-    let filePath = path.join(spaDir, spaPath);
-    if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-      filePath = path.join(spaDir, "index.html");
-    }
-    return electronNet.fetch(pathToFileURL(filePath).href);
+    const resolvedSpa = path.resolve(resolvedSpaDir, spaPath);
+    // Deny path traversal outside spaDir — fall back to index.html
+    const spaFile =
+      resolvedSpa !== resolvedSpaDir &&
+      resolvedSpa.startsWith(resolvedSpaDir + path.sep) &&
+      fs.existsSync(resolvedSpa) &&
+      !fs.statSync(resolvedSpa).isDirectory()
+        ? resolvedSpa
+        : path.join(resolvedSpaDir, "index.html");
+    return electronNet.fetch(pathToFileURL(spaFile).href);
   });
 
   // ── Start the right backend / URL based on saved config ───────────────────
 
   createWindow();
-
-  if (currentConfig?.mode === "remote" && currentConfig.remoteUrl) {
-    // Remote mode: navigate directly to the saved server — no local backend needed.
-    console.log(`[desktop] Remote mode → ${currentConfig.remoteUrl}`);
-    mainWindow!.loadURL(currentConfig.remoteUrl);
-  } else {
-    // Local mode OR first launch: start the embedded backend.
-    // On first launch we keep the backend running so that if the user picks
-    // "local" on the connect screen it's already ready.
-    await startBackend();
-
-    if (currentConfig?.mode === "local") {
-      mainWindow!.loadURL("app://plumio/");
-    } else {
-      // First launch — show connect screen.
-      mainWindow!.loadURL("app://plumio/connect/");
-    }
-  }
-
+  await applyStartupRouting();
 
   // macOS: re-create the window when the dock icon is clicked and no windows are open
   app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+      void applyStartupRouting();
+    }
   });
 });
 

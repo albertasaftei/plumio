@@ -86,8 +86,8 @@ const form = document.getElementById("connect-form");
 const urlInput = document.getElementById("server-url");
 const errorEl = document.getElementById("error-message");
 const connectBtn = document.getElementById("connect-btn");
-const btnText = connectBtn.querySelector(".btn-text");
-const btnSpinner = connectBtn.querySelector(".btn-spinner");
+const btnText = connectBtn?.querySelector(".btn-text");
+const btnSpinner = connectBtn?.querySelector(".btn-spinner");
 const clearBtn = document.getElementById("clear-btn");
 
 // ── Tab switching ────────────────────────────────────────────────────────────
@@ -119,10 +119,10 @@ function hideError() {
 }
 
 function setLoading(loading) {
-  connectBtn.disabled = loading;
-  urlInput.disabled = loading;
-  btnText.textContent = loading ? "Connecting…" : "Connect";
-  btnSpinner.hidden = !loading;
+  if (connectBtn) connectBtn.disabled = loading;
+  if (urlInput) urlInput.disabled = loading;
+  if (btnText) btnText.textContent = loading ? "Connecting…" : "Connect";
+  if (btnSpinner) btnSpinner.hidden = !loading;
 }
 
 // ── Local mode button ────────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ form.addEventListener("submit", async (e) => {
 
 // ── Clear saved server ───────────────────────────────────────────────────────
 
-clearBtn.addEventListener("click", () => {
+clearBtn?.addEventListener("click", () => {
   Platform.clearSavedUrl();
   urlInput.value = "";
   urlInput.focus();

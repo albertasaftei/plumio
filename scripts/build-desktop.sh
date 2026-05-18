@@ -35,14 +35,14 @@ echo ""
 # ── 2. Install backend deps (needed by esbuild for bundling) ──────────────────
 echo "▶  Installing backend dependencies..."
 cd "$REPO_ROOT/backend"
-npm install
+npm ci
 echo "✅  Backend deps installed"
 echo ""
 
 # ── 3. Install desktop deps ───────────────────────────────────────────────────
 echo "▶  Installing desktop dependencies..."
 cd "$REPO_ROOT/desktop"
-npm install --ignore-scripts
+npm ci --ignore-scripts
 echo "✅  Desktop deps installed"
 echo ""
 
