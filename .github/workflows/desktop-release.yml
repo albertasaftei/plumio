@@ -1,0 +1,90 @@
+name: Desktop Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write # needed to create/upload GitHub Releases
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 10
+
+      - name: Build frontend (SPA)
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build:desktop
+
+      - name: Install backend deps
+        working-directory: backend
+        run: npm ci
+
+      - name: Install desktop deps
+        working-directory: desktop
+        run: npm ci --ignore-scripts
+
+      - name: Package .dmg
+        working-directory: desktop
+        run: npm run dist:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            desktop/release/*.dmg
+            desktop/release/latest-mac.yml
+
+  build-win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 10
+
+      - name: Build frontend (SPA)
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build:desktop
+
+      - name: Install backend deps
+        working-directory: backend
+        run: npm install
+
+      - name: Install desktop deps
+        working-directory: desktop
+        run: npm install --ignore-scripts
+
+      - name: Package .exe
+        working-directory: desktop
+        run: npm run dist:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            desktop/release/*.exe
+            desktop/release/latest.yml
