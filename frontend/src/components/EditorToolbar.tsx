@@ -483,14 +483,34 @@ export default function EditorToolbar(props: ToolbarProps) {
           onClick={() => props.onCommand("addRowAfter")}
         />
         <ToolbarButton
+          label="−R"
+          title="Delete Current Row"
+          onClick={() => props.onCommand("deleteRow")}
+        />
+        <ToolbarButton
           label="+←"
           title="Add Column Left"
           onClick={() => props.onCommand("addColBefore")}
         />
         <ToolbarButton
+          label="−←"
+          title="Delete Column to Left"
+          onClick={() => props.onCommand("deleteColBefore")}
+        />
+        <ToolbarButton
           label="+→"
           title="Add Column Right"
           onClick={() => props.onCommand("addColAfter")}
+        />
+        <ToolbarButton
+          label="−→"
+          title="Delete Column to Right"
+          onClick={() => props.onCommand("deleteColAfter")}
+        />
+        <ToolbarButton
+          label="−C"
+          title="Delete Current Column"
+          onClick={() => props.onCommand("deleteCol")}
         />
       </Show>
 

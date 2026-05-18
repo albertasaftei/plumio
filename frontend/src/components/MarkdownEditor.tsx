@@ -636,6 +636,186 @@ export default function MarkdownEditor(props: EditorProps) {
             callCommand(addColAfterCommand.key)(ctx);
             break;
           }
+          case "deleteRow": {
+            // prosemirror-tables' deleteRow relies on tableRole which Milkdown
+            // does not set on its nodes — delete the row directly instead.
+            const { $head } = view.state.selection;
+            let tblNode: any = null;
+            let tblPos = -1;
+            let rowNode: any = null;
+            let rowPos = -1;
+            for (let d = $head.depth; d >= 0; d--) {
+              const n = $head.node(d);
+              if (n.type.name === "table") {
+                tblNode = n;
+                tblPos = $head.before(d);
+              }
+              if (n.type.name === "table_row" && !rowNode) {
+                rowNode = n;
+                rowPos = $head.before(d);
+              }
+            }
+            if (tblNode && rowNode && tblNode.childCount > 1) {
+              view.dispatch(
+                view.state.tr.delete(rowPos, rowPos + rowNode.nodeSize),
+              );
+            }
+            break;
+          }
+          case "deleteCol": {
+            // Same: deleteColumn from prosemirror-tables won't find cells without
+            // tableRole, so we build the delete transaction manually.
+            const { $head: $h } = view.state.selection;
+            let tblNode2: any = null;
+            let tblPos2 = -1;
+            let colIdx = -1;
+            for (let d = $h.depth; d >= 0; d--) {
+              const n = $h.node(d);
+              if (n.type.name === "table") {
+                tblNode2 = n;
+                tblPos2 = $h.before(d);
+              }
+              if (
+                (n.type.name === "table_cell" ||
+                  n.type.name === "table_header") &&
+                colIdx < 0
+              ) {
+                const row = $h.node(d - 1);
+                for (let i = 0; i < row.childCount; i++) {
+                  if (row.child(i) === n) {
+                    colIdx = i;
+                    break;
+                  }
+                }
+              }
+            }
+            if (
+              tblNode2 &&
+              colIdx >= 0 &&
+              tblNode2.firstChild &&
+              tblNode2.firstChild.childCount > 1
+            ) {
+              const ranges: { from: number; to: number }[] = [];
+              tblNode2.forEach((row: any, rowOffset: number) => {
+                row.forEach((cell: any, cellOffset: number, i: number) => {
+                  if (i === colIdx) {
+                    const from = tblPos2 + 1 + rowOffset + 1 + cellOffset;
+                    ranges.push({ from, to: from + cell.nodeSize });
+                  }
+                });
+              });
+              const tr = view.state.tr;
+              for (let i = ranges.length - 1; i >= 0; i--) {
+                tr.delete(ranges[i].from, ranges[i].to);
+              }
+              view.dispatch(tr);
+            }
+            break;
+          }
+          case "deleteColBefore": {
+            // Delete the column immediately to the left of the cursor.
+            const { $head: $hb } = view.state.selection;
+            let tblNodeB: any = null;
+            let tblPosB = -1;
+            let colIdxB = -1;
+            for (let d = $hb.depth; d >= 0; d--) {
+              const n = $hb.node(d);
+              if (n.type.name === "table") {
+                tblNodeB = n;
+                tblPosB = $hb.before(d);
+              }
+              if (
+                (n.type.name === "table_cell" ||
+                  n.type.name === "table_header") &&
+                colIdxB < 0
+              ) {
+                const row = $hb.node(d - 1);
+                for (let i = 0; i < row.childCount; i++) {
+                  if (row.child(i) === n) {
+                    colIdxB = i;
+                    break;
+                  }
+                }
+              }
+            }
+            const targetBefore = colIdxB - 1;
+            if (
+              tblNodeB &&
+              targetBefore >= 0 &&
+              tblNodeB.firstChild &&
+              tblNodeB.firstChild.childCount > 1
+            ) {
+              const ranges: { from: number; to: number }[] = [];
+              tblNodeB.forEach((row: any, rowOffset: number) => {
+                row.forEach((cell: any, cellOffset: number, i: number) => {
+                  if (i === targetBefore) {
+                    const from = tblPosB + 1 + rowOffset + 1 + cellOffset;
+                    ranges.push({ from, to: from + cell.nodeSize });
+                  }
+                });
+              });
+              const tr = view.state.tr;
+              for (let i = ranges.length - 1; i >= 0; i--) {
+                tr.delete(ranges[i].from, ranges[i].to);
+              }
+              view.dispatch(tr);
+            }
+            break;
+          }
+          case "deleteColAfter": {
+            // Delete the column immediately to the right of the cursor.
+            const { $head: $ha } = view.state.selection;
+            let tblNodeA: any = null;
+            let tblPosA = -1;
+            let colIdxA = -1;
+            for (let d = $ha.depth; d >= 0; d--) {
+              const n = $ha.node(d);
+              if (n.type.name === "table") {
+                tblNodeA = n;
+                tblPosA = $ha.before(d);
+              }
+              if (
+                (n.type.name === "table_cell" ||
+                  n.type.name === "table_header") &&
+                colIdxA < 0
+              ) {
+                const row = $ha.node(d - 1);
+                for (let i = 0; i < row.childCount; i++) {
+                  if (row.child(i) === n) {
+                    colIdxA = i;
+                    break;
+                  }
+                }
+              }
+            }
+            const targetAfter =
+              tblNodeA && tblNodeA.firstChild
+                ? Math.min(colIdxA + 1, tblNodeA.firstChild.childCount - 1)
+                : colIdxA + 1;
+            if (
+              tblNodeA &&
+              colIdxA >= 0 &&
+              targetAfter !== colIdxA &&
+              tblNodeA.firstChild &&
+              tblNodeA.firstChild.childCount > 1
+            ) {
+              const ranges: { from: number; to: number }[] = [];
+              tblNodeA.forEach((row: any, rowOffset: number) => {
+                row.forEach((cell: any, cellOffset: number, i: number) => {
+                  if (i === targetAfter) {
+                    const from = tblPosA + 1 + rowOffset + 1 + cellOffset;
+                    ranges.push({ from, to: from + cell.nodeSize });
+                  }
+                });
+              });
+              const tr = view.state.tr;
+              for (let i = ranges.length - 1; i >= 0; i--) {
+                tr.delete(ranges[i].from, ranges[i].to);
+              }
+              view.dispatch(tr);
+            }
+            break;
+          }
         }
       });
 
@@ -1034,25 +1214,26 @@ export default function MarkdownEditor(props: EditorProps) {
           (tableEl as any)._tableControlsSetup = true;
 
           let rowBtn: HTMLElement | null = null;
+          let delRowBtn: HTMLElement | null = null;
           let colBtn: HTMLElement | null = null;
+          let delColBtn: HTMLElement | null = null;
           let leaveTimeout: any = null;
           let removeScroll: (() => void) | null = null;
 
           const removeButtons = () => {
             removeScroll?.();
             removeScroll = null;
-            if (rowBtn) {
-              const ri = activeTableButtons.indexOf(rowBtn);
-              if (ri > -1) activeTableButtons.splice(ri, 1);
-              rowBtn.remove();
-              rowBtn = null;
+            for (const btn of [rowBtn, delRowBtn, colBtn, delColBtn]) {
+              if (btn) {
+                const i = activeTableButtons.indexOf(btn);
+                if (i > -1) activeTableButtons.splice(i, 1);
+                btn.remove();
+              }
             }
-            if (colBtn) {
-              const ci = activeTableButtons.indexOf(colBtn);
-              if (ci > -1) activeTableButtons.splice(ci, 1);
-              colBtn.remove();
-              colBtn = null;
-            }
+            rowBtn = null;
+            delRowBtn = null;
+            colBtn = null;
+            delColBtn = null;
           };
 
           const cancelRemove = () => {
@@ -1118,6 +1299,57 @@ export default function MarkdownEditor(props: EditorProps) {
               removeButtons();
             });
 
+            delRowBtn = makeButton("− Row", "Delete last row");
+            delRowBtn.addEventListener("mousedown", async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!editorInstance) return;
+              await editorInstance.action(async (ctx: any) => {
+                const { editorViewCtx } = await import("@milkdown/core");
+                const { TextSelection } = await import("@milkdown/prose/state");
+                const view = ctx.get(editorViewCtx);
+                view.focus();
+                // Navigate to the last row so we delete it
+                const rows = tableEl.querySelectorAll("tr");
+                if (!rows.length) return;
+                const lastRow = rows[rows.length - 1];
+                const cells = lastRow.querySelectorAll("td, th");
+                if (!cells.length) return;
+                const lastCell = cells[cells.length - 1] as HTMLElement;
+                try {
+                  const pos = view.posAtDOM(lastCell, 0);
+                  const { state, dispatch } = view;
+                  dispatch(
+                    state.tr.setSelection(
+                      TextSelection.near(state.doc.resolve(pos)),
+                    ),
+                  );
+                  const { $head } = view.state.selection;
+                  let tblNode: any = null,
+                    tblPos = -1,
+                    rowNode: any = null,
+                    rowPos = -1;
+                  for (let d = $head.depth; d >= 0; d--) {
+                    const n = $head.node(d);
+                    if (n.type.name === "table") {
+                      tblNode = n;
+                      tblPos = $head.before(d);
+                    }
+                    if (n.type.name === "table_row" && !rowNode) {
+                      rowNode = n;
+                      rowPos = $head.before(d);
+                    }
+                  }
+                  if (tblNode && rowNode && tblNode.childCount > 1) {
+                    view.dispatch(
+                      view.state.tr.delete(rowPos, rowPos + rowNode.nodeSize),
+                    );
+                  }
+                } catch {}
+              });
+              removeButtons();
+            });
+
             colBtn = makeButton("+ Col", "Add column to the right");
             colBtn.addEventListener("mousedown", async (e) => {
               e.preventDefault();
@@ -1151,13 +1383,97 @@ export default function MarkdownEditor(props: EditorProps) {
               removeButtons();
             });
 
+            delColBtn = makeButton("− Col", "Delete last column");
+            delColBtn.addEventListener("mousedown", async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!editorInstance) return;
+              await editorInstance.action(async (ctx: any) => {
+                const { editorViewCtx } = await import("@milkdown/core");
+                const { TextSelection } = await import("@milkdown/prose/state");
+                const view = ctx.get(editorViewCtx);
+                view.focus();
+                // Navigate to the last column's cell so we delete that column
+                const rows = tableEl.querySelectorAll("tr");
+                if (!rows.length) return;
+                const firstRow = rows[0];
+                const cells = firstRow.querySelectorAll("td, th");
+                if (!cells.length) return;
+                const lastCell = cells[cells.length - 1] as HTMLElement;
+                try {
+                  const pos = view.posAtDOM(lastCell, 0);
+                  const { state, dispatch } = view;
+                  dispatch(
+                    state.tr.setSelection(
+                      TextSelection.near(state.doc.resolve(pos)),
+                    ),
+                  );
+                  const { $head } = view.state.selection;
+                  let tblNode: any = null,
+                    tblPos = -1,
+                    colIdx = -1;
+                  for (let d = $head.depth; d >= 0; d--) {
+                    const n = $head.node(d);
+                    if (n.type.name === "table") {
+                      tblNode = n;
+                      tblPos = $head.before(d);
+                    }
+                    if (
+                      (n.type.name === "table_cell" ||
+                        n.type.name === "table_header") &&
+                      colIdx < 0
+                    ) {
+                      const row = $head.node(d - 1);
+                      for (let i = 0; i < row.childCount; i++) {
+                        if (row.child(i) === n) {
+                          colIdx = i;
+                          break;
+                        }
+                      }
+                    }
+                  }
+                  if (
+                    tblNode &&
+                    colIdx >= 0 &&
+                    tblNode.firstChild &&
+                    tblNode.firstChild.childCount > 1
+                  ) {
+                    const ranges: { from: number; to: number }[] = [];
+                    tblNode.forEach((row: any, rowOffset: number) => {
+                      row.forEach(
+                        (cell: any, cellOffset: number, i: number) => {
+                          if (i === colIdx) {
+                            const from =
+                              tblPos + 1 + rowOffset + 1 + cellOffset;
+                            ranges.push({ from, to: from + cell.nodeSize });
+                          }
+                        },
+                      );
+                    });
+                    const tr = view.state.tr;
+                    for (let i = ranges.length - 1; i >= 0; i--) {
+                      tr.delete(ranges[i].from, ranges[i].to);
+                    }
+                    view.dispatch(tr);
+                  }
+                } catch {}
+              });
+              removeButtons();
+            });
+
             const updatePositions = () => {
-              if (!rowBtn || !colBtn) return;
+              if (!rowBtn || !delRowBtn || !colBtn || !delColBtn) return;
               const r = tableEl.getBoundingClientRect();
-              rowBtn.style.left = r.left + r.width / 2 - 24 + "px";
+              // Row controls: centred below the table, side by side
+              rowBtn.style.left = r.left + r.width / 2 - 52 + "px";
               rowBtn.style.top = r.bottom + 4 + "px";
+              delRowBtn.style.left = r.left + r.width / 2 + 4 + "px";
+              delRowBtn.style.top = r.bottom + 4 + "px";
+              // Col controls: centred to the right of the table, stacked
               colBtn.style.left = r.right + 4 + "px";
-              colBtn.style.top = r.top + r.height / 2 - 12 + "px";
+              colBtn.style.top = r.top + r.height / 2 - 26 + "px";
+              delColBtn.style.left = r.right + 4 + "px";
+              delColBtn.style.top = r.top + r.height / 2 + 2 + "px";
             };
 
             updatePositions();
@@ -1180,8 +1496,10 @@ export default function MarkdownEditor(props: EditorProps) {
             };
 
             document.body.appendChild(rowBtn);
+            document.body.appendChild(delRowBtn);
             document.body.appendChild(colBtn);
-            activeTableButtons.push(rowBtn, colBtn);
+            document.body.appendChild(delColBtn);
+            activeTableButtons.push(rowBtn, delRowBtn, colBtn, delColBtn);
           });
 
           tableEl.addEventListener("mouseleave", scheduleRemove);
