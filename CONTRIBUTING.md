@@ -8,8 +8,8 @@ Start the backend:
 
 ```bash
 cd backend
-pnpm install
-pnpm run dev
+npm install
+npm run dev
 ```
 
 Start the frontend:

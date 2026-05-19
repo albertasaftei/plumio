@@ -7,6 +7,11 @@
   "scripts": {
     "docker:build": "docker build -t plumio:dev .",
     "docker:run": "docker run --rm -p 3000:3000 -p 3001:3001 plumio:dev",
-    "docker:publish": "docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/albertasaftei/plumio:latest --push ."
+    "docker:publish": "docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/albertasaftei/plumio:latest --push .",
+    "desktop:install": "cd desktop && npm install",
+    "desktop:build": "cd frontend && pnpm build:desktop && cd ../desktop && npm run build",
+    "desktop:dev": "cd frontend && pnpm build:desktop && cd ../desktop && npm run dev",
+    "desktop:dist:mac": "cd frontend && pnpm build:desktop && cd ../desktop && npm run dist:mac",
+    "desktop:dist:win": "cd frontend && pnpm build:desktop && cd ../desktop && npm run dist:win"
   }
 }

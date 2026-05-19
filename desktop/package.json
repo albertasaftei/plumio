@@ -1,0 +1,95 @@
+{
+  "name": "plumio-desktop",
+  "version": "2.8.0",
+  "private": true,
+  "description": "Plumio desktop app for macOS and Windows",
+  "main": "dist/main.js",
+  "scripts": {
+    "postinstall": "electron-rebuild -f -w better-sqlite3",
+    "build:backend": "node scripts/build-backend.js",
+    "build:main": "tsc",
+    "build": "npm run build:backend && npm run build:main",
+    "dev": "npm run build && electron .",
+    "pack": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --dir",
+    "dist:mac": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --mac",
+    "dist:win": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --win"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.0",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.5",
+    "electron": "^36.0.0",
+    "electron-builder": "^26.0.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.3"
+  },
+  "build": {
+    "appId": "app.plumio.desktop",
+    "productName": "Plumio",
+    "copyright": "Copyright © 2026 Albert Asaftei",
+    "files": [
+      "dist/**",
+      "node_modules/**",
+      "package.json"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "dist/backend.cjs",
+      "dist/schema.sql",
+      "package.json",
+      "node_modules/better-sqlite3/**",
+      "node_modules/bindings/**",
+      "node_modules/file-uri-to-path/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../frontend/.output/public",
+        "to": "frontend",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "connect",
+        "to": "connect",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.icns"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "directories": {
+      "output": "release"
+    }
+  }
+}
