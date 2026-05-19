@@ -10,9 +10,9 @@
     "build:main": "tsc",
     "build": "npm run build:backend && npm run build:main",
     "dev": "npm run build && electron .",
-    "pack": "npm run build && electron-builder --dir",
-    "dist:mac": "npm run build && electron-builder --mac",
-    "dist:win": "npm run build && electron-builder --win"
+    "pack": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --dir",
+    "dist:mac": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --mac",
+    "dist:win": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --win"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"
