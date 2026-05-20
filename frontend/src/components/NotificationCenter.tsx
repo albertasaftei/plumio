@@ -189,7 +189,7 @@ export default function NotificationCenter() {
   });
 
   createEffect(() => {
-    const interval = setInterval(fetchUnreadCount, 30000);
+    const interval = setInterval(fetchUnreadCount, 5 * 60000);
     onCleanup(() => clearInterval(interval));
   });
 
@@ -215,9 +215,7 @@ export default function NotificationCenter() {
           <Popover.Arrow />
           {/* Header */}
           <div class="flex items-center justify-between px-4 py-3 border-b border-base">
-            <span class="font-semibold text-body text-sm">
-              Notifications
-            </span>
+            <span class="font-semibold text-body text-sm">Notifications</span>
             <Show when={unreadCount() > 0}>
               <button
                 onClick={handleMarkAllRead}
