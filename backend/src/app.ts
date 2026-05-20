@@ -15,12 +15,12 @@ import { joinRequestsRouter } from "./routes/join-requests/index.js";
 import { notificationsRouter } from "./routes/notifications/index.js";
 import { webhooksRouter } from "./routes/webhooks/index.js";
 import { apiKeysRouter } from "./routes/api-keys/index.js";
-import { UserJWTPayload } from "./middlewares/auth.types.js";
+import { AuthContext } from "./middlewares/auth.types.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
 type Variables = {
-  user: UserJWTPayload;
+  user: AuthContext;
 };
 
 export const app = new Hono<{ Variables: Variables }>();
