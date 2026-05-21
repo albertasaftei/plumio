@@ -1,7 +1,9 @@
 name: Desktop Release
 
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
 
 permissions:
   contents: write # needed to create/upload GitHub Releases
@@ -43,9 +45,7 @@ jobs:
       - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            desktop/release/*.dmg
-            desktop/release/latest-mac.yml
+          files: desktop/release/*.dmg
 
   build-win:
     runs-on: windows-latest
@@ -83,6 +83,4 @@ jobs:
       - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            desktop/release/*.exe
-            desktop/release/latest.yml
+          files: desktop/release/*.exe
