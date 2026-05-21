@@ -91,6 +91,11 @@
     },
     "directories": {
       "output": "release"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "albertasaftei",
+      "repo": "plumio"
     }
   }
 }
