@@ -2,9 +2,10 @@
 # build-desktop.sh — Build the Plumio desktop app for macOS and/or Windows.
 #
 # Usage:
-#   ./scripts/build-desktop.sh          # build both (macOS only builds .dmg)
+#   ./scripts/build-desktop.sh          # auto-detects platform (mac on macOS, win on Windows)
 #   ./scripts/build-desktop.sh mac      # macOS .dmg only
-#   ./scripts/build-desktop.sh win      # Windows .exe only (requires Wine or Windows)
+#   ./scripts/build-desktop.sh win      # Windows .exe only — must run on Windows
+#   ./scripts/build-desktop.sh all      # both (requires Wine on macOS for cross-build)
 #
 # Output files will be in desktop/release/
 #
@@ -18,7 +19,16 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-TARGET="${1:-all}"
+TARGET="${1:-}"
+
+# Default to the current platform when no target is given
+if [[ -z "$TARGET" ]]; then
+  case "$(uname -s)" in
+    Darwin) TARGET="mac" ;;
+    Linux)  TARGET="linux" ;;
+    *)      TARGET="win" ;;  # MINGW / Git Bash on Windows
+  esac
+fi
 
 echo "▶  Building Plumio desktop — target: $TARGET"
 echo "   Repo root: $REPO_ROOT"
@@ -64,6 +74,13 @@ case "$TARGET" in
     echo "✅  Windows build complete:"
     ls -lh release/*.exe 2>/dev/null || echo "   (no .exe found — check above for errors)"
     ;;
+  linux)
+    echo "▶  Packaging Linux .AppImage / .deb..."
+    npm run dist:linux
+    echo ""
+    echo "✅  Linux build complete:"
+    ls -lh release/*.AppImage release/*.deb 2>/dev/null || echo "   (no packages found — check above for errors)"
+    ;;
   all)
     echo "▶  Packaging macOS .dmg..."
     npm run dist:mac
@@ -75,7 +92,7 @@ case "$TARGET" in
     ls -lh release/*.dmg release/*.exe 2>/dev/null || echo "   (check above for errors)"
     ;;
   *)
-    echo "Unknown target: $TARGET (use 'mac', 'win', or 'all')"
+    echo "Unknown target: $TARGET (use 'mac', 'win', 'linux', or 'all')"
     exit 1
     ;;
 esac
