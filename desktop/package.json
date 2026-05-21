@@ -11,9 +11,9 @@
     "build": "npm run build:backend && npm run build:main",
     "dev": "npm run build && electron .",
     "pack": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --dir",
-    "dist:mac": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --mac",
-    "dist:win": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --win",
-    "dist:linux": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --linux"
+    "dist:mac": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --mac --publish never",
+    "dist:win": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --win --publish never",
+    "dist:linux": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --linux --publish never"
   },
   "dependencies": {
     "better-sqlite3": "^12.0.0"
