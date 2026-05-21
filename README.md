@@ -46,6 +46,10 @@ To get started with plumio, check out our [self-hosting guide](https://plumio.ap
 
 You can download the desktop app for Windows and macOS from the [releases page](https://github.com/albertasaftei/plumio/releases).
 
+### IMPORTANT
+
+To connect to your remote server you must add to instance's `ALLOWED_ORIGINS` environment variable the URL of the desktop app: `app://plumio`
+
 ## Backup System
 
 plumio includes an optional automated backup system that runs daily to protect your documents. You can enable or disable this feature as needed, and it will create compressed backups of your data while managing retention automatically. Otherwise you can create manual backups at any time and view backup logs to keep track of your backup history. For more details, see the [Backup System documentation](https://plumio.app/docs/configuration#manual-backup).
