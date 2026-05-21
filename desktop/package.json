@@ -1,6 +1,6 @@
 {
   "name": "plumio-desktop",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "private": true,
   "description": "Plumio desktop app for macOS and Windows",
   "main": "dist/main.js",
@@ -12,10 +12,11 @@
     "dev": "npm run build && electron .",
     "pack": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --dir",
     "dist:mac": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --mac",
-    "dist:win": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --win"
+    "dist:win": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --win",
+    "dist:linux": "npm --prefix ../frontend run build:desktop && npm run build && electron-builder --linux"
   },
   "dependencies": {
-    "better-sqlite3": "^11.8.1"
+    "better-sqlite3": "^12.0.0"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.0.0",
