@@ -7,7 +7,7 @@ import {
   memberQueries,
   apiKeyQueries,
 } from "../../db/index.js";
-import { UserJWTPayload, ApiKeyContext } from "../../middlewares/auth.types.js";
+import { ApiKeyContext, AuthContext } from "../../middlewares/auth.types.js";
 import { MAX_ATTACHMENT_SIZE_MB } from "../../config.js";
 import {
   getAttachmentsDir,
@@ -18,7 +18,7 @@ import {
 import { createHash } from "crypto";
 
 type Variables = {
-  user: UserJWTPayload;
+  user: AuthContext;
 };
 
 const attachmentsRouter = new Hono<{ Variables: Variables }>();
