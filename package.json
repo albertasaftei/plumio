@@ -1,8 +1,8 @@
 {
   "name": "plumio",
-  "description": "A self-hosted markdown editor with live preview, document encryption, multi-user support, multi-organization capabilities and more.",
+  "description": "A self-hosted markdown notes taking app with live preview, document encryption, multi-user support, multi-organization capabilities and more.",
   "type": "module",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "docker:build": "docker build -t plumio:dev .",
