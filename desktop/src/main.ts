@@ -3,7 +3,6 @@ import {
   BrowserWindow,
   ipcMain,
   protocol,
-  net as electronNet,
   utilityProcess,
   Menu,
   dialog,
@@ -12,7 +11,6 @@ import type { UtilityProcess } from "electron";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
-import { pathToFileURL } from "url";
 import nodeNet from "net";
 
 const isDev = !app.isPackaged;
@@ -338,11 +336,22 @@ async function startBackend(): Promise<void> {
 // Safe to call more than once (e.g. macOS activate): startBackend() is skipped
 // when a backend process is already running.
 
+// Show the window the first time a real page finishes painting.
+// Registering ready-to-show here (not in createWindow) ensures it fires on
+// the actual target URL, not on the initial about:blank.
+function showOnLoad(url: string): void {
+  if (!mainWindow) return;
+  if (!mainWindow.isVisible()) {
+    mainWindow.once("ready-to-show", () => mainWindow?.show());
+  }
+  void mainWindow.loadURL(url);
+}
+
 async function applyStartupRouting(): Promise<void> {
   if (currentConfig?.mode === "remote" && currentConfig.remoteUrl) {
     // Remote mode: navigate directly to the saved server — no local backend needed.
     console.log(`[desktop] Remote mode → ${currentConfig.remoteUrl}`);
-    mainWindow?.loadURL(currentConfig.remoteUrl);
+    showOnLoad(currentConfig.remoteUrl);
   } else {
     // Local mode OR first launch: ensure the embedded backend is running.
     if (!backendProcess) {
@@ -354,10 +363,10 @@ async function applyStartupRouting(): Promise<void> {
       }
     }
     if (currentConfig?.mode === "local") {
-      mainWindow?.loadURL("app://plumio/");
+      showOnLoad("app://plumio/");
     } else {
       // First launch — show connect screen.
-      mainWindow?.loadURL("app://plumio/connect/");
+      showOnLoad("app://plumio/connect/");
     }
   }
 }
@@ -377,10 +386,6 @@ function createWindow(): void {
       sandbox: true,
     },
     show: false,
-  });
-
-  mainWindow.once("ready-to-show", () => {
-    mainWindow?.show();
   });
 
   mainWindow.on("closed", () => {
@@ -507,6 +512,41 @@ app.whenReady().then(async () => {
   const resolvedConnectDir = path.resolve(connectDir);
   const resolvedSpaDir = path.resolve(spaDir);
 
+  // Explicit MIME types ensure Chromium 130+ (Electron 38+) doesn't silently
+  // reject scripts due to missing or inferred Content-Type headers.
+  const MIME: Record<string, string> = {
+    ".html": "text/html; charset=utf-8",
+    ".js": "application/javascript; charset=utf-8",
+    ".mjs": "application/javascript; charset=utf-8",
+    ".cjs": "application/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".webp": "image/webp",
+    ".ico": "image/x-icon",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2",
+    ".ttf": "font/ttf",
+    ".eot": "application/vnd.ms-fontobject",
+    ".webmanifest": "application/manifest+json",
+    ".map": "application/json",
+  };
+
+  function serveLocalFile(filePath: string): Response {
+    try {
+      const data = fs.readFileSync(filePath);
+      const ext = path.extname(filePath).toLowerCase();
+      const contentType = MIME[ext] ?? "application/octet-stream";
+      return new Response(data, { headers: { "Content-Type": contentType } });
+    } catch {
+      return new Response(null, { status: 404 });
+    }
+  }
+
   protocol.handle("app", (request) => {
     const url = new URL(request.url);
     const pathname = url.pathname;
@@ -529,12 +569,15 @@ app.whenReady().then(async () => {
         return new Response(null, { status: 403 });
       }
       if (fs.existsSync(resolved)) {
-        return electronNet.fetch(pathToFileURL(resolved).href);
+        return serveLocalFile(resolved);
       }
     }
 
     // Everything else → SPA (fall back to index.html for client-side routing)
-    const spaPath = pathname === "/" ? "index.html" : pathname;
+    // Strip leading "/" so path.resolve treats it as relative to resolvedSpaDir
+    // (path.resolve ignores the base when the second arg starts with "/").
+    const spaPath =
+      pathname === "/" ? "index.html" : pathname.replace(/^\/+/, "");
     const resolvedSpa = path.resolve(resolvedSpaDir, spaPath);
     // Deny path traversal outside spaDir — fall back to index.html
     const spaFile =
@@ -544,7 +587,7 @@ app.whenReady().then(async () => {
       !fs.statSync(resolvedSpa).isDirectory()
         ? resolvedSpa
         : path.join(resolvedSpaDir, "index.html");
-    return electronNet.fetch(pathToFileURL(spaFile).href);
+    return serveLocalFile(spaFile);
   });
 
   // ── Start the right backend / URL based on saved config ───────────────────
