@@ -106,7 +106,9 @@ async function readFolderItems(
       .filter((item) => !item.name.includes(".archived-"))
       .filter((item) => !item.name.includes(".deleted-"))
       .filter((item) => item.name !== "attachments")
-      .filter((item) => item.isDirectory() || item.name.endsWith(".md"))
+      .filter(
+        (item) => item.isDirectory() || item.name.toLowerCase().endsWith(".md"),
+      )
       .map(async (item) => {
         const itemPath = path.join(fullPath, item.name);
         const stats = await fs.stat(itemPath);
@@ -225,8 +227,10 @@ documentsRouter.post(
     // server can sanitize the user-typed name before it touches the filesystem.
     let filePath: string;
     if (isNew && folder !== undefined && name !== undefined) {
-      const safeName = sanitizeFilename(name);
-      const fileName = safeName.endsWith(".md") ? safeName : `${safeName}.md`;
+      const safeName = sanitizeFilename(name) || "Untitled";
+      const fileName = safeName.toLowerCase().endsWith(".md")
+        ? safeName
+        : `${safeName}.md`;
       filePath = folder === "/" ? `/${fileName}` : `${folder}/${fileName}`;
     } else if (rawPath) {
       filePath = rawPath;
@@ -331,7 +335,7 @@ documentsRouter.post(
 
     let folderPath: string;
     if (parsed.data.folder !== undefined && parsed.data.name !== undefined) {
-      const safeName = sanitizeFilename(parsed.data.name);
+      const safeName = sanitizeFilename(parsed.data.name) || "Untitled";
       folderPath =
         parsed.data.folder === "/"
           ? `/${safeName}`
