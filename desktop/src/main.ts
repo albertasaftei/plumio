@@ -54,6 +54,7 @@ const connectDir = isDev
 interface DesktopConfig {
   mode: "local" | "remote";
   remoteUrl?: string;
+  documentsPath?: string;
 }
 
 function getConfigPath(): string {
@@ -221,7 +222,8 @@ async function startBackend(): Promise<void> {
     ...parentEnv,
     BACKEND_INTERNAL_PORT: String(backendPort),
     DB_PATH: path.join(userData, "data", "plumio.db"),
-    DOCUMENTS_PATH: path.join(userData, "documents"),
+    DOCUMENTS_PATH:
+      currentConfig?.documentsPath || path.join(userData, "documents"),
     JWT_SECRET: getOrCreateSecret(userData),
     NODE_ENV: "production",
     // Tell the backend bundle where to write crash diagnostics
@@ -505,6 +507,52 @@ app.whenReady().then(async () => {
     currentConfig = null;
     // Return to the connect screen.
     mainWindow?.loadURL("app://plumio/connect/");
+  });
+
+  // Returns the current documents path (sync, called from preload).
+  ipcMain.on("get-documents-path", (event) => {
+    const userData = app.getPath("userData");
+    event.returnValue =
+      currentConfig?.documentsPath ?? path.join(userData, "documents");
+  });
+
+  // Opens a folder-picker dialog, updates the config, and restarts the backend.
+  ipcMain.handle("choose-documents-path", async () => {
+    const userData = app.getPath("userData");
+    const currentPath =
+      currentConfig?.documentsPath ?? path.join(userData, "documents");
+
+    const result = await dialog.showOpenDialog(mainWindow!, {
+      title: "Choose Documents Folder",
+      defaultPath: currentPath,
+      properties: ["openDirectory", "createDirectory"],
+    });
+
+    if (result.canceled || !result.filePaths.length) return null;
+
+    const newPath = result.filePaths[0];
+    if (newPath === currentPath) return currentPath;
+
+    // Persist the new path.
+    currentConfig = {
+      ...(currentConfig ?? { mode: "local" }),
+      documentsPath: newPath,
+    };
+    writeConfig(currentConfig);
+
+    // Restart the embedded backend with the updated DOCUMENTS_PATH.
+    if (backendProcess) {
+      backendProcess.kill();
+      backendProcess = null;
+      backendExited = false;
+      try {
+        await startBackend();
+      } catch {
+        // Error dialog already shown by startBackend.
+      }
+    }
+
+    return newPath;
   });
 
   // ── Protocol: serve connect screen + SPA ──────────────────────────────────

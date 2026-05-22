@@ -10,6 +10,7 @@ export type SettingsSection =
   | "organization"
   | "webhooks"
   | "api-keys"
+  | "desktop"
   | "admin"
   | "app-configuration"
   | "build-information"
@@ -144,6 +145,20 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
             <div class="i-carbon-api w-4 h-4" />
             <span class="ml-2">{t("settings.apiKeys")}</span>
           </Button>
+
+          <Show when={(window as any).__plumio__?.mode === "local"}>
+            <Button
+              onClick={() => props.onSectionChange("desktop")}
+              variant={
+                props.activeSection === "desktop" ? "secondary" : "ghost"
+              }
+              size="md"
+              fullWidth
+            >
+              <div class="i-carbon-laptop w-4 h-4" />
+              <span class="ml-2">{t("settings.desktop")}</span>
+            </Button>
+          </Show>
 
           <Button
             onClick={() => props.onSectionChange("webhooks")}

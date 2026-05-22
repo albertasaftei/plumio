@@ -5,6 +5,7 @@ import { contextBridge, ipcRenderer } from "electron";
 const mode = ipcRenderer.sendSync("get-mode") as "local" | "remote" | null;
 const savedRemoteUrl = ipcRenderer.sendSync("get-remote-url") as string | null;
 const localBackendUrl = ipcRenderer.sendSync("get-backend-url") as string;
+const documentsPath = ipcRenderer.sendSync("get-documents-path") as string;
 
 // In local mode expose the embedded backend URL.
 // In remote mode expose the remote server URL so api.ts uses it directly
@@ -42,4 +43,16 @@ contextBridge.exposeInMainWorld("__plumio__", {
 
   /** Forget the saved server config and return to the connect screen. */
   clearServerConfig: () => ipcRenderer.send("clear-server-config"),
+
+  // ── Desktop settings ──────────────────────────────────────────────────────
+
+  /** Absolute path to the folder where documents are stored locally. */
+  documentsPath,
+
+  /**
+   * Opens a native folder-picker, saves the chosen path, and restarts the
+   * embedded backend. Resolves with the new path, or null if cancelled.
+   */
+  chooseDocumentsPath: (): Promise<string | null> =>
+    ipcRenderer.invoke("choose-documents-path"),
 });

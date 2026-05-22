@@ -90,6 +90,7 @@
   "settings.admin": "Panneau d'administration",
   "settings.appConfiguration": "Configuration de l'application",
   "settings.buildInformation": "Informations de build",
+  "settings.desktop": "Bureau",
   "settings.logout": "Déconnexion",
   "settings.language": "Langue",
   "account.profile": "Profil",
