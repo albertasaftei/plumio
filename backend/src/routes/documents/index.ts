@@ -119,9 +119,12 @@ async function readFolderItems(
           docPath,
         );
 
-        if (dbDoc && (dbDoc.archived === 1 || dbDoc.deleted === 1)) {
-          return null;
-        }
+        // Files with `.deleted-{ts}` or `.archived-{ts}` in their name are
+        // already excluded by the filename filters above.  Any file that
+        // reaches this point lives at its *original* path, so a `deleted` or
+        // `archived` DB flag here is stale data (migrated from an older version
+        // of the app that did not rename files on delete/archive).
+        // Stale flags are silently ignored so those files remain visible.
 
         let metadata: any = {};
         try {

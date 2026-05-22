@@ -186,7 +186,13 @@ export const documentQueries = {
       title = excluded.title,
       color = excluded.color,
       size = excluded.size,
-      updated_at = CURRENT_TIMESTAMP
+      updated_at = CURRENT_TIMESTAMP,
+      deleted = 0,
+      deleted_at = NULL,
+      deleted_by = NULL,
+      archived = 0,
+      archived_at = NULL,
+      archived_by = NULL
   `),
   findByOrgAndPath: db.prepare<[number, string], Document>(
     "SELECT * FROM documents WHERE organization_id = ? AND path = ? AND archived = 0",
