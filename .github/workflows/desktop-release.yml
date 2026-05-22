@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Tag to release (e.g. v1.2.3). Defaults to the commit ref when omitted."
+        required: false
+        default: ""
 
 permissions:
   contents: write # needed to create/upload GitHub Releases
@@ -45,6 +51,7 @@ jobs:
       - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.tag_name || github.ref_name }}
           files: desktop/release/*.dmg
 
   build-win:
@@ -83,6 +90,7 @@ jobs:
       - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.tag_name || github.ref_name }}
           files: desktop/release/*.exe
 
   build-linux:
@@ -121,4 +129,5 @@ jobs:
       - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.tag_name || github.ref_name }}
           files: desktop/release/*.AppImage
