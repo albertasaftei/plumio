@@ -31,6 +31,8 @@ plumio is a self-hosted markdown editor designed for individuals and teams who w
 - **Multi-User Support**: Collaborate with team members by creating multiple user accounts.
 - **Multi-Organization Support**: Manage different groups or teams within the same instance.
 - **Self-Hosted**: Take full control of your data by hosting plumio on your own server or local machine.
+- **Webhook support**: Allow external services to receive real-time notifications for events such as document creation, updates, deletions, moves, and more.
+- **API key management**: Allow the users to authenticate and interact with the plumio API for various operations such as document management, search, and more.
 
 ## Getting Started
 
@@ -49,6 +51,10 @@ You can download the desktop app for Windows and macOS from the [releases page](
 ### IMPORTANT
 
 To connect to your remote server you must add to instance's `ALLOWED_ORIGINS` environment variable the URL of the desktop app: `app://plumio`
+
+### Documents folder change
+
+The settings page allows the users to change the documents' saving directory. **You will see an error popup but that is because the backend will restart after changing the path**.
 
 ## Backup System
 
