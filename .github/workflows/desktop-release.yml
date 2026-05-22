@@ -84,3 +84,41 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: desktop/release/*.exe
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 10
+
+      - name: Build frontend (SPA)
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build:desktop
+
+      - name: Install backend deps
+        working-directory: backend
+        run: npm install
+
+      - name: Install desktop deps
+        working-directory: desktop
+        run: npm install --ignore-scripts
+
+      - name: Package .AppImage
+        working-directory: desktop
+        run: npm run dist:linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: desktop/release/*.AppImage
