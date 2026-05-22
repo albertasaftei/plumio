@@ -15,10 +15,20 @@ export function sanitizePath(userPath: string, organizationId: number): string {
   return path.join(orgPath, normalized);
 }
 
-// Sanitize a filename segment — replaces slashes so user-typed names
-// (e.g. dates like "01/04/2026") never create unintended subdirectories.
+// Sanitize a filename segment so it is safe on every OS.
+// - Replaces forward and back slashes (path separators on any OS) with a dash
+//   so user-typed names like "01/04/2026" or Windows paths like "foo\\bar"
+//   never create unintended subdirectories.
+// - Strips Windows-reserved characters (< > : " | ? *) that would cause
+//   fs.writeFile to fail or behave unexpectedly on Windows.
+// - Trims surrounding whitespace / dots (Windows rejects trailing dots/spaces).
 export function sanitizeFilename(name: string): string {
-  return name.replace(/\//g, "-");
+  return name
+    .replace(/[\/\\]/g, "-") // forward + back slashes → dash
+    .replace(/[<>:"|?*]/g, "-") // Windows-reserved chars  → dash
+    .replace(/[\x00-\x1f\x7f]/g, "") // control characters      → strip
+    .replace(/\.+$/, "") // trailing dots           → strip
+    .trim();
 }
 
 // Generate unique file path by appending (1), (2), etc. if file already exists
