@@ -38,17 +38,23 @@ COPY backend/src ./src
 COPY backend/tsconfig.json ./
 RUN npm run build
 
+# Production dependencies stage — only runtime deps, no devDependencies
+FROM node:22-alpine AS backend-prod-deps
+
+RUN apk add --no-cache python3 make g++
+
+WORKDIR /app/backend
+COPY backend/package.json backend/package-lock.json* ./
+RUN npm ci --omit=dev
+
 # Final production stage
 FROM node:22-alpine
-
-# Install runtime dependencies for native modules
-RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
 # Copy backend
 COPY --from=backend-builder /app/backend/dist ./backend/dist
-COPY --from=backend-builder /app/backend/node_modules ./backend/node_modules
+COPY --from=backend-prod-deps /app/backend/node_modules ./backend/node_modules
 COPY --from=backend-builder /app/backend/package.json ./backend/
 COPY backend/src/db/schema.sql ./backend/dist/db/
 
