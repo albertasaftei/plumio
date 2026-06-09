@@ -13,6 +13,7 @@ import { addOrgDiscovery } from "./011-add-org-discovery.js";
 import { addUserTheme } from "./012-add-user-theme.js";
 import { addWebhooks } from "./013-add-webhooks.js";
 import { addApiKeys } from "./014-add-api-keys.js";
+import { addSync } from "./015-add-sync.js";
 
 // All migrations in order - put them inside this folder and add them here
 export const allMigrations: Migration[] = [
@@ -30,4 +31,5 @@ export const allMigrations: Migration[] = [
   addUserTheme,
   addWebhooks,
   addApiKeys,
+  addSync,
 ];

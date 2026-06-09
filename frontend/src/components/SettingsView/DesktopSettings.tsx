@@ -2,7 +2,8 @@ import { createSignal, Show } from "solid-js";
 import Button from "../Button";
 
 export default function DesktopSettings() {
-  const plumio = (window as any).__plumio__;
+  const plumio =
+    typeof window !== "undefined" ? (window as any).__plumio__ : undefined;
 
   const [docsPath, setDocsPath] = createSignal<string>(
     plumio?.documentsPath ?? "",

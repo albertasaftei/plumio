@@ -10,6 +10,7 @@ export type SettingsSection =
   | "organization"
   | "webhooks"
   | "api-keys"
+  | "sync"
   | "desktop"
   | "admin"
   | "app-configuration"
@@ -146,7 +147,12 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
             <span class="ml-2">{t("settings.apiKeys")}</span>
           </Button>
 
-          <Show when={(window as any).__plumio__?.mode === "local"}>
+          <Show
+            when={
+              typeof window !== "undefined" &&
+              (window as any).__plumio__?.mode === "local"
+            }
+          >
             <Button
               onClick={() => props.onSectionChange("desktop")}
               variant={
@@ -168,6 +174,16 @@ export default function SettingsSidebar(props: SettingsSidebarProps) {
           >
             <div class="i-carbon-webhook w-4 h-4" />
             <span class="ml-2">{t("settings.webhooks")}</span>
+          </Button>
+
+          <Button
+            onClick={() => props.onSectionChange("sync")}
+            variant={props.activeSection === "sync" ? "secondary" : "ghost"}
+            size="md"
+            fullWidth
+          >
+            <div class="i-carbon-cloud-upload w-4 h-4" />
+            <span class="ml-2">Sync</span>
           </Button>
 
           <div class="relative">

@@ -19,6 +19,8 @@ import {
   Webhook,
   WebhookDelivery,
   ApiKey,
+  SyncConfig,
+  SyncLog,
 } from "./index.types.js";
 import fsp from "fs/promises";
 import pathMod from "path";
@@ -756,6 +758,62 @@ export const apiKeyQueries = {
   ),
   updateLastUsed: db.prepare<[number]>(
     "UPDATE api_keys SET last_used_at = CURRENT_TIMESTAMP WHERE id = ?",
+  ),
+};
+
+// === Sync Queries ===
+export const syncConfigQueries = {
+  findByOrg: db.prepare<[number], SyncConfig>(
+    "SELECT * FROM sync_configs WHERE org_id = ?",
+  ),
+  upsert: db.prepare<
+    [number, string, string, number, string, string],
+    SyncConfig
+  >(`
+    INSERT INTO sync_configs (org_id, provider, credentials_encrypted, enabled, schedule, remote_prefix)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT(org_id) DO UPDATE SET
+      provider = excluded.provider,
+      credentials_encrypted = excluded.credentials_encrypted,
+      enabled = excluded.enabled,
+      schedule = excluded.schedule,
+      remote_prefix = excluded.remote_prefix,
+      updated_at = CURRENT_TIMESTAMP
+  `),
+  updateLastSync: db.prepare<[number]>(
+    "UPDATE sync_configs SET last_sync_at = CURRENT_TIMESTAMP WHERE org_id = ?",
+  ),
+  updateCredentials: db.prepare<[string, number]>(
+    "UPDATE sync_configs SET credentials_encrypted = ?, updated_at = CURRENT_TIMESTAMP WHERE org_id = ?",
+  ),
+  deleteByOrg: db.prepare<[number]>(
+    "DELETE FROM sync_configs WHERE org_id = ?",
+  ),
+  listEnabled: db.prepare<[], SyncConfig>(
+    "SELECT * FROM sync_configs WHERE enabled = 1 AND schedule != 'manual'",
+  ),
+};
+
+export const syncLogQueries = {
+  insert: db.prepare<[number, string], Pick<SyncLog, "id">>(`
+    INSERT INTO sync_log (org_id, provider, status)
+    VALUES (?, ?, 'running')
+    RETURNING id
+  `),
+  complete: db.prepare<[string | null, number, string | null, number]>(`
+    UPDATE sync_log
+    SET status = CASE WHEN ? IS NOT NULL THEN 'error' ELSE 'success' END,
+        files_uploaded = ?,
+        files_deleted = 0,
+        error_message = ?,
+        completed_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `),
+  listByOrg: db.prepare<[number, number], SyncLog>(`
+    SELECT * FROM sync_log WHERE org_id = ? ORDER BY started_at DESC LIMIT ?
+  `),
+  lastByOrg: db.prepare<[number], SyncLog>(
+    "SELECT * FROM sync_log WHERE org_id = ? ORDER BY started_at DESC LIMIT 1",
   ),
 };
 

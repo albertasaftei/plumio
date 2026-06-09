@@ -1,6 +1,7 @@
 import { serve } from "@hono/node-server";
 import fs from "fs";
 import { app } from "./app.js";
+import { initSyncScheduler } from "./utils/sync/index.js";
 
 // Initialize documents directory
 const documentsPath = process.env.DOCUMENTS_PATH || "./documents";
@@ -17,3 +18,6 @@ serve({
   fetch: app.fetch,
   port,
 });
+
+// Initialize sync scheduler after server is up
+initSyncScheduler();

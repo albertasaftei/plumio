@@ -153,3 +153,28 @@ export interface ApiKey {
   last_used_at: string | null;
   expires_at: string | null;
 }
+
+export interface SyncConfig {
+  id: number;
+  org_id: number;
+  provider: "s3" | "s3-compatible" | "dropbox" | "gdrive" | "onedrive";
+  credentials_encrypted: string;
+  enabled: number; // 1 = enabled, 0 = disabled
+  schedule: string; // cron expression or "manual"
+  remote_prefix: string;
+  last_sync_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SyncLog {
+  id: number;
+  org_id: number;
+  provider: string;
+  status: "running" | "success" | "error";
+  files_uploaded: number;
+  files_deleted: number;
+  error_message: string | null;
+  started_at: string;
+  completed_at: string | null;
+}

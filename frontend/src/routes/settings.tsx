@@ -17,6 +17,7 @@ import EditorPreferences from "~/components/SettingsView/EditorPreferences";
 import WebhooksPanel from "~/components/SettingsView/WebhooksPanel/WebhooksPanel";
 import ApiKeysPanel from "~/components/SettingsView/ApiKeysPanel/ApiKeysPanel";
 import DesktopSettings from "~/components/SettingsView/DesktopSettings";
+import SyncPanel from "~/components/SettingsView/SyncPanel/SyncPanel";
 
 const SectionsWrapper = ({ children }: { children: JSX.Element }) => {
   return <div class="p-8 max-w-5xl mx-auto">{children}</div>;
@@ -213,6 +214,23 @@ export default function SettingsPage() {
                 <h2 class="text-2xl font-bold text-body">Webhooks</h2>
               </div>
               <WebhooksPanel />
+            </SectionsWrapper>
+          </Show>
+
+          <Show when={activeSection() === "sync"}>
+            <SectionsWrapper>
+              <div class="flex items-center gap-3 mb-6">
+                <Button
+                  onClick={handleClose}
+                  variant="ghost"
+                  size="md"
+                  title="Back to editor"
+                >
+                  <div class="i-carbon-arrow-left w-5 h-5" />
+                </Button>
+                <h2 class="text-2xl font-bold text-body">Sync</h2>
+              </div>
+              <SyncPanel />
             </SectionsWrapper>
           </Show>
 

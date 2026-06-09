@@ -15,6 +15,7 @@ import { joinRequestsRouter } from "./routes/join-requests/index.js";
 import { notificationsRouter } from "./routes/notifications/index.js";
 import { webhooksRouter } from "./routes/webhooks/index.js";
 import { apiKeysRouter } from "./routes/api-keys/index.js";
+import { syncRouter, oauthCallbackRouter } from "./routes/sync/index.js";
 import { AuthContext } from "./middlewares/auth.types.js";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -158,3 +159,6 @@ app.route("/api/join-requests", joinRequestsRouter);
 app.route("/api/notifications", notificationsRouter);
 app.route("/api/webhooks", webhooksRouter);
 app.route("/api/api-keys", apiKeysRouter);
+// OAuth callback must be registered before /api/sync so it bypasses authMiddleware
+app.route("/api/sync/oauth/callback", oauthCallbackRouter);
+app.route("/api/sync", syncRouter);

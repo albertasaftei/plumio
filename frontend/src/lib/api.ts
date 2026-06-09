@@ -1579,6 +1579,117 @@ export class ApiClient {
       method: "DELETE",
     });
   }
+
+  // Sync
+  async getSyncConfig() {
+    return this.request<{
+      config: {
+        provider: string;
+        enabled: boolean;
+        schedule: string;
+        scheduleLabel: string;
+        remotePrefix: string;
+        lastSyncAt: string | null;
+        credentials: Record<string, string>;
+      } | null;
+    }>("/api/sync/config");
+  }
+
+  async saveSyncConfig(data: {
+    provider: string;
+    credentials: Record<string, unknown>;
+    enabled?: boolean;
+    schedule?: string;
+    remotePrefix?: string;
+  }) {
+    return this.request<{ message: string }>("/api/sync/config", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteSyncConfig() {
+    return this.request<{ message: string }>("/api/sync/config", {
+      method: "DELETE",
+    });
+  }
+
+  async triggerSync() {
+    return this.request<{ message: string }>("/api/sync/trigger", {
+      method: "POST",
+    });
+  }
+
+  async testSyncConnection(data: {
+    provider: string;
+    credentials: Record<string, unknown>;
+    schedule?: string;
+    remotePrefix?: string;
+  }) {
+    return this.request<{ message: string }>("/api/sync/test", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getSyncStatus() {
+    return this.request<{
+      configured: boolean;
+      enabled: boolean;
+      schedule: string | null;
+      scheduleLabel: string | null;
+      lastSyncAt: string | null;
+      lastLog: {
+        id: number;
+        status: "running" | "success" | "error";
+        files_uploaded: number;
+        error_message: string | null;
+        started_at: string;
+        completed_at: string | null;
+      } | null;
+    }>("/api/sync/status");
+  }
+
+  async getSyncLog(limit: number = 20) {
+    return this.request<{
+      logs: Array<{
+        id: number;
+        provider: string;
+        status: "running" | "success" | "error";
+        files_uploaded: number;
+        error_message: string | null;
+        started_at: string;
+        completed_at: string | null;
+      }>;
+    }>(`/api/sync/log?limit=${limit}`);
+  }
+
+  async initSyncOAuth(data: {
+    provider: string;
+    clientId: string;
+    clientSecret: string;
+    folderId?: string;
+    tenantId?: string;
+    schedule?: string;
+    remotePrefix?: string;
+    enabled?: boolean;
+  }) {
+    return this.request<{ authUrl: string }>(
+      `/api/sync/oauth/connect/${data.provider}`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          clientId: data.clientId,
+          clientSecret: data.clientSecret,
+          ...(data.folderId !== undefined ? { folderId: data.folderId } : {}),
+          ...(data.tenantId !== undefined ? { tenantId: data.tenantId } : {}),
+          schedule: data.schedule ?? "manual",
+          remotePrefix: data.remotePrefix ?? "",
+          enabled: data.enabled ?? true,
+        }),
+      },
+    );
+  }
 }
 
 // Conditional API client - uses demo client in demo mode, otherwise real API client
