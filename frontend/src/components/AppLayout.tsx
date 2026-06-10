@@ -26,6 +26,18 @@ export interface AppLayoutContext {
   toggleExpandFolder: (path: string) => void;
   sidebarOpen: () => boolean;
   setSidebarOpen: (open: boolean) => void;
+  deleteItem: (path: string) => void;
+  archiveItem: (path: string) => Promise<void>;
+  renameItem: (oldPath: string, newName: string) => Promise<void>;
+  moveItem: (
+    sourcePath: string,
+    destinationFolder: string,
+    targetOrgId?: number,
+    keepSource?: boolean,
+  ) => Promise<void>;
+  toggleFavorite: (path: string, favorite: boolean) => Promise<void>;
+  setItemColor: (path: string, color: string | null) => Promise<void>;
+  duplicateItem: (path: string) => Promise<void>;
 }
 
 interface AppLayoutProps {
@@ -288,6 +300,13 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     toggleExpandFolder,
     sidebarOpen,
     setSidebarOpen,
+    deleteItem,
+    archiveItem,
+    renameItem,
+    moveItem,
+    toggleFavorite,
+    setItemColor,
+    duplicateItem,
   };
 
   return (

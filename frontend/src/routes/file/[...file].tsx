@@ -8,6 +8,7 @@ import {
   onMount,
   on,
   For,
+  createMemo,
 } from "solid-js";
 import { useParams, useNavigate, useBeforeLeave } from "@solidjs/router";
 import { api } from "~/lib/api";
@@ -16,18 +17,25 @@ import Button from "~/components/Button";
 import { routes } from "~/routes";
 import DocumentTagBar from "~/components/DocumentTagBar";
 import { getVimMode } from "~/lib/editorPreferences";
+import { useAppLayout } from "~/components/AppLayout";
+import type { Tag } from "~/types/Tag.types";
 
 const MarkdownEditor = lazy(() => import("~/components/MarkdownEditor"));
 
 export default function DocumentPage() {
   const params = useParams();
   const navigate = useNavigate();
+  const appLayout = useAppLayout();
   const [currentContent, setCurrentContent] = createSignal("");
   const [loading, setLoading] = createSignal(false);
   const [useLivePreview, setUseLivePreview] = createSignal(true);
   const [saveStatus, setSaveStatus] = createSignal<
     "saved" | "saving" | "unsaved"
   >("saved");
+  const [tags, setTags] = createSignal<Tag[]>([]);
+  const [tagMappings, setTagMappings] = createSignal<Record<string, number[]>>(
+    {},
+  );
 
   // Re-mount the editor when vim mode is toggled in settings
   const [editorVersion, setEditorVersion] = createSignal(0);
@@ -99,6 +107,44 @@ export default function DocumentPage() {
       loadDocument();
     }
   });
+
+  // Load tags once and refresh on path change
+  const loadTags = async () => {
+    try {
+      const [tagsResult, mappingsResult] = await Promise.all([
+        api.listTags(),
+        api.getTagMappings(),
+      ]);
+      setTags(tagsResult.tags);
+      setTagMappings(mappingsResult.mappings);
+    } catch {
+      // Tags not critical
+    }
+  };
+
+  onMount(() => {
+    loadTags();
+  });
+
+  // Derive current document metadata from AppLayout's documents list
+  const currentDocument = createMemo(() => {
+    const path = getDocumentPath();
+    return appLayout.allDocuments().find((d) => d.path === path) ?? null;
+  });
+
+  const handleToggleTag = async (tagId: number, add: boolean) => {
+    const path = getDocumentPath();
+    try {
+      const currentTags = tagMappings()[path] || [];
+      const newTags = add
+        ? [...currentTags, tagId]
+        : currentTags.filter((t) => t !== tagId);
+      await api.setDocumentTags(path, newTags);
+      await loadTags();
+    } catch {
+      // ignore
+    }
+  };
 
   const handleContentChange = (newContent: string) => {
     setCurrentContent(newContent);
@@ -206,6 +252,50 @@ export default function DocumentPage() {
                       .map(encodeURIComponent)
                       .join("/");
                     navigate(`/file${encodedPath}`);
+                  }}
+                  documentMenu={{
+                    path: getDocumentPath(),
+                    name:
+                      currentDocument()?.name ??
+                      getDocumentPath().split("/").pop() ??
+                      "Document",
+                    type: "file",
+                    isFavorite: currentDocument()?.favorite,
+                    color: currentDocument()?.color,
+                    tags,
+                    tagMappings,
+                    onDelete: () => appLayout.deleteItem(getDocumentPath()),
+                    onArchive: () => appLayout.archiveItem(getDocumentPath()),
+                    onDownloadMarkdown: () => {
+                      const name = currentDocument()?.name ?? "document";
+                      const filename = name.endsWith(".md")
+                        ? name
+                        : `${name}.md`;
+                      api.downloadDocumentAsMarkdown(
+                        filename,
+                        currentContent(),
+                      );
+                    },
+                    onDownloadPdf: () => {
+                      const name = currentDocument()?.name ?? "document";
+                      api.downloadDocumentAsPdf(name, currentContent());
+                    },
+                    onRename: () => {
+                      const newName = window.prompt(
+                        "Rename to:",
+                        currentDocument()?.name ?? "",
+                      );
+                      if (newName && newName.trim()) {
+                        appLayout.renameItem(getDocumentPath(), newName.trim());
+                      }
+                    },
+                    onDuplicate: () =>
+                      appLayout.duplicateItem(getDocumentPath()),
+                    onToggleFavorite: (fav) =>
+                      appLayout.toggleFavorite(getDocumentPath(), fav),
+                    onSetColor: (color) =>
+                      appLayout.setItemColor(getDocumentPath(), color),
+                    onToggleTag: handleToggleTag,
                   }}
                 />
               )}

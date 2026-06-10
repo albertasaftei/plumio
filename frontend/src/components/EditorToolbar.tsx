@@ -1,5 +1,8 @@
 import { Component, createSignal, Show } from "solid-js";
 import { Popover } from "@kobalte/core/popover";
+import DocumentMenuContent, {
+  type DocumentMenuContentProps,
+} from "./DocumentMenuContent";
 
 interface ActiveState {
   bold?: boolean;
@@ -49,6 +52,7 @@ interface ToolbarProps {
   activeState?: ActiveState;
   showAttachments?: boolean;
   attachmentCount?: number;
+  documentMenu?: Omit<DocumentMenuContentProps, "onClose">;
 }
 
 interface ToolbarButtonProps {
@@ -108,6 +112,7 @@ export default function EditorToolbar(props: ToolbarProps) {
   const [showColorPicker, setShowColorPicker] = createSignal(false);
   const [showFontPicker, setShowFontPicker] = createSignal(false);
   const [showTablePicker, setShowTablePicker] = createSignal(false);
+  const [showDocMenu, setShowDocMenu] = createSignal(false);
   const [hoveredTable, setHoveredTable] = createSignal({ rows: 0, cols: 0 });
 
   // Derive a short display label for the active font
@@ -571,6 +576,37 @@ export default function EditorToolbar(props: ToolbarProps) {
           </Popover.Content>
         </Popover.Portal>
       </Popover>
+
+      {/* Document settings button */}
+      <Show when={props.documentMenu}>
+        <ToolbarDivider />
+        <Popover open={showDocMenu()} onOpenChange={setShowDocMenu}>
+          <Popover.Trigger
+            as={(triggerProps: any) => (
+              <button
+                {...triggerProps}
+                type="button"
+                onMouseDown={(e: MouseEvent) => {
+                  e.preventDefault();
+                  triggerProps.onClick?.(e);
+                }}
+                title="Document settings"
+                class="toolbar-button p-1.5 rounded transition-colors duration-150 cursor-pointer text-secondary-body hover:text-body hover:bg-elevated active:bg-elevated"
+              >
+                <div class="i-carbon-settings w-4 h-4" />
+              </button>
+            )}
+          />
+          <Popover.Portal>
+            <Popover.Content class="mt-1 mb-1 max-w-44 bg-surface border border-base rounded-lg shadow-lg z-50 py-1 animate-slide-down">
+              <DocumentMenuContent
+                {...props.documentMenu!}
+                onClose={() => setShowDocMenu(false)}
+              />
+            </Popover.Content>
+          </Popover.Portal>
+        </Popover>
+      </Show>
     </div>
   );
 }

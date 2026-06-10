@@ -1619,6 +1619,7 @@ export default function MarkdownEditor(props: EditorProps) {
         activeState={activeState()}
         showAttachments={showAttachments()}
         attachmentCount={attachmentCount()}
+        documentMenu={props.documentMenu}
       />
       <LinkPopup
         show={showLinkPopup()}

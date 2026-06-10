@@ -18,13 +18,11 @@ import {
   type Instruction,
 } from "@atlaskit/pragmatic-drag-and-drop-hitbox/list-item";
 import DropIndicator from "../DropIndicator";
-import ColorPicker from "../ColorPicker";
 import Button from "../Button";
-import PopoverItem from "../PopoverItem";
+import DocumentMenuContent from "../DocumentMenuContent";
 import type { TreeNode as TreeNodeType } from "~/types/Sidebar.types";
 import { COLOR_PALETTE } from "~/utils/sidebar.utils";
 import { getDisplayName } from "~/utils/document.utils";
-import TagContextMenu from "./TagContextMenu";
 import type { Tag } from "~/types/Tag.types";
 import { api } from "~/lib/api";
 
@@ -259,239 +257,83 @@ export default function TreeNode(props: TreeNodeProps) {
               />
               <Popover.Portal>
                 <Popover.Content class="mt-1 mb-1 max-w-36 bg-surface border border-base rounded-lg shadow-lg z-50 py-1 animate-slide-down">
-                  {/* Add file/folder actions (folders only) */}
-                  <Show when={props.node.type === "folder"}>
-                    <PopoverItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        props.onModalOpen.setTargetFolder(props.node.path);
-                        props.onModalOpen.setNewDocName(
-                          props.onModalOpen.getDefaultDocName(),
-                        );
-                        props.onModalOpen.setShowNewDocModal(true);
-                        props.setOpenMenuPath(null);
-                      }}
-                    >
-                      <div class="i-carbon-document-add w-4 h-4" />
-                      Add file
-                    </PopoverItem>
-                    <PopoverItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        props.onModalOpen.setTargetFolder(props.node.path);
-                        props.onModalOpen.setNewFolderName("");
-                        props.onModalOpen.setShowNewFolderModal(true);
-                        props.setOpenMenuPath(null);
-                      }}
-                    >
-                      <div class="i-carbon-folder-add w-4 h-4" />
-                      Add folder
-                    </PopoverItem>
-                    <div class="h-px bg-[var(--color-border)] my-1" />
-                  </Show>
-
-                  <Show when={props.onToggleFavorite}>
-                    <PopoverItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        props.onToggleFavorite?.(
-                          props.node.path,
-                          !props.node.favorite,
-                        );
-                        props.setOpenMenuPath(null);
-                      }}
-                    >
-                      <div
-                        class={`w-4 h-4 ${
-                          props.node.favorite
-                            ? "i-carbon-star-filled text-yellow-400"
-                            : "i-carbon-star"
-                        }`}
-                      />
-                      {props.node.favorite ? "Unfavorite" : "Favorite"}
-                    </PopoverItem>
-                    <div class="h-px bg-[var(--color-border)] my-1" />
-                  </Show>
-
-                  {/* Archive action (files only) */}
-                  <Show when={props.node.type === "file"}>
-                    <PopoverItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        props.onArchiveItem(props.node.path);
-                        props.setOpenMenuPath(null);
-                      }}
-                    >
-                      <div class="i-carbon-archive w-4 h-4" />
-                      Archive
-                    </PopoverItem>
-                  </Show>
-
-                  {/* Download actions (files only) */}
-                  <Show when={props.node.type === "file"}>
-                    <div class="h-px bg-[var(--color-border)] my-1" />
-                    <Popover placement="right-start">
-                      <Popover.Trigger
-                        as={(triggerProps: any) => (
-                          <button
-                            {...triggerProps}
-                            onClick={(e: MouseEvent) => {
-                              e.stopPropagation();
-                              triggerProps.onClick?.(e);
-                            }}
-                            class="w-full px-3 py-2 text-left text-sm text-secondary-body hover:bg-neutral-600 transition-colors flex items-center gap-2 cursor-pointer"
-                          >
-                            <div class="i-carbon-download w-4 h-4" />
-                            Download
-                            <div class="i-carbon-chevron-right w-3 h-3 ml-auto" />
-                          </button>
-                        )}
-                      />
-                      <Popover.Portal>
-                        <Popover.Content class="bg-surface border border-base rounded-lg shadow-lg z-[60] py-1 min-w-40 animate-slide-down">
-                          <PopoverItem
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              props.setOpenMenuPath(null);
-                              const result = await api.getDocument(
-                                props.node.path,
-                              );
-                              const filename = props.node.name.endsWith(".md")
-                                ? props.node.name
-                                : `${props.node.name}.md`;
-                              api.downloadDocumentAsMarkdown(
-                                filename,
-                                result.content,
-                              );
-                            }}
-                          >
-                            <div class="i-carbon-document w-4 h-4" />
-                            Markdown
-                          </PopoverItem>
-                          <PopoverItem
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              props.setOpenMenuPath(null);
-                              const result = await api.getDocument(
-                                props.node.path,
-                              );
-                              api.downloadDocumentAsPdf(
-                                props.node.name,
-                                result.content,
-                              );
-                            }}
-                          >
-                            <div class="i-carbon-document-pdf w-4 h-4" />
-                            PDF
-                          </PopoverItem>
-                        </Popover.Content>
-                      </Popover.Portal>
-                    </Popover>
-
-                    <div class="h-px bg-[var(--color-border)] my-1" />
-                  </Show>
-
-                  {/* Tags action (files only) */}
-                  <Show when={props.node.type === "file"}>
-                    <Popover placement="right-start">
-                      <Popover.Trigger
-                        as={(triggerProps: any) => (
-                          <button
-                            {...triggerProps}
-                            onClick={(e: MouseEvent) => {
-                              e.stopPropagation();
-                              triggerProps.onClick?.(e);
-                            }}
-                            class="w-full px-3 py-2 text-left text-sm text-secondary-body hover:bg-neutral-600 transition-colors flex items-center gap-2 cursor-pointer"
-                          >
-                            <div class="i-carbon-tag w-4 h-4" />
-                            Tags
-                            <div class="i-carbon-chevron-right w-3 h-3 ml-auto" />
-                          </button>
-                        )}
-                      />
-                      <Popover.Portal>
-                        <Popover.Content class="bg-surface border border-base rounded-lg shadow-lg z-[60] py-1 min-w-40 animate-slide-down">
-                          <TagContextMenu
-                            documentPath={props.node.path}
-                            tags={props.tags}
-                            tagMappings={props.tagMappings}
-                            onToggle={(tagId, add) => {
-                              props.onToggleTag?.(props.node.path, tagId, add);
-                            }}
-                          />
-                        </Popover.Content>
-                      </Popover.Portal>
-                    </Popover>
-                  </Show>
-
-                  <PopoverItem
-                    onClick={(e) => {
-                      e.stopPropagation();
+                  <DocumentMenuContent
+                    path={props.node.path}
+                    name={props.node.name}
+                    type={props.node.type}
+                    isFavorite={props.node.favorite}
+                    color={props.node.color}
+                    tags={props.tags}
+                    tagMappings={props.tagMappings}
+                    onClose={() => props.setOpenMenuPath(null)}
+                    onDelete={() => props.onDeleteItem(props.node.path)}
+                    onArchive={() => props.onArchiveItem(props.node.path)}
+                    onDownloadMarkdown={async () => {
+                      const result = await api.getDocument(props.node.path);
+                      const filename = props.node.name.endsWith(".md")
+                        ? props.node.name
+                        : `${props.node.name}.md`;
+                      api.downloadDocumentAsMarkdown(filename, result.content);
+                    }}
+                    onDownloadPdf={async () => {
+                      const result = await api.getDocument(props.node.path);
+                      api.downloadDocumentAsPdf(
+                        props.node.name,
+                        result.content,
+                      );
+                    }}
+                    onRename={() => {
                       const fileName = getDisplayName(props.node.name);
                       props.onModalOpen.setItemToRename(props.node.path);
                       props.onModalOpen.setNewItemName(fileName);
                       props.onModalOpen.setShowRenameModal(true);
-                      props.setOpenMenuPath(null);
                     }}
-                  >
-                    <div class="i-carbon-edit w-4 h-4" />
-                    Rename
-                  </PopoverItem>
-                  <Show when={props.onMoveItem}>
-                    <PopoverItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        props.onModalOpen.setItemToMove({
-                          path: props.node.path,
-                          name: getDisplayName(props.node.name),
-                          type: props.node.type,
-                        });
-                        props.onModalOpen.setShowMoveModal(true);
-                        props.setOpenMenuPath(null);
-                      }}
-                    >
-                      <div class="i-carbon-move w-4 h-4" />
-                      Move
-                    </PopoverItem>
-                  </Show>
-                  <Show when={props.onDuplicateItem}>
-                    <PopoverItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        props.onDuplicateItem?.(props.node.path);
-                        props.setOpenMenuPath(null);
-                      }}
-                    >
-                      <div class="i-carbon-copy w-4 h-4" />
-                      Duplicate
-                    </PopoverItem>
-                  </Show>
-                  <div class="h-px bg-[var(--color-border)] my-1" />
-
-                  {/* Delete action */}
-                  <PopoverItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      props.onDeleteItem(props.node.path);
-                      props.setOpenMenuPath(null);
+                    onMove={
+                      props.onMoveItem
+                        ? () => {
+                            props.onModalOpen.setItemToMove({
+                              path: props.node.path,
+                              name: getDisplayName(props.node.name),
+                              type: props.node.type,
+                            });
+                            props.onModalOpen.setShowMoveModal(true);
+                          }
+                        : undefined
+                    }
+                    onDuplicate={
+                      props.onDuplicateItem
+                        ? () => props.onDuplicateItem!(props.node.path)
+                        : undefined
+                    }
+                    onToggleFavorite={
+                      props.onToggleFavorite
+                        ? (fav) => props.onToggleFavorite!(props.node.path, fav)
+                        : undefined
+                    }
+                    onSetColor={
+                      props.onSetColor
+                        ? (color) => props.onSetColor!(props.node.path, color)
+                        : undefined
+                    }
+                    onToggleTag={
+                      props.onToggleTag
+                        ? (tagId, add) =>
+                            props.onToggleTag!(props.node.path, tagId, add)
+                        : undefined
+                    }
+                    onAddFile={() => {
+                      props.onModalOpen.setTargetFolder(props.node.path);
+                      props.onModalOpen.setNewDocName(
+                        props.onModalOpen.getDefaultDocName(),
+                      );
+                      props.onModalOpen.setShowNewDocModal(true);
                     }}
-                  >
-                    <div class="i-carbon-trash-can w-4 h-4" />
-                    Delete
-                  </PopoverItem>
-
-                  {/* Color picker */}
-                  <Show when={props.onSetColor}>
-                    <div class="h-px bg-[var(--color-border)] my-1" />
-                    <ColorPicker
-                      currentColor={props.node.color}
-                      onColorSelect={(color) => {
-                        props.onSetColor?.(props.node.path, color);
-                        props.setOpenMenuPath(null);
-                      }}
-                    />
-                  </Show>
+                    onAddFolder={() => {
+                      props.onModalOpen.setTargetFolder(props.node.path);
+                      props.onModalOpen.setNewFolderName("");
+                      props.onModalOpen.setShowNewFolderModal(true);
+                    }}
+                  />
                 </Popover.Content>
               </Popover.Portal>
             </Popover>
