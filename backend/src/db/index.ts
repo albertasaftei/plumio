@@ -137,6 +137,9 @@ export const memberQueries = {
   updateRole: db.prepare<[string, number, number]>(
     "UPDATE organization_members SET role = ? WHERE organization_id = ? AND user_id = ?",
   ),
+  setBanned: db.prepare<[number, number, number]>(
+    "UPDATE organization_members SET is_banned = ? WHERE organization_id = ? AND user_id = ?",
+  ),
   remove: db.prepare<[number, number]>(
     "DELETE FROM organization_members WHERE organization_id = ? AND user_id = ?",
   ),
@@ -157,7 +160,7 @@ export const memberQueries = {
     SELECT o.id, o.name, o.slug, o.owner_id, om.role, om.joined_at
     FROM organization_members om
     JOIN organizations o ON o.id = om.organization_id
-    WHERE om.user_id = ?
+    WHERE om.user_id = ? AND om.is_banned = 0
     ORDER BY o.name ASC
   `),
 };
@@ -179,6 +182,9 @@ export const sessionQueries = {
   ),
   deleteByUserId: db.prepare<[number]>(
     "DELETE FROM sessions WHERE user_id = ?",
+  ),
+  deleteByUserAndOrg: db.prepare<[number, number]>(
+    "DELETE FROM sessions WHERE user_id = ? AND current_organization_id = ?",
   ),
 };
 

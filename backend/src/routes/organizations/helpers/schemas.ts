@@ -45,3 +45,12 @@ export const removeMemberParamsSchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
   userId: z.string().transform((val) => parseInt(val)),
 });
+
+export const banMemberParamsSchema = z.object({
+  id: z.string().transform((val) => parseInt(val)),
+  userId: z.string().transform((val) => parseInt(val)),
+});
+
+export const updateMemberBanSchema = z.object({
+  isBanned: z.boolean(),
+});

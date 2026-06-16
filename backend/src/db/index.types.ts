@@ -29,6 +29,7 @@ export interface OrganizationMember {
   joined_at: string;
   username: string;
   email: string;
+  is_banned: number; // 1 = banned, 0 = active
 }
 
 export interface Session {

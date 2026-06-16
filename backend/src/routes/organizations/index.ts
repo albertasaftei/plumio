@@ -23,6 +23,8 @@ import {
   updateMemberSchema,
   getUserRoleParamsSchema,
   removeMemberParamsSchema,
+  banMemberParamsSchema,
+  updateMemberBanSchema,
 } from "./helpers/schemas.js";
 
 type Variables = {
@@ -88,7 +90,7 @@ organizationsRouter.get("/:id", async (c) => {
 
     // Verify user has access
     const membership = memberQueries.findMembership.get(orgId, user.userId);
-    if (!membership) {
+    if (!membership || membership.is_banned === 1) {
       return c.json({ error: "Access denied" }, 403);
     }
 
@@ -122,7 +124,7 @@ organizationsRouter.post("/:id/switch", async (c) => {
 
     // Verify user has access
     const membership = memberQueries.findMembership.get(orgId, user.userId);
-    if (!membership) {
+    if (!membership || membership.is_banned === 1) {
       return c.json({ error: "Access denied" }, 403);
     }
 
@@ -262,7 +264,7 @@ organizationsRouter.get("/:id/members", async (c) => {
 
     // Verify user has access
     const membership = memberQueries.findMembership.get(orgId, user.userId);
-    if (!membership) {
+    if (!membership || membership.is_banned === 1) {
       return c.json({ error: "Access denied" }, 403);
     }
 
@@ -279,6 +281,7 @@ organizationsRouter.get("/:id/members", async (c) => {
       role: m.role,
       joinedAt: m.joined_at,
       isOwner: m.user_id === ownerId,
+      isBanned: m.is_banned === 1,
     }));
 
     return c.json({ members: memberList });
@@ -456,6 +459,83 @@ organizationsRouter.delete("/:id/members/:userId", async (c) => {
   } catch (error) {
     console.error("Error removing member:", error);
     return c.json({ error: "Failed to remove member" }, 500);
+  }
+});
+
+// Ban / unban a member from the organization (admin only, cannot ban other admins or owner)
+organizationsRouter.put("/:id/members/:userId/ban", async (c) => {
+  try {
+    const user = c.get("user");
+    const parsedParams = banMemberParamsSchema.safeParse({
+      id: c.req.param("id"),
+      userId: c.req.param("userId"),
+    });
+
+    if (!parsedParams.success) {
+      return c.json({ error: z.treeifyError(parsedParams.error) }, 400);
+    }
+
+    const { id: orgId, userId: targetUserId } = parsedParams.data;
+
+    // Verify caller is org admin
+    const callerAdmin = memberQueries.isAdmin.get(orgId, user.userId);
+    if (!callerAdmin || callerAdmin.count === 0) {
+      return c.json({ error: "Admin access required" }, 403);
+    }
+
+    // Cannot ban yourself
+    if (targetUserId === user.userId) {
+      return c.json({ error: "Cannot ban yourself" }, 400);
+    }
+
+    // Cannot ban the organization owner
+    const org = organizationQueries.findById.get(orgId);
+    if (org && org.owner_id === targetUserId) {
+      return c.json({ error: "Cannot ban the organization owner" }, 403);
+    }
+
+    // Cannot ban other admins
+    const targetAdmin = memberQueries.isAdmin.get(orgId, targetUserId);
+    if (targetAdmin && targetAdmin.count > 0) {
+      return c.json({ error: "Cannot ban an organization admin" }, 403);
+    }
+
+    // Target must be a member
+    const targetMembership = memberQueries.findMembership.get(
+      orgId,
+      targetUserId,
+    );
+    if (!targetMembership) {
+      return c.json(
+        { error: "User is not a member of this organization" },
+        404,
+      );
+    }
+
+    const parsed = updateMemberBanSchema.safeParse(await c.req.json());
+    if (!parsed.success) {
+      return c.json({ error: z.treeifyError(parsed.error) }, 400);
+    }
+
+    memberQueries.setBanned.run(
+      parsed.data.isBanned ? 1 : 0,
+      orgId,
+      targetUserId,
+    );
+
+    // Invalidate active sessions for this org so the user is kicked immediately
+    if (parsed.data.isBanned) {
+      sessionQueries.deleteByUserAndOrg.run(targetUserId, orgId);
+    }
+
+    return c.json({
+      message: parsed.data.isBanned
+        ? "Member banned from organization"
+        : "Member unbanned from organization",
+    });
+  } catch (error) {
+    console.error("Error updating member ban status:", error);
+    return c.json({ error: "Failed to update member ban status" }, 500);
   }
 });
 

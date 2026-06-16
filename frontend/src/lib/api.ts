@@ -391,6 +391,7 @@ export class ApiClient {
         email: string;
         role: string;
         joinedAt: string;
+        isBanned: boolean;
       }>;
     }>(`/api/organizations/${orgId}/members`);
   }
@@ -412,6 +413,13 @@ export class ApiClient {
   async removeOrgMember(orgId: number, userId: number) {
     return this.request(`/api/organizations/${orgId}/members/${userId}`, {
       method: "DELETE",
+    });
+  }
+
+  async banOrgMember(orgId: number, userId: number, isBanned: boolean) {
+    return this.request(`/api/organizations/${orgId}/members/${userId}/ban`, {
+      method: "PUT",
+      body: JSON.stringify({ isBanned }),
     });
   }
 

@@ -13,6 +13,7 @@ interface Member {
   role: string;
   joinedAt: string;
   isOwner?: boolean;
+  isBanned?: boolean;
 }
 
 interface OrganizationPanelProps {
@@ -171,6 +172,26 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
 
   const handleRemoveMember = (member: Member) => {
     setRemoveDialog({ isOpen: true, member });
+  };
+
+  const handleBanMember = async (member: Member) => {
+    const org = currentOrg();
+    if (!org) return;
+    try {
+      await api.banOrgMember(org.id, member.id, !member.isBanned);
+      setToast({
+        message: member.isBanned
+          ? t("orgPanel.memberUnbanned")
+          : t("orgPanel.memberBanned"),
+        type: "success",
+      });
+      await loadMembers();
+    } catch (err: any) {
+      setToast({
+        message: err.message || t("orgPanel.failedBanMember"),
+        type: "error",
+      });
+    }
   };
 
   const confirmRemove = async () => {
@@ -436,6 +457,11 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                               {t("orgPanel.ownerBadge")}
                             </span>
                           </Show>
+                          <Show when={member.isBanned}>
+                            <span class="px-2 py-1 text-xs font-medium rounded bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                              {t("orgPanel.bannedBadge")}
+                            </span>
+                          </Show>
                         </div>
                       </td>
                       <td class="px-4 py-3 whitespace-nowrap text-sm text-muted-body">
@@ -451,6 +477,46 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                               </span>
                             }
                           >
+                            <Show when={member.role !== "admin"}>
+                              <Button
+                                onClick={() => handleBanMember(member)}
+                                variant="icon"
+                                size="sm"
+                                title={
+                                  member.isBanned
+                                    ? t("orgPanel.unbanMemberTooltip")
+                                    : t("orgPanel.banMemberTooltip")
+                                }
+                                class={
+                                  member.isBanned
+                                    ? "text-orange-400 hover:text-orange-300"
+                                    : "text-muted-body hover:text-orange-400"
+                                }
+                              >
+                                <div
+                                  class={
+                                    member.isBanned
+                                      ? "i-carbon-user-follow w-5 h-5"
+                                      : ""
+                                  }
+                                >
+                                  {!member.isBanned && (
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="20px"
+                                      height="20px"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path d="M0 0h24v24H0z" fill="none" />
+                                      <path
+                                        fill="currentColor"
+                                        d="M12 2c5.5 0 10 4.5 10 10s-4.5 10-10 10S2 17.5 2 12S6.5 2 12 2m0 2c-1.9 0-3.6.6-4.9 1.7l11.2 11.2c1-1.4 1.7-3.1 1.7-4.9c0-4.4-3.6-8-8-8m4.9 14.3L5.7 7.1C4.6 8.4 4 10.1 4 12c0 4.4 3.6 8 8 8c1.9 0 3.6-.6 4.9-1.7"
+                                      />
+                                    </svg>
+                                  )}
+                                </div>
+                              </Button>
+                            </Show>
                             <Button
                               onClick={() => handleRemoveMember(member)}
                               variant="icon"
