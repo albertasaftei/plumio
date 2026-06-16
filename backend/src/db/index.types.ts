@@ -4,6 +4,7 @@ export interface User {
   email: string;
   password_hash: string;
   is_admin: number; // 1 = admin, 0 = regular user
+  is_banned: number; // 1 = banned, 0 = active
   theme: string;
   created_at: string;
   updated_at: string;

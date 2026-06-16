@@ -131,6 +131,13 @@ authRouter.post("/login", async (c) => {
       return c.json({ error: "Invalid credentials" }, 401);
     }
 
+    if (user.is_banned === 1) {
+      return c.json(
+        { error: "Account suspended. Please contact an administrator." },
+        403,
+      );
+    }
+
     // Get user's organizations
     const organizations = organizationQueries.listByUser.all(user.id);
 

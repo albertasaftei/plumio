@@ -1,6 +1,11 @@
 import { jwtVerify } from "jose";
 import { JWT_SECRET } from "../config.js";
-import { apiKeyQueries, memberQueries, sessionQueries } from "../db/index.js";
+import {
+  apiKeyQueries,
+  memberQueries,
+  sessionQueries,
+  userQueries,
+} from "../db/index.js";
 import { ApiKeyContext, UserJWTPayload } from "./auth.types.js";
 import { bearerAuth } from "hono/bearer-auth";
 import { createHash } from "crypto";
@@ -29,6 +34,14 @@ export async function verifyToken(
       token,
       jwtSecretKey,
     );
+
+    // Reject banned users
+    const dbUser = userQueries.findById.get(payload.userId);
+    if (!dbUser || dbUser.is_banned === 1) {
+      sessionQueries.deleteByToken.run(token);
+      return null;
+    }
+
     return payload;
   } catch {
     return null;

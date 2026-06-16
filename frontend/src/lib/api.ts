@@ -535,6 +535,7 @@ export class ApiClient {
         email: string;
         createdAt: string;
         isAdmin: boolean;
+        isBanned: boolean;
       }>;
     }>("/api/auth/admin/users");
   }
@@ -561,6 +562,13 @@ export class ApiClient {
   async deleteUser(userId: number) {
     return this.request(`/api/auth/admin/users/${userId}`, {
       method: "DELETE",
+    });
+  }
+
+  async banUser(userId: number, isBanned: boolean) {
+    return this.request(`/api/auth/admin/users/${userId}/ban`, {
+      method: "PUT",
+      body: JSON.stringify({ isBanned }),
     });
   }
 

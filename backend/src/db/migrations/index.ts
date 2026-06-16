@@ -15,6 +15,7 @@ import { addWebhooks } from "./013-add-webhooks.js";
 import { addApiKeys } from "./014-add-api-keys.js";
 import { addSync } from "./015-add-sync.js";
 import { addFtsUpdateTrigger } from "./016-add-fts-update-trigger.js";
+import { addUserBanned } from "./017-add-user-banned.js";
 
 // All migrations in order - put them inside this folder and add them here
 export const allMigrations: Migration[] = [
@@ -34,4 +35,5 @@ export const allMigrations: Migration[] = [
   addApiKeys,
   addSync,
   addFtsUpdateTrigger,
+  addUserBanned,
 ];

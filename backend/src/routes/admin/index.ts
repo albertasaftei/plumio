@@ -5,6 +5,7 @@ import {
   organizationQueries,
   memberQueries,
   settingsQueries,
+  sessionQueries,
 } from "../../db/index.js";
 import { adminMiddleware } from "../../middlewares/auth.js";
 import { UserJWTPayload } from "../../middlewares/auth.types.js";
@@ -14,6 +15,7 @@ import {
   updateUserParamsSchema,
   updateUserSchema,
   deleteUserParamsSchema,
+  updateUserBanSchema,
   updateSettingSchema,
   adminUserParamsSchema,
   adminUserOrgParamsSchema,
@@ -36,6 +38,7 @@ adminRouter.get("/users", async (c) => {
       email: user.email,
       createdAt: user.created_at,
       isAdmin: user.is_admin === 1,
+      isBanned: user.is_banned === 1,
     }));
     return c.json({ users: userList });
   } catch (error) {
@@ -155,6 +158,52 @@ adminRouter.delete("/users/:id", async (c) => {
   } catch (error) {
     console.error("Error deleting user:", error);
     return c.json({ error: "Failed to delete user" }, 500);
+  }
+});
+
+// Ban/unban a user
+adminRouter.put("/users/:id/ban", async (c) => {
+  try {
+    const parsedParams = updateUserParamsSchema.safeParse({
+      id: c.req.param("id"),
+    });
+
+    if (!parsedParams.success) {
+      return c.json({ error: z.treeifyError(parsedParams.error) }, 400);
+    }
+
+    const { id: userId } = parsedParams.data;
+
+    if (userId === 1) {
+      return c.json({ error: "Cannot ban the primary admin" }, 400);
+    }
+
+    const currentUser = c.get("user");
+    if (currentUser.userId === userId) {
+      return c.json({ error: "Cannot ban yourself" }, 400);
+    }
+
+    const parsed = updateUserBanSchema.safeParse(await c.req.json());
+    if (!parsed.success) {
+      return c.json({ error: z.treeifyError(parsed.error) }, 400);
+    }
+
+    userQueries.setBanned.run(parsed.data.isBanned ? 1 : 0, userId);
+
+    // Invalidate all active sessions for the banned user so they are
+    // immediately logged out when their next request is made.
+    if (parsed.data.isBanned) {
+      sessionQueries.deleteByUserId.run(userId);
+    }
+
+    return c.json({
+      message: parsed.data.isBanned
+        ? "User banned successfully"
+        : "User unbanned successfully",
+    });
+  } catch (error) {
+    console.error("Error updating user ban status:", error);
+    return c.json({ error: "Failed to update user ban status" }, 500);
   }
 });
 

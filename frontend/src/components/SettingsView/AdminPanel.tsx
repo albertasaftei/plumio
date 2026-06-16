@@ -12,6 +12,7 @@ interface User {
   email: string;
   createdAt: string;
   isAdmin: boolean;
+  isBanned: boolean;
 }
 
 interface OrgMembership {
@@ -137,6 +138,24 @@ export default function AdminPanel(props: AdminPanelProps) {
 
   const handleDeleteUser = (user: User) => {
     setDeleteDialog({ isOpen: true, user });
+  };
+
+  const handleBanUser = async (user: User) => {
+    try {
+      await api.banUser(user.id, !user.isBanned);
+      setToast({
+        message: user.isBanned
+          ? t("admin.userUnbanned")
+          : t("admin.userBanned"),
+        type: "success",
+      });
+      await loadUsers();
+    } catch (err: any) {
+      setToast({
+        message: err.message || t("admin.failedBanUser"),
+        type: "error",
+      });
+    }
   };
 
   const confirmDelete = async () => {
@@ -393,7 +412,12 @@ export default function AdminPanel(props: AdminPanelProps) {
                           />
                           <div class="i-carbon-user-avatar w-8 h-8 text-muted-body mr-3" />
                           <div class="text-sm font-medium text-body">
-                            {user.username}
+                            {user.username}{" "}
+                            <Show when={user.isBanned}>
+                              <span class="ml-2 px-1.5 py-0.5 text-xs font-medium bg-orange-500/20 text-orange-400 rounded border border-orange-500/30">
+                                {t("admin.bannedBadge")}
+                              </span>
+                            </Show>{" "}
                           </div>
                         </div>
                       </td>
@@ -433,9 +457,48 @@ export default function AdminPanel(props: AdminPanelProps) {
                         {formatAbsoluteDate(user.createdAt)}
                       </td>
                       <td class="flex items-center justify-end px-4 py-3 whitespace-nowrap text-right text-sm">
-                        <Show
-                          when={user.id !== 1 && (isOwner() || !user.isAdmin)}
-                        >
+                        <Show when={isOwner() || !user.isAdmin}>
+                          <Button
+                            onClick={(e: MouseEvent) => {
+                              e.stopPropagation();
+                              handleBanUser(user);
+                            }}
+                            variant="icon"
+                            size="sm"
+                            title={
+                              user.isBanned
+                                ? t("admin.unbanUserTooltip")
+                                : t("admin.banUserTooltip")
+                            }
+                            class={
+                              user.isBanned
+                                ? "text-orange-400 hover:text-orange-300"
+                                : "text-muted-body hover:text-orange-400"
+                            }
+                          >
+                            <div
+                              class={
+                                user.isBanned
+                                  ? "i-carbon-user-follow w-5 h-5"
+                                  : ""
+                              }
+                            >
+                              {!user.isBanned && (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="20px"
+                                  height="20px"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path d="M0 0h24v24H0z" fill="none" />
+                                  <path
+                                    fill="currentColor"
+                                    d="M12 2c5.5 0 10 4.5 10 10s-4.5 10-10 10S2 17.5 2 12S6.5 2 12 2m0 2c-1.9 0-3.6.6-4.9 1.7l11.2 11.2c1-1.4 1.7-3.1 1.7-4.9c0-4.4-3.6-8-8-8m4.9 14.3L5.7 7.1C4.6 8.4 4 10.1 4 12c0 4.4 3.6 8 8 8c1.9 0 3.6-.6 4.9-1.7"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                          </Button>
                           <Button
                             onClick={(e: MouseEvent) => {
                               e.stopPropagation();

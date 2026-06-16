@@ -19,6 +19,10 @@ export const deleteUserParamsSchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
 });
 
+export const updateUserBanSchema = z.object({
+  isBanned: z.boolean(),
+});
+
 export const updateSettingSchema = z.object({
   key: z.string().min(1),
   value: z.string(),
