@@ -363,7 +363,7 @@ organizationsRouter.put("/:id/members/:userId", async (c) => {
 
     const { id: orgId, userId: targetUserId } = parsedParams.data;
 
-    // Verify user is admin
+    // Verify caller is admin
     const isAdmin = memberQueries.isAdmin.get(orgId, user.userId);
     if (!isAdmin || isAdmin.count === 0) {
       return c.json({ error: "Admin access required" }, 403);
@@ -380,6 +380,23 @@ organizationsRouter.put("/:id/members/:userId", async (c) => {
     if (role !== "admin" && role !== "member") {
       return c.json({ error: "Invalid role" }, 400);
     }
+
+    // Only the org owner can change the role of another admin,
+    // and only the org owner can promote a member to admin
+    const targetAdmin = memberQueries.isAdmin.get(orgId, targetUserId);
+    if (role === "admin" || (targetAdmin && targetAdmin.count > 0)) {
+      const org = organizationQueries.findById.get(orgId);
+      if (!org || org.owner_id !== user.userId) {
+        return c.json(
+          {
+            error:
+              "Only the organization owner can grant or revoke admin roles",
+          },
+          403,
+        );
+      }
+    }
+
     memberQueries.updateRole.run(role, orgId, targetUserId);
 
     return c.json({ message: "Member role updated successfully" });

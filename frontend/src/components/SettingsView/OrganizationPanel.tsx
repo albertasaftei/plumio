@@ -39,6 +39,7 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
     member: Member | null;
   }>({ isOpen: false, member: null });
   const [isAdmin, setIsAdmin] = createSignal(false);
+  const [isOrgOwner, setIsOrgOwner] = createSignal(false);
   const [mounted, setMounted] = createSignal(false);
   const [currentOrg, setCurrentOrg] = createSignal(
     null as null | { id: number; name: string },
@@ -57,6 +58,9 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
     // Fetch admin status from server for security validation
     const adminStatus = await api.isOrgAdmin();
     setIsAdmin(adminStatus);
+    // Load members now that currentOrg is set (createEffect fires before onMount
+    // async continuation, so currentOrg() would be null there on first render)
+    await loadMembers();
     // Load discovery settings
     if (currentOrg?.id) {
       try {
@@ -113,6 +117,10 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
     try {
       const result = await api.listOrgMembers(org.id);
       setMembers(result.members);
+      // Detect if current user is the org owner
+      const currentUserId = await api.getCurrentUserId();
+      const myRow = result.members.find((m) => m.id === currentUserId);
+      setIsOrgOwner(myRow?.isOwner === true);
     } catch (err: any) {
       console.error("Failed to load members:", err);
       setError(err.message || t("orgPanel.failedLoadMembers"));
@@ -421,7 +429,12 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                       <td class="px-4 py-3 whitespace-nowrap">
                         <div class="flex items-center gap-2">
                           <Show
-                            when={mounted() && isAdmin() && !member.isOwner}
+                            when={
+                              mounted() &&
+                              isAdmin() &&
+                              !member.isOwner &&
+                              (member.role !== "admin" || isOrgOwner())
+                            }
                             fallback={
                               <span
                                 class={`px-2 py-1 text-xs font-medium rounded capitalize ${
@@ -447,9 +460,11 @@ export default function OrganizationPanel(props: OrganizationPanelProps) {
                               <option value="member">
                                 {t("orgPanel.roleMember")}
                               </option>
-                              <option value="admin">
-                                {t("orgPanel.roleAdmin")}
-                              </option>
+                              <Show when={isOrgOwner()}>
+                                <option value="admin">
+                                  {t("orgPanel.roleAdmin")}
+                                </option>
+                              </Show>
                             </select>
                           </Show>
                           <Show when={member.isOwner}>

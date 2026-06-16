@@ -304,7 +304,7 @@ export class ApiClient {
     return result;
   }
 
-  getCurrentUserId(): number | null {
+  async getCurrentUserId(): Promise<number | null> {
     const decoded = this.decodeToken();
     return decoded?.userId ?? null;
   }
@@ -392,6 +392,7 @@ export class ApiClient {
         role: string;
         joinedAt: string;
         isBanned: boolean;
+        isOwner: boolean;
       }>;
     }>(`/api/organizations/${orgId}/members`);
   }
