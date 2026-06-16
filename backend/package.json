@@ -19,9 +19,9 @@
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^11.8.1",
     "dotenv": "^16.4.7",
-    "hono": "^4.12.18",
+    "hono": "^4.12.25",
     "jose": "^5.10.0",
-    "nodemailer": "^8.0.5",
+    "nodemailer": "^8.0.8",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -29,8 +29,8 @@
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.5",
     "@types/nodemailer": "^8.0.0",
-    "tsx": "^4.19.2",
+    "tsx": "^4.22.4",
     "typescript": "^5.7.3",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.9"
   }
 }
