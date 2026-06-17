@@ -20,11 +20,6 @@ import FilterNotesBody from "./Sidebar/FilterNotesBody";
 import SidebarContent from "./Sidebar/SidebarContent";
 
 export default function Sidebar(props: Readonly<SidebarProps>) {
-  const [versionInfo, setVersionInfo] = createSignal<{
-    updateAvailable: boolean;
-    latestVersion: string | null;
-    releaseUrl: string | null;
-  } | null>(null);
   const [showNewDocModal, setShowNewDocModal] = createSignal(false);
   const [showNewFolderModal, setShowNewFolderModal] = createSignal(false);
   const [showRenameModal, setShowRenameModal] = createSignal(false);
@@ -46,8 +41,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     name: string;
     type: "file" | "folder";
   } | null>(null);
-  const [openMenuPath, setOpenMenuPath] = createSignal<string | null>(null);
-
   const [isMobile, setIsMobile] = createSignal(false);
   const [isMounted, setIsMounted] = createSignal(false);
 
@@ -137,10 +130,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
   };
 
   onMount(() => {
-    api
-      .checkVersion()
-      .then(setVersionInfo)
-      .catch(() => {});
     refreshTags();
   });
 
@@ -265,7 +254,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             currentPath={props.currentPath}
             onSelectDocument={props.onSelectDocument}
             onExpandFolder={props.onExpandFolder}
-            documents={props.documents}
             onViewHome={props.onViewHome}
             onViewSearch={props.onViewSearch}
             onViewArchive={props.onViewArchive}
@@ -273,7 +261,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             onViewTags={props.onViewTags}
             onViewOrgs={props.onViewOrgs}
             onOrgSwitch={props.onOrgSwitch}
-            saveStatus={props.saveStatus}
             setSidebarOpen={props.setSidebarOpen}
             onCreateDocument={props.onCreateDocument}
             onCreateFolder={props.onCreateFolder}
@@ -284,17 +271,9 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             onDuplicateItem={props.onDuplicateItem}
             onToggleFavorite={props.onToggleFavorite}
             onSetColor={props.onSetColor}
-            versionInfo={versionInfo}
-            showNewDocModal={showNewDocModal}
-            setShowNewDocModal={setShowNewDocModal}
-            showNewFolderModal={showNewFolderModal}
-            setShowNewFolderModal={setShowNewFolderModal}
-            showFilterModal={showFilterModal}
             setShowFilterModal={setShowFilterModal}
             selectedFilterTags={selectedFilterTags}
             tags={tags}
-            openMenuPath={openMenuPath}
-            setOpenMenuPath={setOpenMenuPath}
             tagMappings={tagMappings}
             onToggleTag={async (path: string, tagId: number, add: boolean) => {
               const currentTags = tagMappings()[path] || [];
@@ -323,7 +302,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             currentPath={props.currentPath}
             onSelectDocument={props.onSelectDocument}
             onExpandFolder={props.onExpandFolder}
-            documents={props.documents}
             onViewHome={props.onViewHome}
             onViewSearch={props.onViewSearch}
             onViewArchive={props.onViewArchive}
@@ -331,7 +309,6 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             onViewTags={props.onViewTags}
             onViewOrgs={props.onViewOrgs}
             onOrgSwitch={props.onOrgSwitch}
-            saveStatus={props.saveStatus}
             setSidebarOpen={props.setSidebarOpen}
             onCreateDocument={props.onCreateDocument}
             onCreateFolder={props.onCreateFolder}
@@ -342,17 +319,9 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
             onDuplicateItem={props.onDuplicateItem}
             onToggleFavorite={props.onToggleFavorite}
             onSetColor={props.onSetColor}
-            versionInfo={versionInfo}
-            showNewDocModal={showNewDocModal}
-            setShowNewDocModal={setShowNewDocModal}
-            showNewFolderModal={showNewFolderModal}
-            setShowNewFolderModal={setShowNewFolderModal}
-            showFilterModal={showFilterModal}
             setShowFilterModal={setShowFilterModal}
             selectedFilterTags={selectedFilterTags}
             tags={tags}
-            openMenuPath={openMenuPath}
-            setOpenMenuPath={setOpenMenuPath}
             tagMappings={tagMappings}
             onToggleTag={async (path: string, tagId: number, add: boolean) => {
               const currentTags = tagMappings()[path] || [];

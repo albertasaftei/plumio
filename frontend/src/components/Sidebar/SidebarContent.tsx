@@ -1,4 +1,4 @@
-import { For, Show, type Accessor } from "solid-js";
+import { For, Show, createSignal, onMount, type Accessor } from "solid-js";
 import Button from "../Button";
 import OrganizationSelector from "../OrganizationSelector";
 import NotificationCenter from "../NotificationCenter";
@@ -11,32 +11,23 @@ import type {
 } from "~/types/Sidebar.types";
 import type { Tag } from "~/types/Tag.types";
 import { useI18n } from "~/i18n";
+import { api } from "~/lib/api";
 
 interface SidebarContentProps extends Omit<
   Readonly<SidebarProps>,
-  "sidebarOpen" | "expandedFolders" | "onExpandFolder"
+  | "sidebarOpen"
+  | "expandedFolders"
+  | "onExpandFolder"
+  | "documents"
+  | "saveStatus"
 > {
   filteredTree: Accessor<TreeNodeType[]>;
   setSidebarOpen: (open: boolean) => void;
   expandedFolders: Set<string>;
-  currentPath: string | null;
-  onSelectDocument: (path: string) => void;
   onExpandFolder: (path: string) => void;
-  versionInfo: Accessor<{
-    updateAvailable: boolean;
-    latestVersion: string | null;
-    releaseUrl: string | null;
-  } | null>;
-  showNewDocModal: Accessor<boolean>;
-  setShowNewDocModal: (show: boolean) => void;
-  showNewFolderModal: Accessor<boolean>;
-  setShowNewFolderModal: (show: boolean) => void;
-  showFilterModal: Accessor<boolean>;
   setShowFilterModal: (show: boolean) => void;
   selectedFilterTags: Accessor<number[]>;
   tags: Accessor<Tag[]>;
-  openMenuPath: Accessor<string | null>;
-  setOpenMenuPath: (path: string | null) => void;
   onModalOpen: {
     setShowNewDocModal: (show: boolean) => void;
     setShowNewFolderModal: (show: boolean) => void;
@@ -59,6 +50,20 @@ interface SidebarContentProps extends Omit<
 export default function SidebarContent(props: SidebarContentProps) {
   const navigate = useNavigate();
   const { t } = useI18n();
+
+  const [versionInfo, setVersionInfo] = createSignal<{
+    updateAvailable: boolean;
+    latestVersion: string | null;
+    releaseUrl: string | null;
+  } | null>(null);
+  const [openMenuPath, setOpenMenuPath] = createSignal<string | null>(null);
+
+  onMount(() => {
+    api
+      .checkVersion()
+      .then(setVersionInfo)
+      .catch(() => {});
+  });
 
   return (
     <div class="flex h-full w-full">
@@ -121,16 +126,16 @@ export default function SidebarContent(props: SidebarContentProps) {
             variant="icon"
             size="md"
             title={
-              props.versionInfo()?.updateAvailable
+              versionInfo()?.updateAvailable
                 ? t("sidebar.settingsUpdateAvailable", {
-                    version: props.versionInfo()?.latestVersion ?? "",
+                    version: versionInfo()?.latestVersion ?? "",
                   })
                 : t("sidebar.settings")
             }
           >
             <div class="i-carbon-settings w-5 h-5 flex-shrink-0" />
           </Button>
-          <Show when={props.versionInfo()?.updateAvailable}>
+          <Show when={versionInfo()?.updateAvailable}>
             <span class="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-amber-400 pointer-events-none" />
           </Show>
         </div>
@@ -161,7 +166,7 @@ export default function SidebarContent(props: SidebarContentProps) {
                 props.onModalOpen.setNewDocName(
                   props.onModalOpen.getDefaultDocName(),
                 );
-                props.setShowNewDocModal(true);
+                props.onModalOpen.setShowNewDocModal(true);
               }}
               variant="primary"
               size="md"
@@ -175,7 +180,7 @@ export default function SidebarContent(props: SidebarContentProps) {
               onClick={() => {
                 props.onModalOpen.setTargetFolder("/");
                 props.onModalOpen.setNewFolderName("");
-                props.setShowNewFolderModal(true);
+                props.onModalOpen.setShowNewFolderModal(true);
               }}
               variant="secondary"
               size="md"
@@ -228,8 +233,8 @@ export default function SidebarContent(props: SidebarContentProps) {
                 onToggleTag={props.onToggleTag}
                 tags={props.tags}
                 tagMappings={props.tagMappings}
-                openMenuPath={props.openMenuPath}
-                setOpenMenuPath={props.setOpenMenuPath}
+                openMenuPath={openMenuPath}
+                setOpenMenuPath={setOpenMenuPath}
                 onModalOpen={props.onModalOpen}
               />
             )}
