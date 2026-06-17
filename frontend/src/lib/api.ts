@@ -710,6 +710,16 @@ export class ApiClient {
     );
   }
 
+  async bulkDeleteItems(paths: string[]) {
+    return this.request<{ message: string; deleted: number }>(
+      "/api/documents/delete-bulk",
+      {
+        method: "DELETE",
+        body: JSON.stringify({ paths }),
+      },
+    );
+  }
+
   async renameItem(oldPath: string, newName: string) {
     return this.request<{ message: string; newPath: string }>(
       "/api/documents/rename",

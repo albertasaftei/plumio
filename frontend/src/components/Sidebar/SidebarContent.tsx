@@ -1,5 +1,6 @@
 import { For, Show, createSignal, onMount, type Accessor } from "solid-js";
 import Button from "../Button";
+import AlertDialog from "../AlertDialog";
 import OrganizationSelector from "../OrganizationSelector";
 import NotificationCenter from "../NotificationCenter";
 import { useNavigate } from "@solidjs/router";
@@ -45,6 +46,8 @@ interface SidebarContentProps extends Omit<
   };
   tagMappings: Accessor<Record<string, number[]>>;
   onToggleTag?: (path: string, tagId: number, add: boolean) => void;
+  onBulkMove: (paths: string[]) => void;
+  onBulkDelete: (paths: string[]) => Promise<void>;
 }
 
 export default function SidebarContent(props: SidebarContentProps) {
@@ -57,6 +60,25 @@ export default function SidebarContent(props: SidebarContentProps) {
     releaseUrl: string | null;
   } | null>(null);
   const [openMenuPath, setOpenMenuPath] = createSignal<string | null>(null);
+  const [selectionMode, setSelectionMode] = createSignal(false);
+  const [selectedPaths, setSelectedPaths] = createSignal<Set<string>>(
+    new Set(),
+  );
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = createSignal(false);
+
+  const toggleSelect = (path: string) => {
+    setSelectedPaths((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
+    });
+  };
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelectedPaths(new Set<string>());
+  };
 
   onMount(() => {
     api
@@ -66,181 +88,237 @@ export default function SidebarContent(props: SidebarContentProps) {
   });
 
   return (
-    <div class="flex h-full w-full">
-      {/* Small Sidebar */}
-      <div class="w-14 flex-shrink-0 border-r border-base bg-surface flex flex-col items-center py-4 gap-4">
-        <Button
-          onClick={() => props.onViewHome()}
-          variant="icon"
-          size="md"
-          title={t("sidebar.homepage")}
-        >
-          <div class="i-carbon-home w-5 h-5 flex-shrink-0" />
-        </Button>
-        <Button
-          onClick={() => props.onViewSearch()}
-          variant="icon"
-          size="md"
-          title={t("sidebar.search")}
-        >
-          <div class="i-carbon-search w-5 h-5 flex-shrink-0" />
-        </Button>
-        <Button
-          onClick={() => props.onViewTags()}
-          variant="icon"
-          size="md"
-          title={t("sidebar.tags")}
-        >
-          <div class="i-carbon-tag w-5 h-5 flex-shrink-0" />
-        </Button>
-        <Button
-          onClick={() => props.onViewOrgs()}
-          variant="icon"
-          size="md"
-          title={t("sidebar.joinOrg")}
-        >
-          <div class="i-carbon-enterprise w-5 h-5 flex-shrink-0" />
-        </Button>
-        <Button
-          onClick={() => props.onViewArchive()}
-          variant="icon"
-          size="md"
-          title={t("sidebar.archive")}
-        >
-          <div class="i-carbon-archive w-5 h-5 flex-shrink-0" />
-        </Button>
-        <Button
-          onClick={() => props.onViewDeleted()}
-          variant="icon"
-          size="md"
-          title={t("sidebar.deleted")}
-        >
-          <div class="i-carbon-trash-can w-5 h-5 flex-shrink-0" />
-        </Button>
-
-        <div class="flex-1" />
-        <NotificationCenter />
-        <div class="relative">
+    <>
+      <div class="flex h-full w-full">
+        {/* Small Sidebar */}
+        <div class="w-14 flex-shrink-0 border-r border-base bg-surface flex flex-col items-center py-4 gap-4">
           <Button
-            onClick={() => navigate(routes.settings)}
+            onClick={() => props.onViewHome()}
             variant="icon"
             size="md"
-            title={
-              versionInfo()?.updateAvailable
-                ? t("sidebar.settingsUpdateAvailable", {
-                    version: versionInfo()?.latestVersion ?? "",
-                  })
-                : t("sidebar.settings")
-            }
+            title={t("sidebar.homepage")}
           >
-            <div class="i-carbon-settings w-5 h-5 flex-shrink-0" />
+            <div class="i-carbon-home w-5 h-5 flex-shrink-0" />
           </Button>
-          <Show when={versionInfo()?.updateAvailable}>
-            <span class="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-amber-400 pointer-events-none" />
+          <Button
+            onClick={() => props.onViewSearch()}
+            variant="icon"
+            size="md"
+            title={t("sidebar.search")}
+          >
+            <div class="i-carbon-search w-5 h-5 flex-shrink-0" />
+          </Button>
+          <Button
+            onClick={() => props.onViewTags()}
+            variant="icon"
+            size="md"
+            title={t("sidebar.tags")}
+          >
+            <div class="i-carbon-tag w-5 h-5 flex-shrink-0" />
+          </Button>
+          <Button
+            onClick={() => props.onViewOrgs()}
+            variant="icon"
+            size="md"
+            title={t("sidebar.joinOrg")}
+          >
+            <div class="i-carbon-enterprise w-5 h-5 flex-shrink-0" />
+          </Button>
+          <Button
+            onClick={() => props.onViewArchive()}
+            variant="icon"
+            size="md"
+            title={t("sidebar.archive")}
+          >
+            <div class="i-carbon-archive w-5 h-5 flex-shrink-0" />
+          </Button>
+          <Button
+            onClick={() => props.onViewDeleted()}
+            variant="icon"
+            size="md"
+            title={t("sidebar.deleted")}
+          >
+            <div class="i-carbon-trash-can w-5 h-5 flex-shrink-0" />
+          </Button>
+
+          <div class="flex-1" />
+          <NotificationCenter />
+          <div class="relative">
+            <Button
+              onClick={() => navigate(routes.settings)}
+              variant="icon"
+              size="md"
+              title={
+                versionInfo()?.updateAvailable
+                  ? t("sidebar.settingsUpdateAvailable", {
+                      version: versionInfo()?.latestVersion ?? "",
+                    })
+                  : t("sidebar.settings")
+              }
+            >
+              <div class="i-carbon-settings w-5 h-5 flex-shrink-0" />
+            </Button>
+            <Show when={versionInfo()?.updateAvailable}>
+              <span class="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-amber-400 pointer-events-none" />
+            </Show>
+          </div>
+        </div>
+
+        {/* Big Sidebar */}
+        <div class="flex-1 flex flex-col min-w-0 bg-base">
+          {/* Sidebar Header */}
+          <div class="p-4 sm:p-4 border-b border-base">
+            <div class="w-full flex items-center justify-end pb-4 lg:hidden">
+              <Button
+                onClick={() => props.setSidebarOpen(false)}
+                variant="icon"
+                size="md"
+                title={t("sidebar.closeSidebar")}
+              >
+                <div class="i-carbon-close w-5 h-5" />
+              </Button>
+            </div>
+            <div class="pb-4">
+              <OrganizationSelector onSwitch={props.onOrgSwitch} fullWidth />
+            </div>
+
+            <div class="flex gap-2">
+              <Button
+                onClick={() => {
+                  props.onModalOpen.setTargetFolder("/");
+                  props.onModalOpen.setNewDocName(
+                    props.onModalOpen.getDefaultDocName(),
+                  );
+                  props.onModalOpen.setShowNewDocModal(true);
+                }}
+                variant="primary"
+                size="md"
+                fullWidth
+                class="justify-center"
+              >
+                <div class="i-carbon-document-add w-4 h-4" />
+                New file
+              </Button>
+              <Button
+                onClick={() => {
+                  props.onModalOpen.setTargetFolder("/");
+                  props.onModalOpen.setNewFolderName("");
+                  props.onModalOpen.setShowNewFolderModal(true);
+                }}
+                variant="secondary"
+                size="md"
+                title="New folder"
+              >
+                <div class="i-carbon-folder-add w-4 h-4" />
+              </Button>
+              <div class="relative">
+                <Button
+                  onClick={() => props.setShowFilterModal(true)}
+                  variant={
+                    props.selectedFilterTags().length > 0
+                      ? "primary"
+                      : "secondary"
+                  }
+                  size="md"
+                  title="Filter"
+                  class="h-full"
+                >
+                  <div class="i-carbon-filter w-4 h-4" />
+                </Button>
+                <Show when={props.selectedFilterTags().length > 0}>
+                  <span class="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-surface border border-[var(--color-primary)] text-[var(--color-primary)] text-[10px] flex items-center justify-center font-semibold pointer-events-none shadow-sm">
+                    {props.selectedFilterTags().length}
+                  </span>
+                </Show>
+              </div>
+              <Button
+                onClick={() =>
+                  selectionMode() ? exitSelectionMode() : setSelectionMode(true)
+                }
+                variant={selectionMode() ? "primary" : "secondary"}
+                size="md"
+                title={selectionMode() ? "Exit selection mode" : "Select items"}
+              >
+                <div class="i-carbon-select-window w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Documents Tree */}
+          <div class="flex-1 overflow-y-auto scrollbar-none pb-4">
+            <For each={props.filteredTree()}>
+              {(node) => (
+                <TreeNode
+                  node={node}
+                  expandedFolders={props.expandedFolders}
+                  currentPath={props.currentPath}
+                  onSelectDocument={props.onSelectDocument}
+                  onExpandFolder={props.onExpandFolder}
+                  onDeleteItem={props.onDeleteItem}
+                  onArchiveItem={props.onArchiveItem}
+                  onCreateDocument={props.onCreateDocument}
+                  onCreateFolder={props.onCreateFolder}
+                  onRenameItem={props.onRenameItem}
+                  onMoveItem={props.onMoveItem}
+                  onDuplicateItem={props.onDuplicateItem}
+                  onToggleFavorite={props.onToggleFavorite}
+                  onSetColor={props.onSetColor}
+                  onToggleTag={props.onToggleTag}
+                  tags={props.tags}
+                  tagMappings={props.tagMappings}
+                  openMenuPath={openMenuPath}
+                  setOpenMenuPath={setOpenMenuPath}
+                  onModalOpen={props.onModalOpen}
+                  selectionMode={selectionMode}
+                  selectedPaths={selectedPaths}
+                  onToggleSelect={toggleSelect}
+                />
+              )}
+            </For>
+          </div>
+
+          {/* Bulk action bar */}
+          <Show when={selectionMode() && selectedPaths().size > 0}>
+            <div class="p-2 border-t border-base bg-surface flex items-center gap-2 flex-shrink-0">
+              <span class="text-sm text-secondary-body flex-1">
+                {selectedPaths().size} selected
+              </span>
+              <Button
+                onClick={() => {
+                  props.onBulkMove(Array.from(selectedPaths()));
+                  exitSelectionMode();
+                }}
+                variant="secondary"
+                size="sm"
+              >
+                Move
+              </Button>
+              <Button
+                onClick={() => setShowBulkDeleteConfirm(true)}
+                variant="danger"
+                size="sm"
+              >
+                Delete
+              </Button>
+            </div>
           </Show>
         </div>
       </div>
 
-      {/* Big Sidebar */}
-      <div class="flex-1 flex flex-col min-w-0 bg-base">
-        {/* Sidebar Header */}
-        <div class="p-4 sm:p-4 border-b border-base">
-          <div class="w-full flex items-center justify-end pb-4 lg:hidden">
-            <Button
-              onClick={() => props.setSidebarOpen(false)}
-              variant="icon"
-              size="md"
-              title={t("sidebar.closeSidebar")}
-            >
-              <div class="i-carbon-close w-5 h-5" />
-            </Button>
-          </div>
-          <div class="pb-4">
-            <OrganizationSelector onSwitch={props.onOrgSwitch} fullWidth />
-          </div>
-
-          <div class="flex gap-2">
-            <Button
-              onClick={() => {
-                props.onModalOpen.setTargetFolder("/");
-                props.onModalOpen.setNewDocName(
-                  props.onModalOpen.getDefaultDocName(),
-                );
-                props.onModalOpen.setShowNewDocModal(true);
-              }}
-              variant="primary"
-              size="md"
-              fullWidth
-              class="justify-center"
-            >
-              <div class="i-carbon-document-add w-4 h-4" />
-              New file
-            </Button>
-            <Button
-              onClick={() => {
-                props.onModalOpen.setTargetFolder("/");
-                props.onModalOpen.setNewFolderName("");
-                props.onModalOpen.setShowNewFolderModal(true);
-              }}
-              variant="secondary"
-              size="md"
-              title="New folder"
-            >
-              <div class="i-carbon-folder-add w-4 h-4" />
-            </Button>
-            <div class="relative">
-              <Button
-                onClick={() => props.setShowFilterModal(true)}
-                variant={
-                  props.selectedFilterTags().length > 0
-                    ? "primary"
-                    : "secondary"
-                }
-                size="md"
-                title="Filter"
-                class="h-full"
-              >
-                <div class="i-carbon-filter w-4 h-4" />
-              </Button>
-              <Show when={props.selectedFilterTags().length > 0}>
-                <span class="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-surface border border-[var(--color-primary)] text-[var(--color-primary)] text-[10px] flex items-center justify-center font-semibold pointer-events-none shadow-sm">
-                  {props.selectedFilterTags().length}
-                </span>
-              </Show>
-            </div>
-          </div>
-        </div>
-
-        {/* Documents Tree */}
-        <div class="flex-1 overflow-y-auto scrollbar-none pb-4">
-          <For each={props.filteredTree()}>
-            {(node) => (
-              <TreeNode
-                node={node}
-                expandedFolders={props.expandedFolders}
-                currentPath={props.currentPath}
-                onSelectDocument={props.onSelectDocument}
-                onExpandFolder={props.onExpandFolder}
-                onDeleteItem={props.onDeleteItem}
-                onArchiveItem={props.onArchiveItem}
-                onCreateDocument={props.onCreateDocument}
-                onCreateFolder={props.onCreateFolder}
-                onRenameItem={props.onRenameItem}
-                onMoveItem={props.onMoveItem}
-                onDuplicateItem={props.onDuplicateItem}
-                onToggleFavorite={props.onToggleFavorite}
-                onSetColor={props.onSetColor}
-                onToggleTag={props.onToggleTag}
-                tags={props.tags}
-                tagMappings={props.tagMappings}
-                openMenuPath={openMenuPath}
-                setOpenMenuPath={setOpenMenuPath}
-                onModalOpen={props.onModalOpen}
-              />
-            )}
-          </For>
-        </div>
-      </div>
-    </div>
+      <AlertDialog
+        isOpen={showBulkDeleteConfirm()}
+        title="Delete selected items"
+        message={`Permanently delete ${selectedPaths().size} item${selectedPaths().size === 1 ? "" : "s"}? This cannot be undone.`}
+        variant="danger"
+        confirmText="Delete"
+        onConfirm={async () => {
+          const paths = Array.from(selectedPaths());
+          setShowBulkDeleteConfirm(false);
+          exitSelectionMode();
+          await props.onBulkDelete(paths);
+        }}
+        onCancel={() => setShowBulkDeleteConfirm(false)}
+      />
+    </>
   );
 }

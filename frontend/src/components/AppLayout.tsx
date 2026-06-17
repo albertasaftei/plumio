@@ -293,6 +293,25 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     }
   };
 
+  const bulkDeleteItems = async (paths: string[]) => {
+    try {
+      await api.bulkDeleteItems(paths);
+      await loadAllDocuments();
+      const location_ = location.pathname;
+      const deletedCurrentFile = paths.some(
+        (p) => location_.startsWith(`/file`) && location_.includes(p),
+      );
+      if (deletedCurrentFile) navigate(routes.homepage);
+      setToast({
+        message: `${paths.length} item${paths.length === 1 ? "" : "s"} deleted`,
+        type: "success",
+      });
+    } catch (error) {
+      console.error("Failed to bulk delete:", error);
+      setToast({ message: "Failed to delete some items", type: "error" });
+    }
+  };
+
   const contextValue: AppLayoutContext = {
     allDocuments,
     loadAllDocuments,
@@ -349,6 +368,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
               onCreateDocument={createNewDocument}
               onCreateFolder={createNewFolder}
               onDeleteItem={deleteItem}
+              onBulkDelete={bulkDeleteItems}
               onRenameItem={renameItem}
               onMoveItem={moveItem}
               onExpandFolder={toggleExpandFolder}

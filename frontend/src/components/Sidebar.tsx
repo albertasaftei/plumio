@@ -41,6 +41,7 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
     name: string;
     type: "file" | "folder";
   } | null>(null);
+  const [bulkMovePaths, setBulkMovePaths] = createSignal<string[]>([]);
   const [isMobile, setIsMobile] = createSignal(false);
   const [isMounted, setIsMounted] = createSignal(false);
 
@@ -283,6 +284,16 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
               await api.setDocumentTags(path, newTags);
               refreshTags();
             }}
+            onBulkMove={(paths) => {
+              setBulkMovePaths(paths);
+              setItemToMove({
+                path: paths[0],
+                name: `${paths.length} item${paths.length === 1 ? "" : "s"}`,
+                type: "file",
+              });
+              setShowMoveModal(true);
+            }}
+            onBulkDelete={props.onBulkDelete}
             onModalOpen={modalActions}
           />
         </aside>
@@ -331,6 +342,16 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
               await api.setDocumentTags(path, newTags);
               refreshTags();
             }}
+            onBulkMove={(paths) => {
+              setBulkMovePaths(paths);
+              setItemToMove({
+                path: paths[0],
+                name: `${paths.length} item${paths.length === 1 ? "" : "s"}`,
+                type: "file",
+              });
+              setShowMoveModal(true);
+            }}
+            onBulkDelete={props.onBulkDelete}
             onModalOpen={modalActions}
           />
         </ResizableContainer>
@@ -415,9 +436,17 @@ export default function Sidebar(props: Readonly<SidebarProps>) {
         itemType={itemToMove()?.type ?? "file"}
         documents={props.documents}
         onConfirm={(dest, targetOrgId, keepSource) => {
-          const source = itemToMove();
-          if (source && props.onMoveItem) {
-            props.onMoveItem(source.path, dest, targetOrgId, keepSource);
+          const bulk = bulkMovePaths();
+          if (bulk.length > 0) {
+            bulk.forEach((path) =>
+              props.onMoveItem?.(path, dest, targetOrgId, keepSource),
+            );
+            setBulkMovePaths([]);
+          } else {
+            const source = itemToMove();
+            if (source && props.onMoveItem) {
+              props.onMoveItem(source.path, dest, targetOrgId, keepSource);
+            }
           }
           setShowMoveModal(false);
           setItemToMove(null);

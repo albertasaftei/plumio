@@ -22,6 +22,10 @@ export const deleteDocumentSchema = z.object({
   path: z.string().min(1),
 });
 
+export const bulkDeleteDocumentsSchema = z.object({
+  paths: z.array(z.string().min(1)).min(1),
+});
+
 export const renameDocumentSchema = z.object({
   oldPath: z.string().min(1),
   // Prefer newName so the server can sanitize the user-typed name

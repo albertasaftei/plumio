@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { ContentfulStatusCode } from "hono/utils/http-status";
 import fs from "fs/promises";
 import path from "path";
 import { ENABLE_ENCRYPTION } from "../../config.js";
@@ -30,6 +31,7 @@ import {
   saveDocumentSchema,
   createFolderSchema,
   deleteDocumentSchema,
+  bulkDeleteDocumentsSchema,
   renameDocumentSchema,
   moveDocumentSchema,
   moveCrossOrgSchema,
@@ -509,6 +511,167 @@ documentsRouter.delete(
       console.error("Error deleting:", error);
       return c.json({ error: "Failed to delete" }, 500);
     }
+  },
+);
+
+// Bulk delete documents/folders (soft delete)
+documentsRouter.delete(
+  "/delete-bulk",
+  requireAnyPermission(["documents:delete", "folders:delete"]),
+  async (c) => {
+    const body = await c.req.json().catch(() => null);
+    const parsed = bulkDeleteDocumentsSchema.safeParse(body);
+    const user = c.get("user");
+    const organizationId = user.currentOrgId;
+
+    if (!parsed.success) {
+      return c.json({ error: z.treeifyError(parsed.error) }, 400);
+    }
+
+    if (!organizationId) {
+      return c.json({ error: "No organization context" }, 400);
+    }
+
+    const errors: { path: string; error: string }[] = [];
+
+    for (const filePath of parsed.data.paths) {
+      const fullPath = sanitizePath(filePath, organizationId);
+
+      try {
+        const stats = await fs.stat(fullPath);
+
+        if (stats.isDirectory()) {
+          const timestamp = Date.now();
+          const orgPath = getOrgDocumentsPath(organizationId);
+          const mdFiles = await collectMdFilesRecursively(fullPath);
+
+          for (const absFilePath of mdFiles) {
+            const relFilePath = path
+              .relative(orgPath, absFilePath)
+              .replace(/\\/g, "/");
+            const parts = relFilePath.split("/");
+            const fileName = parts.pop() || "";
+            const baseName = fileName.replace(/\.md$/, "");
+            const deletedFileName = `${baseName}.deleted-${timestamp}.md`;
+            const deletedRelPath = [...parts, deletedFileName].join("/");
+            const absDeletedPath = path.join(orgPath, deletedRelPath);
+
+            try {
+              await fs.rename(absFilePath, absDeletedPath);
+            } catch {
+              // file may not be on disk
+            }
+
+            const existing =
+              documentQueries.findByOrgAndPathIncludingArchived.get(
+                organizationId,
+                relFilePath,
+              );
+            if (existing) {
+              db.prepare(
+                `UPDATE documents
+                 SET path = ?, deleted = 1, deleted_at = CURRENT_TIMESTAMP, deleted_by = ?
+                 WHERE organization_id = ? AND path = ?`,
+              ).run(deletedRelPath, user.userId, organizationId, relFilePath);
+            } else {
+              const fileStats = await fs
+                .stat(absDeletedPath)
+                .catch(() => ({ size: 0 }));
+              documentQueries.upsert.run(
+                organizationId,
+                user.userId,
+                deletedRelPath,
+                baseName,
+                null,
+                fileStats.size,
+              );
+              documentQueries.softDelete.run(
+                user.userId,
+                organizationId,
+                deletedRelPath,
+              );
+            }
+          }
+
+          await fs.rm(fullPath, { recursive: true });
+          deliverWebhook(organizationId, "folder.deleted", { path: filePath });
+        } else {
+          const timestamp = Date.now();
+          const pathParts = filePath.split("/");
+          const fileName = pathParts.pop() || "";
+          const fileNameWithoutExt = fileName.replace(/\.md$/, "");
+          const deletedFileName = `${fileNameWithoutExt}.deleted-${timestamp}.md`;
+          const deletedPath = [...pathParts, deletedFileName].join("/");
+          const newFullPath = sanitizePath(deletedPath, organizationId);
+
+          try {
+            await fs.rename(fullPath, newFullPath);
+          } catch (err) {
+            console.error("Error renaming file:", err);
+          }
+
+          const existing =
+            documentQueries.findByOrgAndPathIncludingArchived.get(
+              organizationId,
+              filePath,
+            );
+
+          if (existing) {
+            db.prepare(
+              `UPDATE documents
+               SET path = ?, deleted = 1, deleted_at = CURRENT_TIMESTAMP, deleted_by = ?
+               WHERE organization_id = ? AND path = ?`,
+            ).run(deletedPath, user.userId, organizationId, filePath);
+          } else {
+            const title = fileName.replace(/\.md$/, "");
+            documentQueries.upsert.run(
+              organizationId,
+              user.userId,
+              deletedPath,
+              title,
+              null,
+              stats.size,
+            );
+            documentQueries.softDelete.run(
+              user.userId,
+              organizationId,
+              deletedPath,
+            );
+          }
+
+          const metaPath = `${fullPath}.meta.json`;
+          const newMetaPath = `${newFullPath}.meta.json`;
+          try {
+            await fs.rename(metaPath, newMetaPath);
+          } catch {
+            // Metadata file might not exist
+          }
+
+          deliverWebhook(organizationId, "document.deleted", {
+            path: filePath,
+          });
+        }
+      } catch (error) {
+        console.error(`Error deleting ${filePath}:`, error);
+        errors.push({ path: filePath, error: "Failed to delete" });
+      }
+    }
+
+    if (errors.length > 0) {
+      return c.json(
+        {
+          message: "Some items could not be deleted",
+          deleted: parsed.data.paths.length - errors.length,
+          errors,
+        },
+        207 as ContentfulStatusCode,
+      );
+    }
+
+    return c.json({
+      message: "Deleted successfully",
+      deleted: parsed.data.paths.length,
+    });
   },
 );
 

@@ -11,6 +11,7 @@ export interface SidebarProps {
   onCreateDocument: (name: string, folderPath?: string) => void;
   onCreateFolder: (name: string, parentPath?: string) => void;
   onDeleteItem: (path: string) => void;
+  onBulkDelete: (paths: string[]) => Promise<void>;
   onRenameItem?: (oldPath: string, newName: string) => void;
   onMoveItem?: (
     sourcePath: string,

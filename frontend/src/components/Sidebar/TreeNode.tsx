@@ -46,6 +46,9 @@ interface TreeNodeProps {
   tagMappings: Accessor<Record<string, number[]>>;
   openMenuPath: Accessor<string | null>;
   setOpenMenuPath: (path: string | null) => void;
+  selectionMode?: Accessor<boolean>;
+  selectedPaths?: Accessor<Set<string>>;
+  onToggleSelect?: (path: string) => void;
   onModalOpen: {
     setShowNewDocModal: (show: boolean) => void;
     setShowNewFolderModal: (show: boolean) => void;
@@ -70,6 +73,9 @@ export default function TreeNode(props: TreeNodeProps) {
     props.node.type === "folder" &&
     props.currentPath !== null &&
     props.currentPath.startsWith(props.node.path + "/");
+
+  const isSelected = () =>
+    props.selectedPaths?.()?.has(props.node.path) ?? false;
 
   const getBackgroundColor = () => {
     if (props.node.path === props.currentPath) {
@@ -197,6 +203,10 @@ export default function TreeNode(props: TreeNodeProps) {
         <DropIndicator instruction={instruction()} indent={props.node.depth} />
         <div
           onClick={() => {
+            if (props.selectionMode?.()) {
+              props.onToggleSelect?.(props.node.path);
+              return;
+            }
             if (props.node.type === "file") {
               props.onSelectDocument(props.node.path);
             } else {
@@ -204,11 +214,25 @@ export default function TreeNode(props: TreeNodeProps) {
             }
           }}
           onContextMenu={(e) => {
+            if (props.selectionMode?.()) return;
             e.preventDefault();
             props.setOpenMenuPath(props.node.path);
           }}
           class="flex items-center gap-2 py-1 pr-2"
         >
+          <Show when={props.selectionMode?.()}>
+            <div
+              class={`w-4 h-4 flex-shrink-0 rounded border-2 flex items-center justify-center transition-colors ${
+                isSelected()
+                  ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
+                  : "border-primary bg-transparent"
+              }`}
+            >
+              <Show when={isSelected()}>
+                <div class="i-carbon-checkmark w-3 h-3 text-white" />
+              </Show>
+            </div>
+          </Show>
           <div
             class={`w-4 h-4 flex-shrink-0 ${
               props.node.type === "folder"
@@ -233,110 +257,116 @@ export default function TreeNode(props: TreeNodeProps) {
               "lg:!opacity-100": props.openMenuPath() === props.node.path,
             }}
           >
-            <Popover
-              open={props.openMenuPath() === props.node.path}
-              onOpenChange={(isOpen) => {
-                props.setOpenMenuPath(isOpen ? props.node.path : null);
-              }}
-            >
-              <Popover.Trigger
-                as={(triggerProps: any) => (
-                  <Button
-                    {...triggerProps}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      triggerProps.onClick?.(e);
-                    }}
-                    variant="icon"
-                    size="sm"
-                    title="More options"
-                  >
-                    <div class="i-carbon-overflow-menu-vertical w-5 h-5 text-muted-body" />
-                  </Button>
-                )}
-              />
-              <Popover.Portal>
-                <Popover.Content class="mt-1 mb-1 max-w-36 bg-surface border border-base rounded-lg shadow-lg z-50 py-1 animate-slide-down">
-                  <DocumentMenuContent
-                    path={props.node.path}
-                    name={props.node.name}
-                    type={props.node.type}
-                    isFavorite={props.node.favorite}
-                    color={props.node.color}
-                    tags={props.tags}
-                    tagMappings={props.tagMappings}
-                    onClose={() => props.setOpenMenuPath(null)}
-                    onDelete={() => props.onDeleteItem(props.node.path)}
-                    onArchive={() => props.onArchiveItem(props.node.path)}
-                    onDownloadMarkdown={async () => {
-                      const result = await api.getDocument(props.node.path);
-                      const filename = props.node.name.endsWith(".md")
-                        ? props.node.name
-                        : `${props.node.name}.md`;
-                      api.downloadDocumentAsMarkdown(filename, result.content);
-                    }}
-                    onDownloadPdf={async () => {
-                      const result = await api.getDocument(props.node.path);
-                      api.downloadDocumentAsPdf(
-                        props.node.name,
-                        result.content,
-                      );
-                    }}
-                    onRename={() => {
-                      const fileName = getDisplayName(props.node.name);
-                      props.onModalOpen.setItemToRename(props.node.path);
-                      props.onModalOpen.setNewItemName(fileName);
-                      props.onModalOpen.setShowRenameModal(true);
-                    }}
-                    onMove={
-                      props.onMoveItem
-                        ? () => {
-                            props.onModalOpen.setItemToMove({
-                              path: props.node.path,
-                              name: getDisplayName(props.node.name),
-                              type: props.node.type,
-                            });
-                            props.onModalOpen.setShowMoveModal(true);
-                          }
-                        : undefined
-                    }
-                    onDuplicate={
-                      props.onDuplicateItem
-                        ? () => props.onDuplicateItem!(props.node.path)
-                        : undefined
-                    }
-                    onToggleFavorite={
-                      props.onToggleFavorite
-                        ? (fav) => props.onToggleFavorite!(props.node.path, fav)
-                        : undefined
-                    }
-                    onSetColor={
-                      props.onSetColor
-                        ? (color) => props.onSetColor!(props.node.path, color)
-                        : undefined
-                    }
-                    onToggleTag={
-                      props.onToggleTag
-                        ? (tagId, add) =>
-                            props.onToggleTag!(props.node.path, tagId, add)
-                        : undefined
-                    }
-                    onAddFile={() => {
-                      props.onModalOpen.setTargetFolder(props.node.path);
-                      props.onModalOpen.setNewDocName(
-                        props.onModalOpen.getDefaultDocName(),
-                      );
-                      props.onModalOpen.setShowNewDocModal(true);
-                    }}
-                    onAddFolder={() => {
-                      props.onModalOpen.setTargetFolder(props.node.path);
-                      props.onModalOpen.setNewFolderName("");
-                      props.onModalOpen.setShowNewFolderModal(true);
-                    }}
-                  />
-                </Popover.Content>
-              </Popover.Portal>
-            </Popover>
+            <Show when={!props.selectionMode?.()}>
+              <Popover
+                open={props.openMenuPath() === props.node.path}
+                onOpenChange={(isOpen) => {
+                  props.setOpenMenuPath(isOpen ? props.node.path : null);
+                }}
+              >
+                <Popover.Trigger
+                  as={(triggerProps: any) => (
+                    <Button
+                      {...triggerProps}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerProps.onClick?.(e);
+                      }}
+                      variant="icon"
+                      size="sm"
+                      title="More options"
+                    >
+                      <div class="i-carbon-overflow-menu-vertical w-5 h-5 text-muted-body" />
+                    </Button>
+                  )}
+                />
+                <Popover.Portal>
+                  <Popover.Content class="mt-1 mb-1 max-w-36 bg-surface border border-base rounded-lg shadow-lg z-50 py-1 animate-slide-down">
+                    <DocumentMenuContent
+                      path={props.node.path}
+                      name={props.node.name}
+                      type={props.node.type}
+                      isFavorite={props.node.favorite}
+                      color={props.node.color}
+                      tags={props.tags}
+                      tagMappings={props.tagMappings}
+                      onClose={() => props.setOpenMenuPath(null)}
+                      onDelete={() => props.onDeleteItem(props.node.path)}
+                      onArchive={() => props.onArchiveItem(props.node.path)}
+                      onDownloadMarkdown={async () => {
+                        const result = await api.getDocument(props.node.path);
+                        const filename = props.node.name.endsWith(".md")
+                          ? props.node.name
+                          : `${props.node.name}.md`;
+                        api.downloadDocumentAsMarkdown(
+                          filename,
+                          result.content,
+                        );
+                      }}
+                      onDownloadPdf={async () => {
+                        const result = await api.getDocument(props.node.path);
+                        api.downloadDocumentAsPdf(
+                          props.node.name,
+                          result.content,
+                        );
+                      }}
+                      onRename={() => {
+                        const fileName = getDisplayName(props.node.name);
+                        props.onModalOpen.setItemToRename(props.node.path);
+                        props.onModalOpen.setNewItemName(fileName);
+                        props.onModalOpen.setShowRenameModal(true);
+                      }}
+                      onMove={
+                        props.onMoveItem
+                          ? () => {
+                              props.onModalOpen.setItemToMove({
+                                path: props.node.path,
+                                name: getDisplayName(props.node.name),
+                                type: props.node.type,
+                              });
+                              props.onModalOpen.setShowMoveModal(true);
+                            }
+                          : undefined
+                      }
+                      onDuplicate={
+                        props.onDuplicateItem
+                          ? () => props.onDuplicateItem!(props.node.path)
+                          : undefined
+                      }
+                      onToggleFavorite={
+                        props.onToggleFavorite
+                          ? (fav) =>
+                              props.onToggleFavorite!(props.node.path, fav)
+                          : undefined
+                      }
+                      onSetColor={
+                        props.onSetColor
+                          ? (color) => props.onSetColor!(props.node.path, color)
+                          : undefined
+                      }
+                      onToggleTag={
+                        props.onToggleTag
+                          ? (tagId, add) =>
+                              props.onToggleTag!(props.node.path, tagId, add)
+                          : undefined
+                      }
+                      onAddFile={() => {
+                        props.onModalOpen.setTargetFolder(props.node.path);
+                        props.onModalOpen.setNewDocName(
+                          props.onModalOpen.getDefaultDocName(),
+                        );
+                        props.onModalOpen.setShowNewDocModal(true);
+                      }}
+                      onAddFolder={() => {
+                        props.onModalOpen.setTargetFolder(props.node.path);
+                        props.onModalOpen.setNewFolderName("");
+                        props.onModalOpen.setShowNewFolderModal(true);
+                      }}
+                    />
+                  </Popover.Content>
+                </Popover.Portal>
+              </Popover>
+            </Show>
           </div>
         </div>
       </div>
@@ -368,6 +398,9 @@ export default function TreeNode(props: TreeNodeProps) {
                 openMenuPath={props.openMenuPath}
                 setOpenMenuPath={props.setOpenMenuPath}
                 onModalOpen={props.onModalOpen}
+                selectionMode={props.selectionMode}
+                selectedPaths={props.selectedPaths}
+                onToggleSelect={props.onToggleSelect}
               />
             )}
           </For>
