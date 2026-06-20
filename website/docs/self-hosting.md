@@ -259,7 +259,7 @@ docker run --rm \
 
 ## Reverse Proxy (Optional)
 
-To use Plumio with a reverse proxy like Nginx or Caddy:
+To use Plumio with a reverse proxy like Nginx, Caddy or Traefik:
 
 ### Nginx
 
@@ -289,6 +289,25 @@ your-domain.com {
     reverse_proxy localhost:3000
     reverse_proxy /api/* localhost:3001
 }
+```
+
+### Traefik
+```yml
+services:
+  plumio:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.plumio.rule=Host(`plumio.yourdomain.com`)"
+      - "traefik.http.routers.plumio.entrypoints=websecure"
+      - "traefik.http.routers.plumio.tls.certresolver=letsencrypt"
+      - "traefik.http.services.plumio.loadbalancer.server.port=3000"
+    networks:
+      - traefik
+      - plumio-network
+
+networks:
+  traefik:
+    external: true
 ```
 
 ## Troubleshooting
