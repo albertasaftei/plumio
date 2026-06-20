@@ -18,7 +18,7 @@ docker run -d \
   -p 3001:3001 \
   -v plumio-data:/data \
   -e JWT_SECRET="$(openssl rand -base64 32)" \
-  -e ENCRYPTION_KEY="$(openssl rand -base64 32)" \
+  -e ENCRYPTION_KEY="$(openssl rand -hex 32)" \
   ghcr.io/albertasaftei/plumio:latest
 ```
 
