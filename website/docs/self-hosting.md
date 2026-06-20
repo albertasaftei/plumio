@@ -170,7 +170,7 @@ BACKEND_INTERNAL_PORT=3001
 DOCUMENTS_PATH=./documents
 DB_PATH=./data/plumio.db
 JWT_SECRET=$(openssl rand -base64 32)
-ENCRYPTION_KEY=$(openssl rand -base64 32)
+ENCRYPTION_KEY=$(openssl rand -hex 32)
 ENABLE_ENCRYPTION=true
 ```
 
@@ -292,6 +292,7 @@ your-domain.com {
 ```
 
 ### Traefik
+
 ```yml
 services:
   plumio:
