@@ -28,7 +28,7 @@ Manual Docker deployment:
 ```bash
 # Generate keys
 openssl rand -base64 32  # JWT_SECRET
-openssl rand -base64 32  # ENCRYPTION_KEY
+openssl rand -hex 32  # ENCRYPTION_KEY
 
 # Create .env file with the generated keys
 docker-compose up -d

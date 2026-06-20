@@ -18,7 +18,7 @@ docker run -d \
   -p 3001:3001 \
   -v plumio-data:/data \
   -e JWT_SECRET="$(openssl rand -base64 32)" \
-  -e ENCRYPTION_KEY="$(openssl rand -base64 32)" \
+  -e ENCRYPTION_KEY="$(openssl rand -hex 32)" \
   ghcr.io/albertasaftei/plumio:latest
 ```
 
@@ -170,7 +170,7 @@ BACKEND_INTERNAL_PORT=3001
 DOCUMENTS_PATH=./documents
 DB_PATH=./data/plumio.db
 JWT_SECRET=$(openssl rand -base64 32)
-ENCRYPTION_KEY=$(openssl rand -base64 32)
+ENCRYPTION_KEY=$(openssl rand -hex 32)
 ENABLE_ENCRYPTION=true
 ```
 
@@ -259,7 +259,7 @@ docker run --rm \
 
 ## Reverse Proxy (Optional)
 
-To use Plumio with a reverse proxy like Nginx or Caddy:
+To use Plumio with a reverse proxy like Nginx, Caddy or Traefik:
 
 ### Nginx
 
@@ -289,6 +289,26 @@ your-domain.com {
     reverse_proxy localhost:3000
     reverse_proxy /api/* localhost:3001
 }
+```
+
+### Traefik
+
+```yml
+services:
+  plumio:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.plumio.rule=Host(`plumio.yourdomain.com`)"
+      - "traefik.http.routers.plumio.entrypoints=websecure"
+      - "traefik.http.routers.plumio.tls.certresolver=letsencrypt"
+      - "traefik.http.services.plumio.loadbalancer.server.port=3000"
+    networks:
+      - traefik
+      - plumio-network
+
+networks:
+  traefik:
+    external: true
 ```
 
 ## Troubleshooting
