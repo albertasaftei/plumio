@@ -16,7 +16,7 @@ services:
       - DOCUMENTS_PATH=/data/documents
       - DB_PATH=/data/plumio.db
       - JWT_SECRET= openssl rand -base64 32 # example: sZS/0Ea3912P7DBOH9cYGw6fXXh5aRdhZ7bVRozPrvg=KFOENanjsrh821nMN59a
-      - ENCRYPTION_KEY= openssl rand -base64 32 # example: Am7PkJYuxEJYhu4fDdao37AX1XP0p/p2UuJ5Fxyh7Is=KFOENanjsrh821nMN59s
+      - ENCRYPTION_KEY= openssl rand -hex 32 # example: 9e23d572c66b7ae60d5b78de107b32b65a7b0a7f8a5821ccbf94e59f0d57c4ef
       - ALLOWED_ORIGINS=http://localhost:3000
       - ENABLE_ENCRYPTION=false
       # - SMTP_HOST=${SMTP_HOST}
