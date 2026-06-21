@@ -1276,6 +1276,9 @@ documentsRouter.post(
       // Save uploaded file
       const file = parsed.data.file;
       const buffer = await file.arrayBuffer();
+      console.log(
+        `[import] org=${organizationId} file="${file.name}" size=${buffer.byteLength}B`,
+      );
       await fs.writeFile(tempFile, Buffer.from(buffer));
 
       // Extract to organization documents directory
@@ -1286,7 +1289,7 @@ documentsRouter.post(
       // Extract archive directly to organization documents path
       // This works for both plumio exports and third-party app exports (like Obsidian)
       await execAsync(
-        `tar -xzf ${tempFile} -C ${orgDocumentsPath} --exclude='.*' --exclude='*/.*'`,
+        `tar -xzf "${tempFile}" -C "${orgDocumentsPath}" --exclude='.*' --exclude='*/.*'`,
       );
 
       // Clean up temp file
@@ -1295,7 +1298,40 @@ documentsRouter.post(
       // Additional cleanup: Remove any hidden files and files with invalid extensions
       await cleanupInvalidFiles(orgDocumentsPath);
 
-      return c.json({ message: "Documents imported successfully" });
+      // Re-encrypt any plaintext .md files written by a plain-text export/import.
+      // export-plain decrypts files before archiving; importing that archive
+      // directly would leave plaintext on disk in an encrypted installation.
+      if (ENABLE_ENCRYPTION) {
+        const mdFiles = await collectMdFilesRecursively(orgDocumentsPath);
+        await Promise.all(
+          mdFiles.map(async (filePath) => {
+            try {
+              const raw = await fs.readFile(filePath, "utf-8");
+              try {
+                decrypt(raw); // succeeds → already encrypted, leave as-is
+              } catch {
+                // decrypt threw → file is plaintext → encrypt and overwrite
+                await fs.writeFile(filePath, encrypt(raw), "utf-8");
+              }
+            } catch {
+              // skip unreadable files
+            }
+          }),
+        );
+        console.log(
+          `[import] re-encryption pass complete for ${mdFiles.length} file(s)`,
+        );
+      }
+
+      const extractedFiles = await collectMdFilesRecursively(orgDocumentsPath);
+      console.log(
+        `[import] done — ${extractedFiles.length} .md file(s) now in org ${organizationId}`,
+      );
+
+      return c.json({
+        message: "Documents imported successfully",
+        count: extractedFiles.length,
+      });
     } catch (error) {
       console.error("Error importing documents:", error);
       return c.json({ error: "Failed to import documents" }, 500);

@@ -98,9 +98,12 @@ export default function ImportExport() {
         message: t("importExport.importSuccess"),
         type: "success",
       });
-      // Delay reload to show toast
+      // Hard navigation after a short delay to show the toast.
+      // Using href assignment instead of location.reload() to guarantee a full
+      // page reload — SolidStart's client router can intercept reload() and
+      // reuse cached reactive resources, leaving the document list stale.
       setTimeout(() => {
-        window.location.reload();
+        window.location.href = window.location.href;
       }, 1500);
     } catch (error) {
       console.error("Failed to import documents:", error);

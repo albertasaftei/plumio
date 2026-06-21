@@ -12,13 +12,30 @@ async function proxyToBackend(event: APIEvent): Promise<Response> {
   const hasBody =
     event.request.method !== "GET" && event.request.method !== "HEAD";
 
+  let body: BodyInit | undefined;
+  let duplex: string | undefined;
+
+  if (hasBody) {
+    const contentType = event.request.headers.get("content-type") || "";
+    if (contentType.includes("multipart/form-data")) {
+      // Buffer multipart bodies as ArrayBuffer to avoid ReadableStream locking
+      // issues when proxying through reverse proxies (e.g. Traefik with HTTP/2
+      // → HTTP/1.1 downgrade). Streaming a ReadableStream through two fetch()
+      // calls in Nitro can result in a locked/drained body reaching the backend.
+      body = await event.request.arrayBuffer();
+    } else {
+      body = event.request.body ?? undefined;
+      // Required for streaming request bodies in Node 18+
+      duplex = "half";
+    }
+  }
+
   return fetch(target, {
     method: event.request.method,
     headers: event.request.headers,
-    body: hasBody ? event.request.body : undefined,
-    // Required for streaming request bodies in Node 18+
+    body,
     // @ts-ignore
-    duplex: "half",
+    ...(duplex ? { duplex } : {}),
   });
 }
 
