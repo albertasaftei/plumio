@@ -1,0 +1,33 @@
+---
+slug: v2.10.0
+title: v2.10.0
+authors: [alburt]
+date: 2026-05-21
+tags: [release, minor]
+---
+
+Version <span style={{color: "#2a9d8f", fontWeight: "bold"}}>2.10.0</span> of plumio is here!
+
+{/* truncate */}
+
+This release includes:
+
+### Major highlights
+
+- Added <span style={{color: "#2a9d8f", fontWeight: "bold"}}>cloud sync support</span>. Users can now sync their documents and data across multiple devices using cloud storage services such as Dropbox, Google Drive, and OneDrive.
+- Added <span style={{color: "#2a9d8f", fontWeight: "bold"}}>bulk move and delete </span> functionality for documents and folders through multiple selection in the sidebar.
+- Owners can now <span style={{color: "#2a9d8f", fontWeight: "bold"}}>ban users</span> from the admin panel. Banned users will not be able to login until unbanned.
+- Admins can <span style={{color: "#2a9d8f", fontWeight: "bold"}}>ban users</span> from the Organization Panel. Banned users will not be able to access the organization until unbanned.
+- Fixed an issue for users using Traefik as reverse proxy. Traefik's default behavior of handling the body streaming flow was causing an issue with file uploads. 
+- Fixed an issue where importing plain text exports wouldn't encrypt the imported documents if encryption was enabled.
+
+### Minor highlights
+- Added the file's settings menu (move, delete, duplicate, etc) inside the editor as well for better accessibility. It can be found in the toolbar as a settings icon.
+- Now only owners can grant admin access to organization members.
+
+
+### Security
+
+- Updated dependencies to fix security vulnerabilities.
+
+Thank you for using plumio! 🎉

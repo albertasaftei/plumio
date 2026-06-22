@@ -1,7 +1,7 @@
 {
   "name": "plumio-docs",
   "description": "A self-hosted markdown notes taking app with live preview, document encryption, multi-user support, multi-organization capabilities and more.",
-  "version": "2.9.0",
+  "version": "2.10.0",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
