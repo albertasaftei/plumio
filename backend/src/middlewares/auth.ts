@@ -6,7 +6,7 @@ import {
   sessionQueries,
   userQueries,
 } from "../db/index.js";
-import { ApiKeyContext, UserJWTPayload } from "./auth.types.js";
+import { ApiKeyContext, AuthContext, UserJWTPayload } from "./auth.types.js";
 import { bearerAuth } from "hono/bearer-auth";
 import { createHash } from "crypto";
 import type { Context, MiddlewareHandler, Next } from "hono";
@@ -48,7 +48,7 @@ export async function verifyToken(
   }
 }
 
-export const authMiddleware = bearerAuth({
+export const authMiddleware = bearerAuth<{ Variables: { user: AuthContext } }>({
   verifyToken: async (token, c) => {
     const payload = await verifyToken(token);
 
@@ -61,18 +61,20 @@ export const authMiddleware = bearerAuth({
   },
 });
 
-export const adminMiddleware = bearerAuth({
-  verifyToken: async (token, c) => {
-    const payload = await verifyToken(token);
+export const adminMiddleware = bearerAuth<{ Variables: { user: AuthContext } }>(
+  {
+    verifyToken: async (token, c) => {
+      const payload = await verifyToken(token);
 
-    if (!payload || !payload.isAdmin) {
-      return false;
-    }
+      if (!payload || !payload.isAdmin) {
+        return false;
+      }
 
-    c.set("user", payload);
-    return true;
+      c.set("user", payload);
+      return true;
+    },
   },
-});
+);
 
 /**
  * Combined auth middleware: accepts both JWT tokens and API keys (plm_...).
