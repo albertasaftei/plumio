@@ -88,6 +88,15 @@ authRouter.post("/setup", async (c) => {
       const result = userQueries.create.run(username, email, passwordHash);
       const userId = result.lastInsertRowid as number;
 
+      // Guard against concurrent setup requests — the first user must have id = 1
+      if (userId !== 1) {
+        userQueries.deleteById.run(userId);
+        return c.json({ error: "Setup already completed" }, 400);
+      }
+
+      // Grant global admin to the setup (first) user
+      userQueries.setAdmin.run(1, userId);
+
       // Create personal organization
       const orgSlug = `${username}-personal`;
       const resolvedOrgName = `${username}'s Organization`;
@@ -95,7 +104,7 @@ authRouter.post("/setup", async (c) => {
         resolvedOrgName,
         orgSlug,
         userId,
-        0, // personal orgs are not discoverable
+        0, // personal orgs are not discoverable by default
       );
       const orgId = orgResult.lastInsertRowid as number;
 

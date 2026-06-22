@@ -239,7 +239,7 @@
   "admin.password": "Password",
   "admin.passwordPlaceholder": "Min 8 characters",
   "admin.passwordTooShort": "Password must be at least 8 characters",
-  "admin.grantAdmin": "Grant app admin role",
+  "admin.grantAdmin": "Grant global admin role",
   "admin.cancel": "Cancel",
   "admin.colUser": "User",
   "admin.colEmail": "Email",
