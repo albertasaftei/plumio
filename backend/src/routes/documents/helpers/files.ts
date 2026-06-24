@@ -19,6 +19,27 @@ export function hasAllowedExtension(fileName: string): boolean {
   return ALLOWED_EXTENSIONS.includes(ext);
 }
 
+// Recursively collect ALL .md files under a directory (including archived/deleted)
+export async function collectAllMdFiles(dir: string): Promise<string[]> {
+  const files: string[] = [];
+  try {
+    const items = await fs.readdir(dir, { withFileTypes: true });
+    for (const item of items) {
+      if (item.name.startsWith(".") || item.name.endsWith(".meta.json"))
+        continue;
+      const fullItemPath = path.join(dir, item.name);
+      if (item.isDirectory()) {
+        files.push(...(await collectAllMdFiles(fullItemPath)));
+      } else if (item.name.endsWith(".md")) {
+        files.push(fullItemPath);
+      }
+    }
+  } catch {
+    // ignore read errors
+  }
+  return files;
+}
+
 // Recursively collect all active .md files under a directory (ignores archived/deleted/hidden)
 export async function collectMdFilesRecursively(
   dir: string,
@@ -67,19 +88,8 @@ export async function cleanupInvalidFiles(dirPath: string): Promise<void> {
         // Never touch the attachments directory created by the attachments feature
         if (item.name === "attachments") continue;
 
-        // Recursively clean subdirectories first
+        // Recursively clean subdirectories
         await cleanupInvalidFiles(itemPath);
-
-        // After cleaning, check if directory is now empty and remove it
-        try {
-          const remainingItems = await fs.readdir(itemPath);
-          if (remainingItems.length === 0) {
-            await fs.rmdir(itemPath);
-            console.log(`Removed empty directory: ${item.name}`);
-          }
-        } catch {
-          // Directory might not exist or other error, continue
-        }
       } else {
         if (!hasAllowedExtension(item.name)) {
           await fs.unlink(itemPath);

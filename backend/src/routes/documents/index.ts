@@ -23,6 +23,7 @@ import {
 import { encrypt, decrypt } from "./helpers/encryption.js";
 import { escapeHtmlForFts } from "./helpers/fts.js";
 import {
+  collectAllMdFiles,
   collectMdFilesRecursively,
   cleanupInvalidFiles,
   deleteDocumentAttachments,
@@ -1286,17 +1287,74 @@ documentsRouter.post(
       const { promisify } = await import("util");
       const execAsync = promisify(exec);
 
-      // Extract archive directly to organization documents path
-      // This works for both plumio exports and third-party app exports (like Obsidian)
-      await execAsync(
-        `tar -xzf "${tempFile}" -C "${orgDocumentsPath}" --exclude='.*' --exclude='*/.*'`,
-      );
+      // Extract archive directly to organization documents path.
+      // This works for both plumio exports and third-party app exports (like Obsidian).
+      await execAsync(`tar -xzf "${tempFile}" -C "${orgDocumentsPath}"`);
 
       // Clean up temp file
       await fs.unlink(tempFile);
 
       // Additional cleanup: Remove any hidden files and files with invalid extensions
       await cleanupInvalidFiles(orgDocumentsPath);
+
+      // Sync imported deleted/archived files to SQLite so they appear in
+      // the Trash and Archive sections.  The /deleted and /archived
+      // endpoints query SQLite, not the filesystem.
+      const allMdFiles = await collectAllMdFiles(orgDocumentsPath);
+      const orgPath = getOrgDocumentsPath(organizationId);
+      for (const absPath of allMdFiles) {
+        const relPath = path.relative(orgPath, absPath).replace(/\\/g, "/");
+        const fileName = path.basename(absPath);
+        const baseName = fileName.replace(/\.md$/, "");
+
+        if (fileName.includes(".deleted-")) {
+          const existing =
+            documentQueries.findByOrgAndPathIncludingArchived.get(
+              organizationId,
+              relPath,
+            );
+          if (!existing) {
+            const title = baseName.replace(/\.deleted-\d+$/, "");
+            const stats = await fs.stat(absPath);
+            documentQueries.upsert.run(
+              organizationId,
+              user.userId,
+              relPath,
+              title,
+              null,
+              stats.size,
+            );
+            documentQueries.softDelete.run(
+              user.userId,
+              organizationId,
+              relPath,
+            );
+          }
+        } else if (fileName.includes(".archived-")) {
+          const existing =
+            documentQueries.findByOrgAndPathIncludingArchived.get(
+              organizationId,
+              relPath,
+            );
+          if (!existing) {
+            const title = baseName.replace(/\.archived-\d+$/, "");
+            const stats = await fs.stat(absPath);
+            documentQueries.upsert.run(
+              organizationId,
+              user.userId,
+              relPath,
+              title,
+              null,
+              stats.size,
+            );
+            documentQueries.archiveDocument.run(
+              user.userId,
+              organizationId,
+              relPath,
+            );
+          }
+        }
+      }
 
       // Re-encrypt any plaintext .md files written by a plain-text export/import.
       // export-plain decrypts files before archiving; importing that archive
