@@ -1,34 +1,22 @@
 import { createSignal, onMount } from "solid-js";
 import Homepage from "~/components/Homepage";
 import { useNavigate } from "@solidjs/router";
-import { api, type Document } from "~/lib/api";
+import { api } from "~/lib/api";
 import { routes } from "~/routes";
 import type { Tag } from "~/types/Tag.types";
+import { useAppLayout } from "~/components/AppLayout";
 
 export default function HomePageRoute() {
   const navigate = useNavigate();
-  const [allDocuments, setAllDocuments] = createSignal<Document[]>([]);
-  const [loading, setLoading] = createSignal(true);
+  const { allDocuments } = useAppLayout();
   const [tags, setTags] = createSignal<Tag[]>([]);
   const [tagMappings, setTagMappings] = createSignal<Record<string, number[]>>(
     {},
   );
 
-  // Load all documents in a single recursive API call
-  const loadAllDocuments = async () => {
-    setLoading(true);
-    try {
-      const result = await api.listAllDocuments();
-      setAllDocuments(result.items);
-    } catch (error) {
-      console.error("Failed to load documents:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   onMount(async () => {
-    // Validate session first
+    // Session validation and document loading are handled by AppLayout.
+    // Fetch only what the homepage needs beyond the document tree.
     const session = await api.validateSession();
     if (!session.valid) {
       navigate(routes.login);
@@ -36,7 +24,6 @@ export default function HomePageRoute() {
     }
 
     await Promise.all([
-      loadAllDocuments(),
       api
         .listTags()
         .then((r) => setTags(r.tags))

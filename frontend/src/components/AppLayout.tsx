@@ -16,6 +16,7 @@ import { api, type Document } from "~/lib/api";
 import { syncThemeFromServer } from "~/lib/theme";
 import { isMobile } from "~/utils/device.utils";
 import { routes } from "~/routes";
+import { createDocumentStore } from "~/lib/documentStore";
 
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 
@@ -57,7 +58,7 @@ export function useAppLayout() {
 export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [allDocuments, setAllDocuments] = createSignal<Document[]>([]);
+  const store = createDocumentStore();
   const [sidebarOpen, setSidebarOpen] = createSignal(false);
   const [expandedFolders, setExpandedFolders] = createSignal<Set<string>>(
     new Set(["/"]),
@@ -70,16 +71,6 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     message: string;
     type: "success" | "error";
   } | null>(null);
-
-  // Load all documents in a single recursive API call
-  const loadAllDocuments = async () => {
-    try {
-      const result = await api.listAllDocuments();
-      setAllDocuments(result.items);
-    } catch (error) {
-      console.error("Failed to load documents:", error);
-    }
-  };
 
   // Validate session and load documents on mount
   onMount(async () => {
@@ -97,7 +88,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     }
 
     // Load documents once on mount
-    await loadAllDocuments();
+    await store.load();
   });
 
   const toggleExpandFolder = (path: string) => {
@@ -138,14 +129,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
 
   const createNewDocument = async (name: string, folderPath = "/") => {
     try {
-      const result = await api.saveDocument(
-        "",
-        "# New Document\n\nStart writing...",
-        true,
-        folderPath,
-        name,
-      );
-      await loadAllDocuments();
+      const result = await store.createDocument(name, folderPath);
       navigate(`/file${encodePath(result.path)}`);
     } catch (error) {
       console.error("Failed to create document:", error);
@@ -154,8 +138,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
 
   const createNewFolder = async (name: string, parentPath = "/") => {
     try {
-      await api.createFolder("", parentPath, name);
-      await loadAllDocuments();
+      await store.createFolder(name, parentPath);
       // Auto-expand parent folder to show the new subfolder
       if (parentPath !== "/") {
         const expanded = new Set(expandedFolders());
@@ -176,8 +159,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     if (!path) return;
 
     try {
-      await api.deleteItem(path);
-      await loadAllDocuments();
+      await store.deleteItem(path);
       navigateIfViewing(path, routes.homepage);
     } catch (error) {
       console.error("Failed to delete item:", error);
@@ -188,8 +170,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
 
   const renameItem = async (oldPath: string, newName: string) => {
     try {
-      const result = await api.renameItem(oldPath, newName);
-      await loadAllDocuments();
+      const result = await store.renameItem(oldPath, newName);
       navigateIfViewing(oldPath, result.newPath);
     } catch (error) {
       console.error("Failed to rename item:", error);
@@ -201,8 +182,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
 
   const archiveItem = async (path: string) => {
     try {
-      await api.archiveDocument(path);
-      await loadAllDocuments();
+      await store.archiveItem(path);
       navigateIfViewing(path, routes.homepage);
     } catch (error) {
       console.error("Failed to archive item:", error);
@@ -216,9 +196,13 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     keepSource?: boolean,
   ) => {
     try {
+      const result = await store.moveItem(
+        sourcePath,
+        destinationFolder,
+        targetOrgId,
+        keepSource,
+      );
       if (targetOrgId !== undefined) {
-        await api.moveCrossOrg(sourcePath, targetOrgId, keepSource);
-        await loadAllDocuments();
         const itemName = sourcePath.split("/").pop() ?? sourcePath;
         if (keepSource) {
           setToast({
@@ -232,9 +216,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
             type: "success",
           });
         }
-      } else {
-        const result = await api.moveItem(sourcePath, destinationFolder);
-        await loadAllDocuments();
+      } else if (result.newPath) {
         navigateIfViewing(sourcePath, result.newPath);
       }
     } catch (error) {
@@ -247,8 +229,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
 
   const setItemColor = async (path: string, color: string | null) => {
     try {
-      await api.setItemColor(path, color);
-      await loadAllDocuments();
+      await store.setItemColor(path, color);
     } catch (error) {
       console.error("Failed to set item color:", error);
     }
@@ -260,8 +241,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
     operation: "reorder-before" | "reorder-after" | "make-child",
   ) => {
     try {
-      const result = await api.reorderItem(sourcePath, targetPath, operation);
-      await loadAllDocuments();
+      const result = await store.reorderItem(sourcePath, targetPath, operation);
       if (result.newPath) {
         navigateIfViewing(sourcePath, result.newPath);
       }
@@ -275,8 +255,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
 
   const toggleFavorite = async (path: string, favorite: boolean) => {
     try {
-      await api.toggleFavorite(path, favorite);
-      await loadAllDocuments();
+      await store.toggleFavorite(path, favorite);
     } catch (error) {
       console.error("Failed to toggle favorite:", error);
     }
@@ -284,8 +263,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
 
   const duplicateItem = async (path: string) => {
     try {
-      await api.duplicateItem(path);
-      await loadAllDocuments();
+      await store.duplicateItem(path);
       setToast({ message: "Duplicated successfully", type: "success" });
     } catch (error) {
       console.error("Failed to duplicate item:", error);
@@ -295,8 +273,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
 
   const bulkDeleteItems = async (paths: string[]) => {
     try {
-      await api.bulkDeleteItems(paths);
-      await loadAllDocuments();
+      await store.bulkDelete(paths);
       const location_ = location.pathname;
       const deletedCurrentFile = paths.some(
         (p) => location_.startsWith(`/file`) && location_.includes(p),
@@ -313,8 +290,8 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
   };
 
   const contextValue: AppLayoutContext = {
-    allDocuments,
-    loadAllDocuments,
+    allDocuments: store.documents,
+    loadAllDocuments: store.load,
     expandedFolders,
     toggleExpandFolder,
     sidebarOpen,
@@ -356,7 +333,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
           {/* Sidebar */}
           {props.showSidebar && (
             <Sidebar
-              documents={allDocuments()}
+              documents={store.documents()}
               currentPath={currentPath()}
               sidebarOpen={sidebarOpen()}
               setSidebarOpen={setSidebarOpen}
@@ -374,7 +351,7 @@ export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {
               onExpandFolder={toggleExpandFolder}
               onSetColor={setItemColor}
               onToggleFavorite={toggleFavorite}
-              onOrgSwitch={() => loadAllDocuments()}
+              onOrgSwitch={() => store.load()}
               onArchiveItem={archiveItem}
               onDuplicateItem={duplicateItem}
               onReorderItem={reorderItem}
