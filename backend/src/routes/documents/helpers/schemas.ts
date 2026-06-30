@@ -6,7 +6,7 @@ export const saveDocumentSchema = z.object({
   // For new-doc creation: folder + raw user-typed name (sanitized server-side)
   folder: z.string().optional(),
   name: z.string().optional(),
-  content: z.string(),
+  content: z.string().min(1),
   isNew: z.boolean().optional(),
 });
 

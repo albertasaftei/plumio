@@ -60,7 +60,7 @@ describe("Auth API", () => {
       const body = await res.json();
       expect(body.token).toBeDefined();
       expect(body.username).toBe("testadmin");
-      expect(body.isAdmin).toBe(false); // first user via setup doesn't set is_admin flag
+      expect(body.isAdmin).toBe(true); // migration 3 sets is_admin = 1 for the first user
       expect(body.currentOrganization).toBeDefined();
       expect(body.currentOrganization.name).toBe("testadmin's Organization");
       // Save for reuse by validate/logout tests

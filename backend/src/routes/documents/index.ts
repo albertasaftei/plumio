@@ -48,6 +48,7 @@ import {
   reorderDocumentSchema,
 } from "./helpers/schemas.js";
 import { deliverWebhook } from "../../utils/webhooks.js";
+import * as lifecycle from "../../documents/lifecycle.js";
 
 type Variables = {
   user: UserJWTPayload;
@@ -385,126 +386,16 @@ documentsRouter.delete(
     }
 
     const { path: filePath } = parsed.data;
-    const fullPath = sanitizePath(filePath, organizationId);
+    const ctx = { organizationId, userId: user.userId };
 
     try {
+      const fullPath = sanitizePath(filePath, organizationId);
       const stats = await fs.stat(fullPath);
 
       if (stats.isDirectory()) {
-        const timestamp = Date.now();
-        const orgPath = getOrgDocumentsPath(organizationId);
-        const mdFiles = await collectMdFilesRecursively(fullPath);
-
-        for (const absFilePath of mdFiles) {
-          const relFilePath = path
-            .relative(orgPath, absFilePath)
-            .replace(/\\/g, "/");
-          const parts = relFilePath.split("/");
-          const fileName = parts.pop() || "";
-          const baseName = fileName.replace(/\.md$/, "");
-          const deletedFileName = `${baseName}.deleted-${timestamp}.md`;
-          const deletedRelPath = [...parts, deletedFileName].join("/");
-          const absDeletedPath = path.join(orgPath, deletedRelPath);
-
-          try {
-            await fs.rename(absFilePath, absDeletedPath);
-          } catch {
-            // file may not be on disk
-          }
-
-          const existing =
-            documentQueries.findByOrgAndPathIncludingArchived.get(
-              organizationId,
-              relFilePath,
-            );
-          if (existing) {
-            db.prepare(
-              `UPDATE documents
-             SET path = ?, deleted = 1, deleted_at = CURRENT_TIMESTAMP, deleted_by = ?
-             WHERE organization_id = ? AND path = ?`,
-            ).run(deletedRelPath, user.userId, organizationId, relFilePath);
-          } else {
-            const fileStats = await fs
-              .stat(absDeletedPath)
-              .catch(() => ({ size: 0 }));
-            documentQueries.upsert.run(
-              organizationId,
-              user.userId,
-              deletedRelPath,
-              baseName,
-              null,
-              fileStats.size,
-            );
-            documentQueries.softDelete.run(
-              user.userId,
-              organizationId,
-              deletedRelPath,
-            );
-          }
-        }
-
-        // Hard-delete the now-empty (or fully renamed) folder
-        await fs.rm(fullPath, { recursive: true });
-        deliverWebhook(organizationId, "folder.deleted", { path: filePath });
+        await lifecycle.softDeleteFolder(ctx, filePath);
       } else {
-        // Soft delete: rename file with .deleted-{timestamp} suffix
-        const timestamp = Date.now();
-        const pathParts = filePath.split("/");
-        const fileName = pathParts.pop() || "";
-        const fileNameWithoutExt = fileName.replace(/\.md$/, "");
-        const deletedFileName = `${fileNameWithoutExt}.deleted-${timestamp}.md`;
-        const deletedPath = [...pathParts, deletedFileName].join("/");
-
-        // Rename the physical file
-        const newFullPath = sanitizePath(deletedPath, organizationId);
-        try {
-          await fs.rename(fullPath, newFullPath);
-        } catch (err) {
-          console.error("Error renaming file:", err);
-        }
-
-        // Check if document exists in database
-        const existing = documentQueries.findByOrgAndPathIncludingArchived.get(
-          organizationId,
-          filePath,
-        );
-
-        if (existing) {
-          // Update database: mark as deleted and update path
-          db.prepare(
-            `
-          UPDATE documents 
-          SET path = ?, deleted = 1, deleted_at = CURRENT_TIMESTAMP, deleted_by = ?
-          WHERE organization_id = ? AND path = ?
-        `,
-          ).run(deletedPath, user.userId, organizationId, filePath);
-        } else {
-          // Document not in DB, add it as deleted
-          const title = fileName.replace(/\.md$/, "");
-          documentQueries.upsert.run(
-            organizationId,
-            user.userId,
-            deletedPath,
-            title,
-            null,
-            stats.size,
-          );
-          documentQueries.softDelete.run(
-            user.userId,
-            organizationId,
-            deletedPath,
-          );
-        }
-
-        // Rename the metadata sidecar file alongside the document
-        const metaPath = `${fullPath}.meta.json`;
-        const newMetaPath = `${newFullPath}.meta.json`;
-        try {
-          await fs.rename(metaPath, newMetaPath);
-        } catch {
-          // Metadata file might not exist, which is fine
-        }
-        deliverWebhook(organizationId, "document.deleted", { path: filePath });
+        await lifecycle.softDeleteFile(ctx, filePath);
       }
 
       return c.json({ message: "Deleted successfully" });
@@ -533,124 +424,18 @@ documentsRouter.delete(
       return c.json({ error: "No organization context" }, 400);
     }
 
+    const ctx = { organizationId, userId: user.userId };
     const errors: { path: string; error: string }[] = [];
 
     for (const filePath of parsed.data.paths) {
-      const fullPath = sanitizePath(filePath, organizationId);
-
       try {
+        const fullPath = sanitizePath(filePath, organizationId);
         const stats = await fs.stat(fullPath);
 
         if (stats.isDirectory()) {
-          const timestamp = Date.now();
-          const orgPath = getOrgDocumentsPath(organizationId);
-          const mdFiles = await collectMdFilesRecursively(fullPath);
-
-          for (const absFilePath of mdFiles) {
-            const relFilePath = path
-              .relative(orgPath, absFilePath)
-              .replace(/\\/g, "/");
-            const parts = relFilePath.split("/");
-            const fileName = parts.pop() || "";
-            const baseName = fileName.replace(/\.md$/, "");
-            const deletedFileName = `${baseName}.deleted-${timestamp}.md`;
-            const deletedRelPath = [...parts, deletedFileName].join("/");
-            const absDeletedPath = path.join(orgPath, deletedRelPath);
-
-            try {
-              await fs.rename(absFilePath, absDeletedPath);
-            } catch {
-              // file may not be on disk
-            }
-
-            const existing =
-              documentQueries.findByOrgAndPathIncludingArchived.get(
-                organizationId,
-                relFilePath,
-              );
-            if (existing) {
-              db.prepare(
-                `UPDATE documents
-                 SET path = ?, deleted = 1, deleted_at = CURRENT_TIMESTAMP, deleted_by = ?
-                 WHERE organization_id = ? AND path = ?`,
-              ).run(deletedRelPath, user.userId, organizationId, relFilePath);
-            } else {
-              const fileStats = await fs
-                .stat(absDeletedPath)
-                .catch(() => ({ size: 0 }));
-              documentQueries.upsert.run(
-                organizationId,
-                user.userId,
-                deletedRelPath,
-                baseName,
-                null,
-                fileStats.size,
-              );
-              documentQueries.softDelete.run(
-                user.userId,
-                organizationId,
-                deletedRelPath,
-              );
-            }
-          }
-
-          await fs.rm(fullPath, { recursive: true });
-          deliverWebhook(organizationId, "folder.deleted", { path: filePath });
+          await lifecycle.softDeleteFolder(ctx, filePath);
         } else {
-          const timestamp = Date.now();
-          const pathParts = filePath.split("/");
-          const fileName = pathParts.pop() || "";
-          const fileNameWithoutExt = fileName.replace(/\.md$/, "");
-          const deletedFileName = `${fileNameWithoutExt}.deleted-${timestamp}.md`;
-          const deletedPath = [...pathParts, deletedFileName].join("/");
-          const newFullPath = sanitizePath(deletedPath, organizationId);
-
-          try {
-            await fs.rename(fullPath, newFullPath);
-          } catch (err) {
-            console.error("Error renaming file:", err);
-          }
-
-          const existing =
-            documentQueries.findByOrgAndPathIncludingArchived.get(
-              organizationId,
-              filePath,
-            );
-
-          if (existing) {
-            db.prepare(
-              `UPDATE documents
-               SET path = ?, deleted = 1, deleted_at = CURRENT_TIMESTAMP, deleted_by = ?
-               WHERE organization_id = ? AND path = ?`,
-            ).run(deletedPath, user.userId, organizationId, filePath);
-          } else {
-            const title = fileName.replace(/\.md$/, "");
-            documentQueries.upsert.run(
-              organizationId,
-              user.userId,
-              deletedPath,
-              title,
-              null,
-              stats.size,
-            );
-            documentQueries.softDelete.run(
-              user.userId,
-              organizationId,
-              deletedPath,
-            );
-          }
-
-          const metaPath = `${fullPath}.meta.json`;
-          const newMetaPath = `${newFullPath}.meta.json`;
-          try {
-            await fs.rename(metaPath, newMetaPath);
-          } catch {
-            // Metadata file might not exist
-          }
-
-          deliverWebhook(organizationId, "document.deleted", {
-            path: filePath,
-          });
+          await lifecycle.softDeleteFile(ctx, filePath);
         }
       } catch (error) {
         console.error(`Error deleting ${filePath}:`, error);
@@ -712,47 +497,15 @@ documentsRouter.post(
       return c.json({ error: "Provide either 'newPath' or 'newName'" }, 400);
     }
 
-    const fullOldPath = sanitizePath(oldPath, organizationId);
-    const fullNewPath = sanitizePath(newPath, organizationId);
+    const ctx = { organizationId, userId: user.userId };
 
     try {
-      // Ensure new directory exists
-      await fs.mkdir(path.dirname(fullNewPath), { recursive: true });
-
-      // Check for conflict (only when the destination is a different path)
-      if (fullOldPath !== fullNewPath) {
-        try {
-          await fs.access(fullNewPath);
-          return c.json(
-            { error: "An item with this name already exists" },
-            409,
-          );
-        } catch {
-          // Destination doesn't exist — safe to proceed
-        }
-      }
-
-      await fs.rename(fullOldPath, fullNewPath);
-
-      // Move metadata sidecar file if it exists
-      try {
-        await fs.access(fullOldPath + ".meta.json");
-        await fs.rename(fullOldPath + ".meta.json", fullNewPath + ".meta.json");
-      } catch {
-        // No metadata file, that's fine
-      }
-
-      // Update database paths (triggers keep FTS in sync automatically)
-      const stats = await fs.stat(fullNewPath);
-      if (stats.isDirectory()) {
-        documentQueries.updatePathPrefix(organizationId, oldPath, newPath);
-      } else {
-        documentQueries.updatePath.run(newPath, organizationId, oldPath);
-      }
-
-      deliverWebhook(organizationId, "document.renamed", { oldPath, newPath });
-      return c.json({ message: "Renamed successfully", newPath });
+      const result = await lifecycle.rename(ctx, oldPath, newPath);
+      return c.json({ message: "Renamed successfully", newPath: result.newPath });
     } catch (error) {
+      if (error instanceof lifecycle.ConflictError) {
+        return c.json({ error: error.message }, 409);
+      }
       console.error("Error renaming:", error);
       return c.json({ error: "Failed to rename" }, 500);
     }
@@ -777,84 +530,18 @@ documentsRouter.post(
     }
 
     const { sourcePath, destinationFolder } = parsed.data;
-
-    // Prevent moving into itself or its own descendants
-    if (
-      destinationFolder === sourcePath ||
-      destinationFolder.startsWith(sourcePath + "/")
-    ) {
-      return c.json(
-        { error: "Cannot move an item into itself or its own descendant" },
-        400,
-      );
-    }
-
-    const fullSourcePath = sanitizePath(sourcePath, organizationId);
-    const itemName = path.basename(sourcePath);
-    const newPath =
-      destinationFolder === "/"
-        ? `/${itemName}`
-        : `${destinationFolder}/${itemName}`;
-
-    // If source and destination are the same, no-op
-    if (newPath === sourcePath) {
-      return c.json({
-        message: "Item is already in the target location",
-        newPath,
-      });
-    }
-
-    const fullNewPath = sanitizePath(newPath, organizationId);
+    const ctx = { organizationId, userId: user.userId };
 
     try {
-      // Check source exists
-      await fs.access(fullSourcePath);
-
-      // Check destination would not conflict
-      try {
-        await fs.access(fullNewPath);
-        return c.json(
-          {
-            error:
-              "An item with the same name already exists at the destination",
-          },
-          409,
-        );
-      } catch {
-        // Good — target doesn't exist yet
-      }
-
-      // Ensure destination directory exists
-      await fs.mkdir(path.dirname(fullNewPath), { recursive: true });
-
-      // Move on disk
-      await fs.rename(fullSourcePath, fullNewPath);
-
-      // Move metadata sidecar file if it exists
-      try {
-        await fs.access(fullSourcePath + ".meta.json");
-        await fs.rename(
-          fullSourcePath + ".meta.json",
-          fullNewPath + ".meta.json",
-        );
-      } catch {
-        // No metadata file, that's fine
-      }
-
-      // Update database paths (triggers keep FTS in sync automatically)
-      const stats = await fs.stat(fullNewPath);
-      if (stats.isDirectory()) {
-        documentQueries.updatePathPrefix(organizationId, sourcePath, newPath);
-      } else {
-        documentQueries.updatePath.run(newPath, organizationId, sourcePath);
-      }
-
-      deliverWebhook(organizationId, "document.renamed", {
-        oldPath: sourcePath,
-        newPath,
-      });
-      return c.json({ message: "Moved successfully", newPath });
+      const result = await lifecycle.move(ctx, sourcePath, destinationFolder);
+      return c.json({ message: "Moved successfully", newPath: result.newPath });
     } catch (error) {
+      if (error instanceof lifecycle.ValidationError) {
+        return c.json({ error: error.message }, 400);
+      }
+      if (error instanceof lifecycle.ConflictError) {
+        return c.json({ error: error.message }, 409);
+      }
       console.error("Error moving:", error);
       return c.json({ error: "Failed to move item" }, 500);
     }
@@ -1464,71 +1151,18 @@ documentsRouter.post(
       return c.json({ error: "No organization selected" }, 400);
     }
 
+    const ctx = { organizationId: user.currentOrgId, userId: user.userId };
+
     try {
-      // Check if document exists in database
-      const existing = documentQueries.findByOrgAndPath.get(
-        user.currentOrgId,
-        docPath,
-      );
-
-      if (!existing) {
-        // Document not in database - need to add it first
-        const fullPath = sanitizePath(docPath, user.currentOrgId);
-
-        try {
-          const stats = await fs.stat(fullPath);
-          const fileName = path.basename(docPath, ".md");
-
-          // Insert document into database first
-          documentQueries.upsert.run(
-            user.currentOrgId,
-            user.userId,
-            docPath,
-            fileName,
-            null, // no color
-            stats.size,
-          );
-        } catch (err) {
-          console.error("File not found:", docPath);
-          return c.json({ error: "Document not found" }, 404);
-        }
-      }
-
-      // Now archive it - rename path with timestamp
-      const timestamp = Date.now();
-      const pathParts = docPath.split("/");
-      const fileName = pathParts.pop() || "";
-      const fileNameWithoutExt = fileName.replace(/\.md$/, "");
-      const archivedFileName = `${fileNameWithoutExt}.archived-${timestamp}.md`;
-      const archivedPath = [...pathParts, archivedFileName].join("/");
-
-      // Rename the physical file
-      const orgPath = getOrgDocumentsPath(user.currentOrgId);
-      const oldFilePath = path.join(orgPath, docPath);
-      const newFilePath = path.join(orgPath, archivedPath);
-
-      try {
-        await fs.rename(oldFilePath, newFilePath);
-      } catch (err) {
-        console.error("Error renaming file:", err);
-        // Continue anyway - file might not exist on disk
-      }
-
-      // Update database - change path and set archived flag
-      db.prepare(
-        `
-      UPDATE documents 
-      SET path = ?, archived = 1, archived_at = CURRENT_TIMESTAMP, archived_by = ?
-      WHERE organization_id = ? AND path = ?
-    `,
-      ).run(archivedPath, user.userId, user.currentOrgId, docPath);
-
-      deliverWebhook(user.currentOrgId, "document.archived", {
-        path: docPath,
-        archivedPath,
-      });
-      return c.json({ success: true, archivedPath });
+      const result = await lifecycle.archive(ctx, docPath);
+      return c.json({ success: true, archivedPath: result.archivedPath });
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes("no such file or directory")
+      ) {
+        return c.json({ error: "Document not found" }, 404);
+      }
       console.error("Error archiving document:", error);
       return c.json({ error: "Failed to archive document" }, 500);
     }
@@ -1553,52 +1187,15 @@ documentsRouter.post(
       return c.json({ error: "No organization selected" }, 400);
     }
 
+    const ctx = { organizationId: user.currentOrgId, userId: user.userId };
+
     try {
-      // Extract original path by removing the .archived-{timestamp} suffix
-      const restoredPath = docPath.replace(/\.archived-\d+\.md$/, ".md");
-
-      // Check if a file with the restored name already exists
-      const existing = documentQueries.findByOrgAndPath.get(
-        user.currentOrgId,
-        restoredPath,
-      );
-
-      if (existing) {
-        return c.json(
-          {
-            error:
-              "A file with this name already exists. Please delete or rename it first.",
-          },
-          409,
-        );
-      }
-
-      // Rename the physical file back
-      const orgPath = getOrgDocumentsPath(user.currentOrgId);
-      const archivedFilePath = path.join(orgPath, docPath);
-      const restoredFilePath = path.join(orgPath, restoredPath);
-
-      try {
-        await fs.rename(archivedFilePath, restoredFilePath);
-      } catch (err) {
-        console.error("Error renaming file:", err);
-        // Continue anyway - file might not exist on disk
-      }
-
-      // Update database - restore original path and unarchive
-      db.prepare(
-        `
-      UPDATE documents 
-      SET path = ?, archived = 0, archived_at = NULL, archived_by = NULL
-      WHERE organization_id = ? AND path = ?
-    `,
-      ).run(restoredPath, user.currentOrgId, docPath);
-
-      deliverWebhook(user.currentOrgId, "document.unarchived", {
-        path: restoredPath,
-      });
-      return c.json({ success: true, restoredPath });
+      const result = await lifecycle.unarchive(ctx, docPath);
+      return c.json({ success: true, restoredPath: result.restoredPath });
     } catch (error) {
+      if (error instanceof lifecycle.ConflictError) {
+        return c.json({ error: error.message }, 409);
+      }
       console.error("Error unarchiving document:", error);
       return c.json({ error: "Failed to unarchive document" }, 500);
     }
@@ -1657,35 +1254,15 @@ documentsRouter.post(
       return c.json({ error: "No organization selected" }, 400);
     }
 
+    const ctx = { organizationId: user.currentOrgId, userId: user.userId };
+
     try {
-      // Delete from database first
-      const result = documentQueries.permanentlyDeleteWithFtsCleanup(
-        user.currentOrgId,
-        docPath,
-      );
-
-      if (result.changes === 0) {
-        return c.json({ error: "Document not found in database" }, 404);
-      }
-
-      // Try to delete physical file (ignore if it doesn't exist)
-      const orgPath = getOrgDocumentsPath(user.currentOrgId);
-      const filePath = path.join(orgPath, docPath);
-      try {
-        await fs.unlink(filePath);
-      } catch (err) {
-        // File doesn't exist or already deleted, which is fine
-        console.log(
-          "File not found on filesystem (already deleted):",
-          filePath,
-        );
-      }
-
-      // Delete all attachments linked to this document
-      await deleteDocumentAttachments(user.currentOrgId, docPath);
-
+      await lifecycle.permanentlyDelete(ctx, docPath);
       return c.json({ success: true });
     } catch (error) {
+      if (error instanceof lifecycle.NotFoundError) {
+        return c.json({ error: "Document not found in database" }, 404);
+      }
       console.error("Error deleting archived document:", error);
       return c.json({ error: "Failed to delete document" }, 500);
     }
@@ -1744,69 +1321,15 @@ documentsRouter.post(
       return c.json({ error: "No organization selected" }, 400);
     }
 
+    const ctx = { organizationId: user.currentOrgId, userId: user.userId };
+
     try {
-      // Extract original path by removing the .deleted-{timestamp} suffix
-      const restoredPath = docPath.replace(/\.deleted-\d+\.md$/, ".md");
-
-      // Check if a file with the restored name already exists
-      const existing = documentQueries.findByOrgAndPath.get(
-        user.currentOrgId,
-        restoredPath,
-      );
-
-      if (existing) {
-        return c.json(
-          {
-            error:
-              "A file with this name already exists. Please delete or rename it first.",
-          },
-          409,
-        );
-      }
-
-      // Rename the physical file back
-      const orgPath = getOrgDocumentsPath(user.currentOrgId);
-      const deletedFilePath = path.join(orgPath, docPath);
-      const restoredFilePath = path.join(orgPath, restoredPath);
-
-      // Ensure parent directory exists (folder may have been deleted along with the file)
-      await fs.mkdir(path.dirname(restoredFilePath), { recursive: true });
-
-      try {
-        await fs.rename(deletedFilePath, restoredFilePath);
-      } catch (err) {
-        console.error("Error renaming file:", err);
-        // Physical file is gone (swept when the folder was hard-deleted) — restore as empty document
-        try {
-          await fs.writeFile(restoredFilePath, "", "utf-8");
-        } catch (writeErr) {
-          console.error("Error creating empty restored file:", writeErr);
-        }
-      }
-
-      // Restore the metadata sidecar file if it was preserved during deletion
-      const deletedMetaPath = path.join(orgPath, `${docPath}.meta.json`);
-      const restoredMetaPath = path.join(orgPath, `${restoredPath}.meta.json`);
-      try {
-        await fs.rename(deletedMetaPath, restoredMetaPath);
-      } catch {
-        // Metadata file might not exist, which is fine
-      }
-
-      // Update database - restore original path and mark as not deleted
-      db.prepare(
-        `
-      UPDATE documents 
-      SET path = ?, deleted = 0, deleted_at = NULL, deleted_by = NULL
-      WHERE organization_id = ? AND path = ?
-    `,
-      ).run(restoredPath, user.currentOrgId, docPath);
-
-      deliverWebhook(user.currentOrgId, "document.restored", {
-        path: restoredPath,
-      });
-      return c.json({ success: true, restoredPath });
+      const result = await lifecycle.restoreDeleted(ctx, docPath);
+      return c.json({ success: true, restoredPath: result.restoredPath });
     } catch (error) {
+      if (error instanceof lifecycle.ConflictError) {
+        return c.json({ error: error.message }, 409);
+      }
       console.error("Error restoring document:", error);
       return c.json({ error: "Failed to restore document" }, 500);
     }
@@ -1831,35 +1354,15 @@ documentsRouter.post(
       return c.json({ error: "No organization selected" }, 400);
     }
 
+    const ctx = { organizationId: user.currentOrgId, userId: user.userId };
+
     try {
-      // Delete from database first
-      const result = documentQueries.permanentlyDeleteWithFtsCleanup(
-        user.currentOrgId,
-        docPath,
-      );
-
-      if (result.changes === 0) {
-        return c.json({ error: "Document not found in database" }, 404);
-      }
-
-      // Try to delete physical file (ignore if it doesn't exist)
-      const orgPath = getOrgDocumentsPath(user.currentOrgId);
-      const filePath = path.join(orgPath, docPath);
-      try {
-        await fs.unlink(filePath);
-      } catch (err) {
-        // File doesn't exist or already deleted, which is fine
-        console.log(
-          "File not found on filesystem (already deleted):",
-          filePath,
-        );
-      }
-
-      // Delete all attachments linked to this document
-      await deleteDocumentAttachments(user.currentOrgId, docPath);
-
+      await lifecycle.permanentlyDelete(ctx, docPath);
       return c.json({ success: true });
     } catch (error) {
+      if (error instanceof lifecycle.NotFoundError) {
+        return c.json({ error: "Document not found in database" }, 404);
+      }
       console.error("Error permanently deleting document:", error);
       return c.json({ error: "Failed to delete document" }, 500);
     }

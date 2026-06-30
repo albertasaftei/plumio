@@ -170,6 +170,7 @@ authRouter.post("/login", async (c) => {
       isAdmin: isGlobalAdmin,
       currentOrgId: currentOrg.id,
       orgRole: membership?.role || "member",
+      jti: sessionId,
     })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("7d")
