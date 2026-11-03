@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { ContentfulStatusCode } from "hono/utils/http-status";
 import fs from "fs/promises";
+import os from "os";
 import path from "path";
 import { ENABLE_ENCRYPTION } from "../../config.js";
 import db, { documentQueries, memberQueries } from "../../db/index.js";
@@ -14,18 +15,22 @@ import * as z from "zod";
 import { DocumentMetadata } from "../../db/index.types.js";
 import {
   getOrgDocumentsPath,
-  sanitizePath,
+  resolveOrgPath,
   sanitizeFilename,
   getUniqueFilePath,
   getUniqueFolderPath,
   ensureOrgDirectoryExists,
+  writeFileNoFollow,
 } from "./helpers/paths.js";
 import { encrypt, decrypt } from "./helpers/encryption.js";
+import {
+  extractImportArchive,
+  InvalidImportArchiveError,
+  MAX_IMPORT_COMPRESSED_BYTES,
+} from "./helpers/import.js";
 import { escapeHtmlForFts } from "./helpers/fts.js";
 import {
-  collectAllMdFiles,
   collectMdFilesRecursively,
-  cleanupInvalidFiles,
   deleteDocumentAttachments,
 } from "./helpers/files.js";
 import {
@@ -97,8 +102,8 @@ async function readFolderItems(
   organizationId: number,
   recursive: boolean,
 ): Promise<Record<string, unknown>[]> {
-  const fullPath = sanitizePath(folderPath, organizationId);
-  const orgPath = getOrgDocumentsPath(organizationId);
+  const fullPath = await resolveOrgPath(folderPath, organizationId);
+  const orgPath = await resolveOrgPath("/", organizationId);
 
   await fs.access(fullPath);
   const entries = await fs.readdir(fullPath, { withFileTypes: true });
@@ -111,14 +116,19 @@ async function readFolderItems(
       .filter((item) => !item.name.includes(".deleted-"))
       .filter((item) => item.name !== "attachments")
       .filter(
-        (item) => item.isDirectory() || item.name.toLowerCase().endsWith(".md"),
+        (item) =>
+          item.isDirectory() ||
+          (item.isFile() && item.name.toLowerCase().endsWith(".md")),
       )
       .map(async (item) => {
         const itemPath = path.join(fullPath, item.name);
         const stats = await fs.stat(itemPath);
         const relativePath = path.relative(orgPath, itemPath);
         const docPath = "/" + relativePath.replace(/\\/g, "/");
-        const metadataPath = itemPath + ".meta.json";
+        const metadataPath = await resolveOrgPath(
+          `${docPath}.meta.json`,
+          organizationId,
+        );
 
         const dbDoc = documentQueries.findByOrgAndPathIncludingArchived.get(
           organizationId,
@@ -189,7 +199,7 @@ documentsRouter.get(
       return c.json({ error: "No organization context" }, 400);
     }
 
-    const fullPath = sanitizePath(filePath, organizationId);
+    const fullPath = await resolveOrgPath(filePath, organizationId);
 
     try {
       const fileContent = await fs.readFile(fullPath, "utf-8");
@@ -258,14 +268,14 @@ documentsRouter.post(
         organizationId,
         isNew,
       );
-      const fullPath = sanitizePath(uniquePath, organizationId);
+      const fullPath = await resolveOrgPath(uniquePath, organizationId);
 
       // Ensure directory exists
       await fs.mkdir(path.dirname(fullPath), { recursive: true });
 
       // Encrypt content if encryption is enabled
       const fileContent = encrypt(content);
-      await fs.writeFile(fullPath, fileContent, "utf-8");
+      await writeFileNoFollow(fullPath, fileContent, "utf-8");
 
       // Get file stats
       const stats = await fs.stat(fullPath);
@@ -351,7 +361,7 @@ documentsRouter.post(
       return c.json({ error: "Provide either 'path' or 'folder'+'name'" }, 400);
     }
 
-    const fullPath = sanitizePath(folderPath, organizationId);
+    const fullPath = await resolveOrgPath(folderPath, organizationId);
 
     try {
       await fs.mkdir(fullPath, { recursive: true });
@@ -390,7 +400,7 @@ documentsRouter.delete(
     const ctx = { organizationId, userId: user.userId };
 
     try {
-      const fullPath = sanitizePath(filePath, organizationId);
+      const fullPath = await resolveOrgPath(filePath, organizationId);
       const stats = await fs.stat(fullPath);
 
       if (stats.isDirectory()) {
@@ -430,7 +440,7 @@ documentsRouter.delete(
 
     for (const filePath of parsed.data.paths) {
       try {
-        const fullPath = sanitizePath(filePath, organizationId);
+        const fullPath = await resolveOrgPath(filePath, organizationId);
         const stats = await fs.stat(fullPath);
 
         if (stats.isDirectory()) {
@@ -590,10 +600,10 @@ documentsRouter.post(
       );
     }
 
-    const fullSourcePath = sanitizePath(sourcePath, organizationId);
+    const fullSourcePath = await resolveOrgPath(sourcePath, organizationId);
     const itemName = path.basename(sourcePath);
     const newPath = `/${itemName}`;
-    const fullNewPath = sanitizePath(newPath, targetOrgId);
+    const fullNewPath = await resolveOrgPath(newPath, targetOrgId);
 
     try {
       // Check source exists
@@ -681,8 +691,11 @@ documentsRouter.post(
     }
 
     const { path: itemPath, favorite } = parsed.data;
-    const fullPath = sanitizePath(itemPath, organizationId);
-    const metadataPath = fullPath + ".meta.json";
+    const fullPath = await resolveOrgPath(itemPath, organizationId);
+    const metadataPath = await resolveOrgPath(
+      `${itemPath}.meta.json`,
+      organizationId,
+    );
 
     try {
       // Verify the file/folder exists
@@ -705,7 +718,7 @@ documentsRouter.post(
       }
 
       // Save metadata
-      await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+      await writeFileNoFollow(metadataPath, JSON.stringify(metadata, null, 2));
 
       return c.json({ message: "Favorite updated successfully" });
     } catch (error) {
@@ -733,8 +746,11 @@ documentsRouter.post(
     }
 
     const { path: itemPath, color } = parsed.data;
-    const fullPath = sanitizePath(itemPath, organizationId);
-    const metadataPath = fullPath + ".meta.json";
+    const fullPath = await resolveOrgPath(itemPath, organizationId);
+    const metadataPath = await resolveOrgPath(
+      `${itemPath}.meta.json`,
+      organizationId,
+    );
 
     try {
       // Verify the file/folder exists
@@ -757,7 +773,7 @@ documentsRouter.post(
       }
 
       // Save metadata
-      await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+      await writeFileNoFollow(metadataPath, JSON.stringify(metadata, null, 2));
 
       // Check if document exists in database, if not create it
       const existingDoc = documentQueries.findByOrgAndPath.get(
@@ -888,11 +904,12 @@ documentsRouter.post(
         await fs.mkdir(destDir, { recursive: true });
         const items = await fs.readdir(srcDir, { withFileTypes: true });
         for (const item of items) {
+          if (item.isSymbolicLink()) continue;
           const srcPath = path.join(srcDir, item.name);
           const destPath = path.join(destDir, item.name);
           if (item.isDirectory()) {
             await copyDecrypted(srcPath, destPath);
-          } else if (item.name.endsWith(".md")) {
+          } else if (item.isFile() && item.name.endsWith(".md")) {
             const raw = await fs.readFile(srcPath, "utf-8");
             let content = raw;
             if (ENABLE_ENCRYPTION) {
@@ -903,7 +920,7 @@ documentsRouter.post(
               }
             }
             await fs.writeFile(destPath, content, "utf-8");
-          } else {
+          } else if (item.isFile()) {
             await fs.copyFile(srcPath, destPath);
           }
         }
@@ -946,6 +963,7 @@ documentsRouter.post(
   "/import",
   requirePermission("documents:create"),
   async (c) => {
+    let stagingDirectory: string | undefined;
     try {
       const user = c.get("user");
       const organizationId = user.currentOrgId;
@@ -961,41 +979,56 @@ documentsRouter.post(
         return c.json({ error: z.treeifyError(parsed.error) }, 400);
       }
 
-      const orgDocumentsPath = getOrgDocumentsPath(organizationId);
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const tempFile = path.join("/tmp", `plumio-import-${timestamp}.tar.gz`);
-
-      // Save uploaded file
       const file = parsed.data.file;
-      const buffer = await file.arrayBuffer();
+      if (file.size > MAX_IMPORT_COMPRESSED_BYTES) {
+        return c.json({ error: "Archive exceeds the compressed size limit" }, 413);
+      }
+
+      const archive = Buffer.from(await file.arrayBuffer());
       console.log(
-        `[import] org=${organizationId} file="${file.name}" size=${buffer.byteLength}B`,
+        `[import] org=${organizationId} file="${file.name}" size=${archive.byteLength}B`,
       );
-      await fs.writeFile(tempFile, Buffer.from(buffer));
+      stagingDirectory = await fs.mkdtemp(
+        path.join(os.tmpdir(), "plumio-import-"),
+      );
+      const stagedFiles = await extractImportArchive(archive, stagingDirectory);
+      const orgDocumentsPath = getOrgDocumentsPath(organizationId);
+      await ensureOrgDirectoryExists(organizationId);
 
-      // Extract to organization documents directory
-      const { exec } = await import("child_process");
-      const { promisify } = await import("util");
-      const execAsync = promisify(exec);
+      const importedMarkdown: string[] = [];
+      for (const stagedFile of stagedFiles) {
+        let contents = await fs.readFile(stagedFile.stagedPath);
+        if (
+          ENABLE_ENCRYPTION &&
+          stagedFile.relativePath.toLowerCase().endsWith(".md")
+        ) {
+          const text = contents.toString("utf-8");
+          try {
+            decrypt(text);
+          } catch {
+            contents = Buffer.from(encrypt(text), "utf-8");
+          }
+        }
 
-      // Extract archive directly to organization documents path.
-      // This works for both plumio exports and third-party app exports (like Obsidian).
-      await execAsync(`tar -xzf "${tempFile}" -C "${orgDocumentsPath}"`);
+        const destination = await resolveOrgPath(
+          `/${stagedFile.relativePath}`,
+          organizationId,
+        );
+        await fs.mkdir(path.dirname(destination), { recursive: true });
+        await writeFileNoFollow(destination, contents);
 
-      // Clean up temp file
-      await fs.unlink(tempFile);
-
-      // Additional cleanup: Remove any hidden files and files with invalid extensions
-      await cleanupInvalidFiles(orgDocumentsPath);
+        if (stagedFile.relativePath.toLowerCase().endsWith(".md")) {
+          importedMarkdown.push(stagedFile.relativePath);
+        }
+      }
 
       // Sync imported deleted/archived files to SQLite so they appear in
       // the Trash and Archive sections.  The /deleted and /archived
       // endpoints query SQLite, not the filesystem.
-      const allMdFiles = await collectAllMdFiles(orgDocumentsPath);
-      const orgPath = getOrgDocumentsPath(organizationId);
-      for (const absPath of allMdFiles) {
-        const relPath = path.relative(orgPath, absPath).replace(/\\/g, "/");
-        const fileName = path.basename(absPath);
+      for (const relativePath of importedMarkdown) {
+        const absPath = await resolveOrgPath(`/${relativePath}`, organizationId);
+        const relPath = relativePath;
+        const fileName = path.basename(relativePath);
         const baseName = fileName.replace(/\.md$/, "");
 
         if (fileName.includes(".deleted-")) {
@@ -1047,28 +1080,9 @@ documentsRouter.post(
         }
       }
 
-      // Re-encrypt any plaintext .md files written by a plain-text export/import.
-      // export-plain decrypts files before archiving; importing that archive
-      // directly would leave plaintext on disk in an encrypted installation.
       if (ENABLE_ENCRYPTION) {
-        const mdFiles = await collectMdFilesRecursively(orgDocumentsPath);
-        await Promise.all(
-          mdFiles.map(async (filePath) => {
-            try {
-              const raw = await fs.readFile(filePath, "utf-8");
-              try {
-                decrypt(raw); // succeeds → already encrypted, leave as-is
-              } catch {
-                // decrypt threw → file is plaintext → encrypt and overwrite
-                await fs.writeFile(filePath, encrypt(raw), "utf-8");
-              }
-            } catch {
-              // skip unreadable files
-            }
-          }),
-        );
         console.log(
-          `[import] re-encryption pass complete for ${mdFiles.length} file(s)`,
+          `[import] re-encryption pass complete for ${importedMarkdown.length} file(s)`,
         );
       }
 
@@ -1083,7 +1097,14 @@ documentsRouter.post(
       });
     } catch (error) {
       console.error("Error importing documents:", error);
+      if (error instanceof InvalidImportArchiveError) {
+        return c.json({ error: error.message }, 400);
+      }
       return c.json({ error: "Failed to import documents" }, 500);
+    } finally {
+      if (stagingDirectory) {
+        await fs.rm(stagingDirectory, { recursive: true, force: true });
+      }
     }
   },
 );
@@ -1391,7 +1412,7 @@ documentsRouter.post(
     }
 
     const { path: itemPath } = parsed.data;
-    const fullSourcePath = sanitizePath(itemPath, organizationId);
+    const fullSourcePath = await resolveOrgPath(itemPath, organizationId);
     const orgPath = getOrgDocumentsPath(organizationId);
 
     try {
@@ -1400,7 +1421,7 @@ documentsRouter.post(
       if (stats.isDirectory()) {
         // Folder duplication: find unique dest path, copy tree, index all .md files
         const uniquePath = await getUniqueFolderPath(itemPath, organizationId);
-        const fullDestPath = sanitizePath(uniquePath, organizationId);
+        const fullDestPath = await resolveOrgPath(uniquePath, organizationId);
 
         await fs.cp(fullSourcePath, fullDestPath, { recursive: true });
 
@@ -1468,7 +1489,7 @@ documentsRouter.post(
           organizationId,
           true,
         );
-        const fullDestPath = sanitizePath(uniquePath, organizationId);
+        const fullDestPath = await resolveOrgPath(uniquePath, organizationId);
 
         await fs.copyFile(fullSourcePath, fullDestPath);
 
@@ -1578,7 +1599,7 @@ documentsRouter.post(
           );
         }
 
-        const fullSourcePath = sanitizePath(sourcePath, organizationId);
+        const fullSourcePath = await resolveOrgPath(sourcePath, organizationId);
         const itemName = path.basename(sourcePath);
         const newPath =
           targetPath === "/" ? `/${itemName}` : `${targetPath}/${itemName}`;
@@ -1590,7 +1611,7 @@ documentsRouter.post(
           });
         }
 
-        const fullNewPath = sanitizePath(newPath, organizationId);
+        const fullNewPath = await resolveOrgPath(newPath, organizationId);
 
         await fs.access(fullSourcePath);
 
@@ -1648,12 +1669,12 @@ documentsRouter.post(
 
       // If source and target are in different folders, move the file first
       if (sourceParent !== targetParent) {
-        const fullSourcePath = sanitizePath(sourcePath, organizationId);
+        const fullSourcePath = await resolveOrgPath(sourcePath, organizationId);
         const itemName = path.basename(sourcePath);
         const newPath =
           targetParent === "/" ? `/${itemName}` : `${targetParent}/${itemName}`;
 
-        const fullNewPath = sanitizePath(newPath, organizationId);
+        const fullNewPath = await resolveOrgPath(newPath, organizationId);
 
         await fs.access(fullSourcePath);
 
@@ -1726,8 +1747,8 @@ async function ensureFolderChildrenInDb(
   organizationId: number,
   userId: number,
 ) {
-  const fullPath = sanitizePath(folderPath, organizationId);
-  const orgPath = getOrgDocumentsPath(organizationId);
+  const fullPath = await resolveOrgPath(folderPath, organizationId);
+  const orgPath = await resolveOrgPath("/", organizationId);
 
   try {
     const items = await fs.readdir(fullPath, { withFileTypes: true });
@@ -1737,7 +1758,12 @@ async function ensureFolderChildrenInDb(
       if (item.name.includes(".archived-")) continue;
       if (item.name.includes(".deleted-")) continue;
       if (item.name === "attachments") continue;
-      if (!item.isDirectory() && !item.name.endsWith(".md")) continue;
+      if (
+        !item.isDirectory() &&
+        !(item.isFile() && item.name.endsWith(".md"))
+      ) {
+        continue;
+      }
 
       const itemFullPath = path.join(fullPath, item.name);
       const relativePath = path.relative(orgPath, itemFullPath);
