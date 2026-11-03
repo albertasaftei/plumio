@@ -52,6 +52,16 @@ describe("Webhooks API", () => {
       expect(res.status).toBe(400);
     });
 
+    it("rejects unsupported schemes and private IP addresses", async () => {
+      for (const url of ["ftp://example.com/hook", "http://127.0.0.1/hook"]) {
+        const res = await request("POST", "/api/webhooks", {
+          token,
+          body: { ...validWebhook, url },
+        });
+        expect(res.status).toBe(400);
+      }
+    });
+
     it("rejects secret shorter than 8 characters", async () => {
       const res = await request("POST", "/api/webhooks", {
         token,
@@ -145,6 +155,14 @@ describe("Webhooks API", () => {
       const res = await request("PUT", `/api/webhooks/${webhookId}`, {
         token,
         body: { url: "not-a-url" },
+      });
+      expect(res.status).toBe(400);
+    });
+
+    it("rejects private IP addresses on update", async () => {
+      const res = await request("PUT", `/api/webhooks/${webhookId}`, {
+        token,
+        body: { url: "http://[::1]/hook" },
       });
       expect(res.status).toBe(400);
     });

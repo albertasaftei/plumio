@@ -1,5 +1,11 @@
 import * as z from "zod";
 import { WebhookEvent } from "../../../utils/webhooks.js";
+import { isAllowedWebhookUrl } from "../../../utils/webhook-request.js";
+
+const webhookUrlSchema = z
+  .string()
+  .url()
+  .refine(isAllowedWebhookUrl, "URL must use HTTP(S) and a public destination");
 
 export const VALID_EVENTS: WebhookEvent[] = [
   "document.created",
@@ -20,7 +26,7 @@ export const VALID_EVENTS: WebhookEvent[] = [
 
 export const createWebhookSchema = z.object({
   name: z.string().min(1).max(100),
-  url: z.string().url(),
+  url: webhookUrlSchema,
   secret: z.string().min(8).max(256),
   events: z
     .array(z.enum(VALID_EVENTS as [WebhookEvent, ...WebhookEvent[]]))
@@ -29,7 +35,7 @@ export const createWebhookSchema = z.object({
 
 export const updateWebhookSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  url: z.string().url().optional(),
+  url: webhookUrlSchema.optional(),
   secret: z.string().min(8).max(256).optional(),
   events: z
     .array(z.enum(VALID_EVENTS as [WebhookEvent, ...WebhookEvent[]]))
