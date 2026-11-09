@@ -4,13 +4,33 @@ import { ALLOWED_ATTACHMENT_MIME_PREFIXES } from "../../../config.js";
 
 export const DOCUMENTS_PATH = process.env.DOCUMENTS_PATH || "./documents";
 
+const INLINE_ATTACHMENT_MIME_TYPES = new Set([
+  "image/avif",
+  "image/gif",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+]);
+
+export function normalizeMimeType(mimeType: string): string {
+  return mimeType.split(";", 1)[0].trim().toLowerCase();
+}
+
+export function isInlineAttachmentMime(mimeType: string): boolean {
+  return INLINE_ATTACHMENT_MIME_TYPES.has(normalizeMimeType(mimeType));
+}
+
 export function getAttachmentsDir(organizationId: number): string {
   return path.join(DOCUMENTS_PATH, `org-${organizationId}`, "attachments");
 }
 
 export function isAllowedMime(mimeType: string): boolean {
+  const normalizedMimeType = normalizeMimeType(mimeType);
+  if (normalizedMimeType === "image/svg+xml") return false;
+
   return ALLOWED_ATTACHMENT_MIME_PREFIXES.some((prefix) =>
-    mimeType.startsWith(prefix),
+    normalizedMimeType.startsWith(prefix.toLowerCase()),
   );
 }
 

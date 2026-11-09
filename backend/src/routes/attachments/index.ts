@@ -12,6 +12,8 @@ import { MAX_ATTACHMENT_SIZE_MB } from "../../config.js";
 import {
   getAttachmentsDir,
   isAllowedMime,
+  isInlineAttachmentMime,
+  normalizeMimeType,
   getUniqueFilename,
   resolveAttachmentPath,
 } from "./helpers/storage.js";
@@ -129,7 +131,9 @@ attachmentsRouter.post(
     }
 
     // MIME check
-    const mimeType = file.type || "application/octet-stream";
+    const mimeType = normalizeMimeType(
+      file.type || "application/octet-stream",
+    );
     if (!isAllowedMime(mimeType)) {
       return c.json({ error: `File type '${mimeType}' is not allowed` }, 400);
     }
@@ -224,14 +228,20 @@ attachmentsRouter.get(
         organizationId,
         filename,
       );
-      const mimeType = row?.mime_type || "application/octet-stream";
+      const mimeType = normalizeMimeType(
+        row?.mime_type || "application/octet-stream",
+      );
+      const disposition = isInlineAttachmentMime(mimeType)
+        ? "inline"
+        : "attachment";
 
       const content = await fs.readFile(absPath);
 
       return new Response(content, {
         headers: {
           "Content-Type": mimeType,
-          "Content-Disposition": `inline; filename="${filename}"`,
+          "Content-Disposition": `${disposition}; filename="${filename}"`,
+          "X-Content-Type-Options": "nosniff",
           "Cache-Control": "private, max-age=3600",
         },
       });

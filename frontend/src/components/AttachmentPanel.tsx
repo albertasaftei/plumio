@@ -25,12 +25,24 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+const INLINE_IMAGE_MIME_TYPES = new Set([
+  "image/avif",
+  "image/gif",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
+function normalizedMimeType(mimeType: string): string {
+  return mimeType.split(";", 1)[0].trim().toLowerCase();
+}
+
 function isImage(mimeType: string): boolean {
-  return mimeType.startsWith("image/");
+  return INLINE_IMAGE_MIME_TYPES.has(normalizedMimeType(mimeType));
 }
 
 function isPdf(mimeType: string): boolean {
-  return mimeType === "application/pdf";
+  return normalizedMimeType(mimeType) === "application/pdf";
 }
 
 // Files that can be embedded inline in the editor
