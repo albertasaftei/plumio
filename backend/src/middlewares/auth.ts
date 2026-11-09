@@ -13,6 +13,11 @@ import type { Context, MiddlewareHandler, Next } from "hono";
 
 const jwtSecretKey = new TextEncoder().encode(JWT_SECRET);
 
+export function isUserActive(userId: number): boolean {
+  const user = userQueries.findById.get(userId);
+  return !!user && user.is_banned !== 1;
+}
+
 // Verify token helper
 export async function verifyToken(
   token: string,
@@ -36,8 +41,7 @@ export async function verifyToken(
     );
 
     // Reject banned users
-    const dbUser = userQueries.findById.get(payload.userId);
-    if (!dbUser || dbUser.is_banned === 1) {
+    if (!isUserActive(payload.userId)) {
       sessionQueries.deleteByToken.run(token);
       return null;
     }
@@ -98,6 +102,10 @@ export const combinedAuthMiddleware: MiddlewareHandler = async (c, next) => {
       return c.json({ error: "Invalid API key" }, 401);
     }
 
+    if (!isUserActive(apiKey.user_id)) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
     // Check expiry
     if (apiKey.expires_at && new Date(apiKey.expires_at) < new Date()) {
       return c.json({ error: "API key has expired" }, 401);
@@ -117,7 +125,10 @@ export const combinedAuthMiddleware: MiddlewareHandler = async (c, next) => {
     }
 
     // Validate membership
-    const membership = memberQueries.findMembership.get(orgId, apiKey.user_id);
+    const membership = memberQueries.findActiveMembership.get(
+      orgId,
+      apiKey.user_id,
+    );
     if (!membership) {
       return c.json(
         {
