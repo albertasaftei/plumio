@@ -1,18 +1,123 @@
 import path from "path";
+import { constants as fsConstants } from "fs";
 import fs from "fs/promises";
 
 export const DOCUMENTS_PATH = process.env.DOCUMENTS_PATH || "./documents";
 
 // Get organization-specific documents path
 export function getOrgDocumentsPath(organizationId: number): string {
-  return path.join(DOCUMENTS_PATH, `org-${organizationId}`);
+  return path.resolve(DOCUMENTS_PATH, `org-${organizationId}`);
 }
 
-// Sanitize path to prevent directory traversal
-export function sanitizePath(userPath: string, organizationId: number): string {
-  const normalized = path.normalize(userPath).replace(/^(\.\.[\/\\])+/, "");
-  const orgPath = getOrgDocumentsPath(organizationId);
-  return path.join(orgPath, normalized);
+export async function writeFileNoFollow(
+  filePath: string,
+  contents: string | Buffer,
+  encoding?: BufferEncoding,
+): Promise<void> {
+  try {
+    const stats = await fs.lstat(filePath);
+    if (stats.isSymbolicLink()) {
+      throw new Error("Symbolic link destinations are not allowed");
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+
+  const handle = await fs.open(
+    filePath,
+    fsConstants.O_WRONLY |
+      fsConstants.O_CREAT |
+      fsConstants.O_TRUNC |
+      (fsConstants.O_NOFOLLOW ?? 0),
+    0o600,
+  );
+  try {
+    if (typeof contents === "string" && encoding) {
+      await handle.writeFile(contents, encoding);
+    } else {
+      await handle.writeFile(contents);
+    }
+  } finally {
+    await handle.close();
+  }
+}
+
+function getSafePathSegments(userPath: string): string[] {
+  if (!userPath || userPath.includes("\0")) {
+    if (userPath === "") return [];
+    throw new Error("Invalid document path");
+  }
+
+  const normalized = userPath.replace(/\\/g, "/");
+  if (/^[a-zA-Z]:/.test(normalized)) {
+    throw new Error("Invalid document path");
+  }
+
+  const segments = normalized.split("/").filter(Boolean);
+  if (segments.some((segment) => segment === "." || segment === "..")) {
+    throw new Error("Path escapes organization directory");
+  }
+  return segments;
+}
+
+export async function resolveOrgPath(
+  userPath: string,
+  organizationId: number,
+): Promise<string> {
+  const orgPath = path.resolve(getOrgDocumentsPath(organizationId));
+  await fs.mkdir(path.dirname(orgPath), { recursive: true });
+  try {
+    await fs.mkdir(orgPath);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+  }
+
+  const rootStat = await fs.lstat(orgPath);
+  if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) {
+    throw new Error("Organization document root is not a real directory");
+  }
+  const canonicalRoot = await fs.realpath(orgPath);
+  const segments = getSafePathSegments(userPath);
+  const resolved = path.resolve(canonicalRoot, ...segments);
+  const relative = path.relative(canonicalRoot, resolved);
+  if (
+    relative === ".." ||
+    relative.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relative)
+  ) {
+    throw new Error("Path escapes organization directory");
+  }
+
+  let currentPath = canonicalRoot;
+  for (let index = 0; index < segments.length; index++) {
+    currentPath = path.join(currentPath, segments[index]);
+    let stats;
+    try {
+      stats = await fs.lstat(currentPath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") break;
+      throw error;
+    }
+
+    if (stats.isSymbolicLink()) {
+      throw new Error("Symbolic links are not allowed in document paths");
+    }
+    if (index < segments.length - 1 && !stats.isDirectory()) {
+      throw new Error("A document path ancestor is not a directory");
+    }
+
+    const canonicalPath = await fs.realpath(currentPath);
+    const canonicalRelative = path.relative(canonicalRoot, canonicalPath);
+    if (
+      canonicalRelative === ".." ||
+      canonicalRelative.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(canonicalRelative)
+    ) {
+      throw new Error("Path escapes organization directory");
+    }
+  }
+
+  return resolved;
 }
 
 // Sanitize a filename segment so it is safe on every OS.
@@ -42,8 +147,7 @@ export async function getUniqueFilePath(
     return basePath;
   }
 
-  const orgPath = getOrgDocumentsPath(organizationId);
-  const fullPath = path.join(orgPath, basePath);
+  const fullPath = await resolveOrgPath(basePath, organizationId);
 
   // Check if file exists
   try {
@@ -64,8 +168,9 @@ export async function getUniqueFilePath(
   let counter = 1;
   while (true) {
     const newName = `${nameWithoutExt} (${counter})${ext}`;
-    const newPath = dir === "/" ? `/${newName}` : `${dir}/${newName}`;
-    const newFullPath = path.join(orgPath, newPath);
+    const newPath =
+      dir === "." || dir === "/" ? `/${newName}` : `${dir}/${newName}`;
+    const newFullPath = await resolveOrgPath(newPath, organizationId);
 
     try {
       await fs.access(newFullPath);
@@ -83,8 +188,7 @@ export async function getUniqueFolderPath(
   basePath: string,
   organizationId: number,
 ): Promise<string> {
-  const orgPath = getOrgDocumentsPath(organizationId);
-  const fullPath = path.join(orgPath, basePath);
+  const fullPath = await resolveOrgPath(basePath, organizationId);
 
   try {
     await fs.access(fullPath);
@@ -101,7 +205,7 @@ export async function getUniqueFolderPath(
     const newName = `${folderName} (${counter})`;
     const newPath =
       dir === "." || dir === "/" ? `/${newName}` : `${dir}/${newName}`;
-    const newFullPath = path.join(orgPath, newPath);
+    const newFullPath = await resolveOrgPath(newPath, organizationId);
 
     try {
       await fs.access(newFullPath);

@@ -7,6 +7,7 @@ import {
   memberQueries,
 } from "../../db/index.js";
 import { deliverWebhook } from "../../utils/webhooks.js";
+import { sendWebhookRequest } from "../../utils/webhook-request.js";
 import * as z from "zod";
 import {
   createWebhookSchema,
@@ -239,27 +240,19 @@ async function _deliverPingToWebhook(
   let responseBody: string | null = null;
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10_000);
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Plumio-Event": "ping",
-          "X-Plumio-Signature": signature,
-          "User-Agent": "Plumio-Webhooks/1.0",
-        },
-        body: payload,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-      responseStatus = res.status;
-      responseBody = (await res.text()).slice(0, 1000);
-      status = res.ok ? "success" : "failed";
-    } catch (err) {
-      responseBody = err instanceof Error ? err.message : String(err);
-    }
+    const response = await sendWebhookRequest(
+      url,
+      {
+        "Content-Type": "application/json",
+        "X-Plumio-Event": "ping",
+        "X-Plumio-Signature": signature,
+        "User-Agent": "Plumio-Webhooks/1.0",
+      },
+      payload,
+    );
+    responseStatus = response.status;
+    responseBody = response.body;
+    status = response.ok ? "success" : "failed";
   } catch (err) {
     responseBody = err instanceof Error ? err.message : String(err);
   }

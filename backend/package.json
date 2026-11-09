@@ -20,8 +20,10 @@
     "better-sqlite3": "^11.8.1",
     "dotenv": "^16.4.7",
     "hono": "^4.13.1",
+    "ipaddr.js": "^2.5.0",
     "jose": "^5.10.0",
     "nodemailer": "^9.0.3",
+    "tar-stream": "^3.2.2",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -29,6 +31,7 @@
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.5",
     "@types/nodemailer": "^8.0.0",
+    "@types/tar-stream": "^3.1.5",
     "tsx": "^4.22.4",
     "typescript": "^5.7.3",
     "vitest": "^4.1.10"

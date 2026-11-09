@@ -16,7 +16,8 @@ import db, { documentQueries } from "../db/index.js";
 import { deliverWebhook } from "../utils/webhooks.js";
 import {
   getOrgDocumentsPath,
-  sanitizePath,
+  resolveOrgPath,
+  writeFileNoFollow,
 } from "../routes/documents/helpers/paths.js";
 import { collectMdFilesRecursively } from "../routes/documents/helpers/files.js";
 
@@ -58,7 +59,7 @@ export async function softDeleteFile(
   filePath: string,
 ): Promise<SoftDeleteResult> {
   const { organizationId, userId } = ctx;
-  const fullPath = sanitizePath(filePath, organizationId);
+  const fullPath = await resolveOrgPath(filePath, organizationId);
 
   const timestamp = Date.now();
   const pathParts = filePath.split("/");
@@ -67,7 +68,7 @@ export async function softDeleteFile(
   const deletedFileName = `${fileNameWithoutExt}.deleted-${timestamp}.md`;
   const deletedPath = [...pathParts, deletedFileName].join("/");
 
-  const newFullPath = sanitizePath(deletedPath, organizationId);
+  const newFullPath = await resolveOrgPath(deletedPath, organizationId);
 
   // Rename on disk
   try {
@@ -122,8 +123,8 @@ export async function softDeleteFolder(
   folderPath: string,
 ): Promise<void> {
   const { organizationId, userId } = ctx;
-  const fullPath = sanitizePath(folderPath, organizationId);
-  const orgPath = getOrgDocumentsPath(organizationId);
+  const fullPath = await resolveOrgPath(folderPath, organizationId);
+  const orgPath = await resolveOrgPath("/", organizationId);
   const timestamp = Date.now();
 
   const mdFiles = await collectMdFilesRecursively(fullPath);
@@ -135,7 +136,7 @@ export async function softDeleteFolder(
     const baseName = fileName.replace(/\.md$/, "");
     const deletedFileName = `${baseName}.deleted-${timestamp}.md`;
     const deletedRelPath = [...parts, deletedFileName].join("/");
-    const absDeletedPath = path.join(orgPath, deletedRelPath);
+    const absDeletedPath = await resolveOrgPath(deletedRelPath, organizationId);
 
     try {
       await fs.rename(absFilePath, absDeletedPath);
@@ -186,8 +187,8 @@ export async function rename(
   newPath: string,
 ): Promise<RenameResult> {
   const { organizationId } = ctx;
-  const fullOldPath = sanitizePath(oldPath, organizationId);
-  const fullNewPath = sanitizePath(newPath, organizationId);
+  const fullOldPath = await resolveOrgPath(oldPath, organizationId);
+  const fullNewPath = await resolveOrgPath(newPath, organizationId);
 
   // Ensure destination directory exists
   await fs.mkdir(path.dirname(fullNewPath), { recursive: true });
@@ -249,7 +250,7 @@ export async function move(
     );
   }
 
-  const fullSourcePath = sanitizePath(sourcePath, organizationId);
+  const fullSourcePath = await resolveOrgPath(sourcePath, organizationId);
   const itemName = path.basename(sourcePath);
   const newPath =
     destinationFolder === "/"
@@ -261,7 +262,7 @@ export async function move(
     return { newPath };
   }
 
-  const fullNewPath = sanitizePath(newPath, organizationId);
+  const fullNewPath = await resolveOrgPath(newPath, organizationId);
 
   // Check source exists
   await fs.access(fullSourcePath);
@@ -324,7 +325,7 @@ export async function archive(
     docPath,
   );
   if (!existing) {
-    const fullPath = sanitizePath(docPath, organizationId);
+    const fullPath = await resolveOrgPath(docPath, organizationId);
     const stats = await fs.stat(fullPath);
     const fileName = path.basename(docPath, ".md");
     documentQueries.upsert.run(
@@ -346,9 +347,8 @@ export async function archive(
   const archivedPath = [...pathParts, archivedFileName].join("/");
 
   // Rename on disk
-  const orgPath = getOrgDocumentsPath(organizationId);
-  const oldFilePath = path.join(orgPath, docPath);
-  const newFilePath = path.join(orgPath, archivedPath);
+  const oldFilePath = await resolveOrgPath(docPath, organizationId);
+  const newFilePath = await resolveOrgPath(archivedPath, organizationId);
 
   try {
     await fs.rename(oldFilePath, newFilePath);
@@ -395,9 +395,8 @@ export async function unarchive(
   }
 
   // Rename on disk
-  const orgPath = getOrgDocumentsPath(organizationId);
-  const archivedFilePath = path.join(orgPath, docPath);
-  const restoredFilePath = path.join(orgPath, restoredPath);
+  const archivedFilePath = await resolveOrgPath(docPath, organizationId);
+  const restoredFilePath = await resolveOrgPath(restoredPath, organizationId);
 
   try {
     await fs.rename(archivedFilePath, restoredFilePath);
@@ -445,9 +444,8 @@ export async function restoreDeleted(
   }
 
   // Rename on disk
-  const orgPath = getOrgDocumentsPath(organizationId);
-  const deletedFilePath = path.join(orgPath, docPath);
-  const restoredFilePath = path.join(orgPath, restoredPath);
+  const deletedFilePath = await resolveOrgPath(docPath, organizationId);
+  const restoredFilePath = await resolveOrgPath(restoredPath, organizationId);
 
   // Ensure parent directory exists (may have been deleted with the folder)
   await fs.mkdir(path.dirname(restoredFilePath), { recursive: true });
@@ -458,15 +456,21 @@ export async function restoreDeleted(
     console.error("Error renaming file for restore:", err);
     // File is gone — restore as empty document
     try {
-      await fs.writeFile(restoredFilePath, "", "utf-8");
+      await writeFileNoFollow(restoredFilePath, "", "utf-8");
     } catch (writeErr) {
       console.error("Error creating empty restored file:", writeErr);
     }
   }
 
   // Restore metadata sidecar
-  const deletedMetaPath = path.join(orgPath, `${docPath}.meta.json`);
-  const restoredMetaPath = path.join(orgPath, `${restoredPath}.meta.json`);
+  const deletedMetaPath = await resolveOrgPath(
+    `${docPath}.meta.json`,
+    organizationId,
+  );
+  const restoredMetaPath = await resolveOrgPath(
+    `${restoredPath}.meta.json`,
+    organizationId,
+  );
   try {
     await fs.rename(deletedMetaPath, restoredMetaPath);
   } catch {
@@ -496,6 +500,7 @@ export async function permanentlyDelete(
 ): Promise<void> {
   const { organizationId } = ctx;
 
+  const filePath = await resolveOrgPath(docPath, organizationId);
   const result = documentQueries.permanentlyDeleteWithFtsCleanup(
     organizationId,
     docPath,
@@ -506,8 +511,6 @@ export async function permanentlyDelete(
   }
 
   // Delete physical file
-  const orgPath = getOrgDocumentsPath(organizationId);
-  const filePath = path.join(orgPath, docPath);
   try {
     await fs.unlink(filePath);
   } catch {

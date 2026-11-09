@@ -1,5 +1,6 @@
 import { createHmac } from "crypto";
 import { db, webhookQueries, webhookDeliveryQueries } from "../db/index.js";
+import { sendWebhookRequest } from "./webhook-request.js";
 
 export type WebhookEvent =
   | "document.created"
@@ -102,31 +103,19 @@ async function _sendToWebhook(
   try {
     const signature = signPayload(secret, body);
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10_000);
-
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Plumio-Event": event,
-          "X-Plumio-Signature": signature,
-          "User-Agent": "Plumio-Webhooks/1.0",
-        },
-        body,
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-      responseStatus = res.status;
-      responseBody = (await res.text()).slice(0, 1000); // cap stored response
-      status = res.ok ? "success" : "failed";
-    } catch (fetchErr) {
-      clearTimeout(timeoutId);
-      responseBody =
-        fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
-    }
+    const response = await sendWebhookRequest(
+      url,
+      {
+        "Content-Type": "application/json",
+        "X-Plumio-Event": event,
+        "X-Plumio-Signature": signature,
+        "User-Agent": "Plumio-Webhooks/1.0",
+      },
+      body,
+    );
+    responseStatus = response.status;
+    responseBody = response.body;
+    status = response.ok ? "success" : "failed";
   } catch (err) {
     responseBody = err instanceof Error ? err.message : String(err);
   }
