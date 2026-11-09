@@ -5,9 +5,13 @@ allowBuilds:
 overrides:
   rollup: ^4.59.0
   h3: ^1.15.6
+  devframe>h3: ^2.0.8
   node-forge: ^1.4.0
   tar: ^7.5.19
   minimatch: ^5.1.7
+  glob>minimatch: ^9.0.5
+  readdir-glob>minimatch: ^10.2.2
+  minimatch@10>brace-expansion: ^5.0.8
   glob: ^10.5.0
   mdast-util-to-hast: ^13.2.1
   lodash: ^4.17.23
