@@ -589,7 +589,7 @@ documentsRouter.post(
     }
 
     // Verify user is a member of the target organization
-    const membership = memberQueries.findMembership.get(
+    const membership = memberQueries.findActiveMembership.get(
       targetOrgId,
       user.userId,
     );

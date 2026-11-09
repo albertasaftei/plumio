@@ -1,7 +1,11 @@
 import { Hono } from "hono";
 import fs from "fs/promises";
 import path from "path";
-import { verifyToken, requirePermission } from "../../middlewares/auth.js";
+import {
+  isUserActive,
+  verifyToken,
+  requirePermission,
+} from "../../middlewares/auth.js";
 import {
   attachmentQueries,
   memberQueries,
@@ -45,6 +49,10 @@ attachmentsRouter.use("*", async (c, next) => {
       return c.json({ error: "Invalid API key" }, 401);
     }
 
+    if (!isUserActive(apiKey.user_id)) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
     if (apiKey.expires_at && new Date(apiKey.expires_at) < new Date()) {
       return c.json({ error: "API key has expired" }, 401);
     }
@@ -61,7 +69,10 @@ attachmentsRouter.use("*", async (c, next) => {
       return c.json({ error: "Invalid X-Org-Id header" }, 400);
     }
 
-    const membership = memberQueries.findMembership.get(orgId, apiKey.user_id);
+    const membership = memberQueries.findActiveMembership.get(
+      orgId,
+      apiKey.user_id,
+    );
     if (!membership) {
       return c.json(
         {
@@ -213,7 +224,7 @@ attachmentsRouter.get(
     const organizationId = parseInt(pathOrgMatch[1], 10);
 
     // Verify the authenticated user is a member of this org
-    const membership = memberQueries.findMembership.get(
+    const membership = memberQueries.findActiveMembership.get(
       organizationId,
       user.userId,
     );

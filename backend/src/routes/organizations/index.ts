@@ -420,10 +420,13 @@ organizationsRouter.get("/:id/role", async (c) => {
 
     const { id: orgId } = parsedOrgId.data;
 
-    const membership = memberQueries.findMembership.get(orgId, user.userId);
+    const membership = memberQueries.findActiveMembership.get(
+      orgId,
+      user.userId,
+    );
 
     if (!membership) {
-      return c.json({ error: "Not a member of this organization" }, 404);
+      return c.json({ error: "Not an active member of this organization" }, 404);
     }
 
     return c.json({ role: membership.role });
