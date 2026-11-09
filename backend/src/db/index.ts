@@ -128,6 +128,9 @@ export const memberQueries = {
   findMembership: db.prepare<[number, number], OrganizationMember>(
     "SELECT * FROM organization_members WHERE organization_id = ? AND user_id = ?",
   ),
+  findActiveMembership: db.prepare<[number, number], OrganizationMember>(
+    "SELECT * FROM organization_members WHERE organization_id = ? AND user_id = ? AND is_banned = 0",
+  ),
   listByOrganization: db.prepare<[number], OrganizationMember>(`
     SELECT om.*, u.username, u.email FROM organization_members om
     JOIN users u ON om.user_id = u.id
