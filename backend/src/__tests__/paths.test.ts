@@ -4,7 +4,9 @@ import path from "path";
 import {
   getUniqueFilePath,
   getOrgDocumentsPath,
+  resolveOrgPath,
   sanitizeFilename,
+  writeFileNoFollow,
 } from "../routes/documents/helpers/paths.js";
 
 const created: string[] = [];
@@ -63,5 +65,33 @@ describe("sanitizeFilename", () => {
   it("preserves internal dots and leading dots", () => {
     expect(sanitizeFilename("a.b.")).toBe("a.b");
     expect(sanitizeFilename(".hidden")).toBe(".hidden");
+  });
+});
+
+describe("resolveOrgPath", () => {
+  it("rejects traversal outside the organization root", async () => {
+    await expect(resolveOrgPath("../../outside.md", 9003)).rejects.toThrow(
+      "Path escapes organization directory",
+    );
+  });
+
+  it("rejects symlink destinations for reads and writes", async () => {
+    const orgId = 9004;
+    const orgPath = getOrgDocumentsPath(orgId);
+    const sentinelPath = path.join(path.dirname(orgPath), "outside-sentinel.txt");
+    const symlinkPath = path.join(orgPath, "linked.md");
+    fs.mkdirSync(orgPath, { recursive: true });
+    fs.writeFileSync(sentinelPath, "unchanged");
+    fs.symlinkSync(sentinelPath, symlinkPath);
+    created.push(orgPath);
+
+    await expect(resolveOrgPath("/linked.md", orgId)).rejects.toThrow(
+      "Symbolic links are not allowed",
+    );
+    await expect(writeFileNoFollow(symlinkPath, "changed")).rejects.toThrow(
+      "Symbolic link destinations are not allowed",
+    );
+    expect(fs.readFileSync(sentinelPath, "utf-8")).toBe("unchanged");
+    fs.unlinkSync(sentinelPath);
   });
 });

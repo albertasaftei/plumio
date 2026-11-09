@@ -19,27 +19,6 @@ export function hasAllowedExtension(fileName: string): boolean {
   return ALLOWED_EXTENSIONS.includes(ext);
 }
 
-// Recursively collect ALL .md files under a directory (including archived/deleted)
-export async function collectAllMdFiles(dir: string): Promise<string[]> {
-  const files: string[] = [];
-  try {
-    const items = await fs.readdir(dir, { withFileTypes: true });
-    for (const item of items) {
-      if (item.name.startsWith(".") || item.name.endsWith(".meta.json"))
-        continue;
-      const fullItemPath = path.join(dir, item.name);
-      if (item.isDirectory()) {
-        files.push(...(await collectAllMdFiles(fullItemPath)));
-      } else if (item.name.endsWith(".md")) {
-        files.push(fullItemPath);
-      }
-    }
-  } catch {
-    // ignore read errors
-  }
-  return files;
-}
-
 // Recursively collect all active .md files under a directory (ignores archived/deleted/hidden)
 export async function collectMdFilesRecursively(
   dir: string,
@@ -54,6 +33,7 @@ export async function collectMdFilesRecursively(
       if (item.isDirectory()) {
         files.push(...(await collectMdFilesRecursively(fullItemPath)));
       } else if (
+        item.isFile() &&
         item.name.endsWith(".md") &&
         !item.name.includes(".archived-") &&
         !item.name.includes(".deleted-")
@@ -65,42 +45,6 @@ export async function collectMdFilesRecursively(
     // ignore read errors
   }
   return files;
-}
-
-// Recursively remove hidden files, folders, and files with invalid extensions
-export async function cleanupInvalidFiles(dirPath: string): Promise<void> {
-  try {
-    const items = await fs.readdir(dirPath, { withFileTypes: true });
-
-    for (const item of items) {
-      const itemPath = path.join(dirPath, item.name);
-
-      // Check if item is hidden (starts with .)
-      if (item.name.startsWith(".")) {
-        // Remove hidden file or directory
-        if (item.isDirectory()) {
-          await fs.rm(itemPath, { recursive: true, force: true });
-        } else {
-          await fs.unlink(itemPath);
-        }
-        console.log(`Removed hidden item: ${item.name}`);
-      } else if (item.isDirectory()) {
-        // Never touch the attachments directory created by the attachments feature
-        if (item.name === "attachments") continue;
-
-        // Recursively clean subdirectories
-        await cleanupInvalidFiles(itemPath);
-      } else {
-        if (!hasAllowedExtension(item.name)) {
-          await fs.unlink(itemPath);
-          console.log(`Removed file with invalid extension: ${item.name}`);
-        }
-      }
-    }
-  } catch (error) {
-    console.error("Error cleaning invalid files:", error);
-    // Don't throw - allow import to continue even if cleanup fails
-  }
 }
 
 // Delete all attachment files and DB records for a given document path
