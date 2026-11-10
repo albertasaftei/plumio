@@ -1,3 +1,4 @@
+import { parseSearchQuery } from "../../utils/search-query";
 // Demo API client - mocks backend API using localStorage
 
 import {
@@ -528,38 +529,32 @@ export const demoClient = {
 
   async searchDocuments(query: string) {
     await ensureReady();
-    const docs = getDemoDocuments().filter((d) => !d.deleted && !d.archived);
-    const lower = query.toLowerCase();
-
-    const results = docs
-      .filter(
-        (d) =>
-          d.content?.toLowerCase().includes(lower) ||
-          d.path.toLowerCase().includes(lower),
-      )
+    const parsed = parseSearchQuery(query);
+    const tokens = parsed.text.replace(/['"*]/g, "").toLowerCase().split(/\s+/).filter(Boolean);
+    if (!tokens.length && !parsed.tags.length) return { results: [] };
+    const tags = getDemoTags();
+    const mappings = getDemoTagMappings();
+    const tagIds = parsed.tags.map((name) => tags.find((tag) => tag.name === name)?.id);
+    if (tagIds.some((id) => id === undefined)) return { results: [] };
+    const escapeHtml = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const results = getDemoDocuments()
+      .filter((d) => !d.deleted && !d.archived)
+      .filter((d) => tagIds.every((id) => (mappings[d.path] || []).includes(id!)))
+      .filter((d) => !tokens.length || tokens.some((token) =>
+        `${d.path} ${d.content || ""}`.toLowerCase().includes(token)))
+      .sort((a, b) => tokens.length ? 0 : (b.modified || "").localeCompare(a.modified || "") || a.path.localeCompare(b.path))
       .map((d) => {
-        // Build a simple snippet around the first match
-        const rawContent = d.content || "";
-        const escapedQuery = lower.replace(/[&<>"']/g, "");
-        const idx = rawContent.toLowerCase().indexOf(lower);
+        const content = d.content || "";
+        const lower = content.toLowerCase();
+        const token = tokens.find((token) => lower.includes(token));
         let snippet = "";
-        if (idx !== -1) {
-          const start = Math.max(0, idx - 60);
-          const end = Math.min(rawContent.length, idx + lower.length + 60);
-          // Escape HTML in the slice before inserting mark tags
-          const rawSlice = rawContent.slice(start, end);
-          const escapedSlice = rawSlice
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-          const highlighted = escapedSlice.replace(
-            new RegExp(escapedQuery, "gi"),
-            (m) => `<mark>${m}</mark>`,
-          );
-          snippet =
-            (start > 0 ? "..." : "") +
-            highlighted +
-            (end < rawContent.length ? "..." : "");
+        if (token) {
+          const index = lower.indexOf(token);
+          const start = Math.max(0, index - 60);
+          const end = Math.min(content.length, index + token.length + 60);
+          snippet = (start ? "..." : "") + escapeHtml(content.slice(start, index))
+            + "<mark>" + escapeHtml(content.slice(index, index + token.length)) + "</mark>"
+            + escapeHtml(content.slice(index + token.length, end)) + (end < content.length ? "..." : "");
         }
         return {
           path: d.path,

@@ -4,7 +4,7 @@ import { useNavigate } from "@solidjs/router";
 import { api } from "~/lib/api";
 import { routes } from "~/routes";
 import type { Tag } from "~/types/Tag.types";
-import { useAppLayout } from "~/components/AppLayout";
+import { useAppLayout } from "~/lib/appLayoutContext";
 
 export default function HomePageRoute() {
   const navigate = useNavigate();

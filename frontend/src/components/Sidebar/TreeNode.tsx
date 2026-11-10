@@ -252,7 +252,7 @@ export default function TreeNode(props: TreeNodeProps) {
           </Show>
 
           <div
-            class="flex items-center gap-1 transition-opacity opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+            class="flex items-center gap-1 transition-opacity opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100"
             classList={{
               "lg:!opacity-100": props.openMenuPath() === props.node.path,
             }}

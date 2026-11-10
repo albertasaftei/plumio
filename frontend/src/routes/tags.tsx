@@ -1,5 +1,6 @@
+import { tagSearchHref } from "~/utils/search-query";
 import { createSignal, For, Show, onMount } from "solid-js";
-import { useNavigate } from "@solidjs/router";
+import { A, useNavigate } from "@solidjs/router";
 import { api } from "~/lib/api";
 import Button from "~/components/Button";
 import AlertDialog from "~/components/AlertDialog";
@@ -164,9 +165,9 @@ export default function TagsPage() {
                     }}
                   />
                   <div class="min-w-0 flex-1">
-                    <p class="text-body font-medium truncate mb-1">
+                    <A href={tagSearchHref(tag.name)} class="block text-body font-medium truncate mb-1 hover:underline focus-ring rounded-sm">
                       {tag.name}
-                    </p>
+                    </A>
                     <Show when={tag.description}>
                       <p class="text-xs text-muted-body truncate">
                         {tag.description}
@@ -177,10 +178,10 @@ export default function TagsPage() {
 
                 <div class="flex items-center gap-3 w-full sm:w-auto">
                   {/* Document count */}
-                  <div class="flex items-center gap-1 text-sm text-muted-body mr-auto sm:mr-0">
+                  <A href={tagSearchHref(tag.name)} aria-label={t("search.viewTag", { tag: tag.name })} class="flex items-center gap-1 text-sm text-muted-body mr-auto sm:mr-0 hover:underline focus-ring rounded-sm">
                     <div class="i-carbon-document w-4 h-4" />
                     <span class="tabular-nums">{tag.document_count}</span>
-                  </div>
+                  </A>
 
                   <Button
                     onClick={() => openEdit(tag)}

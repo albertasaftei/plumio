@@ -6,7 +6,7 @@ import AlertDialog from "~/components/AlertDialog";
 import DocumentListPage from "~/components/DocumentListPage";
 import { routes } from "~/routes";
 import { getDisplayName } from "~/utils/document.utils";
-import { useAppLayout } from "~/components/AppLayout";
+import { useAppLayout } from "~/lib/appLayoutContext";
 import { formatDayRelativeDate } from "~/utils/date.utils";
 import { useI18n } from "~/i18n";
 

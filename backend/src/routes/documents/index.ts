@@ -28,6 +28,8 @@ import {
   InvalidImportArchiveError,
   MAX_IMPORT_COMPRESSED_BYTES,
 } from "./helpers/import.js";
+import { parseSearchQuery, SearchQueryError } from "./helpers/search-query.js";
+import type { AuthContext } from "../../middlewares/auth.types.js";
 import { escapeHtmlForFts } from "./helpers/fts.js";
 import {
   collectMdFilesRecursively,
@@ -1128,17 +1130,17 @@ documentsRouter.get(
         return c.json({ error: "No organization context" }, 400);
       }
 
-      // Search using SQLite FTS5 with snippets
-      const sanitizedQuery = query.trim().replace(/['"*]/g, "");
-      const tokens = sanitizedQuery.split(/\s+/).filter(Boolean);
-      if (tokens.length === 0) {
-        return c.json({ results: [] });
+      const parsed = parseSearchQuery(query);
+      const auth = c.get("user") as AuthContext;
+      if (parsed.tags.length && auth.isApiKey && !auth.permissions.includes("tags:read")) {
+        return c.json({ error: "API key requires the 'tags:read' permission" }, 403);
       }
+      const sanitizedQuery = parsed.text.trim().replace(/['"*]/g, "");
+      const tokens = sanitizedQuery.split(/\s+/).filter(Boolean);
+      if (!tokens.length && !parsed.tags.length) return c.json({ results: [] });
       const ftsQuery = tokens.map((token) => `"${token}"*`).join(" OR ");
-
-      const results = documentQueries.searchWithSnippets.all(
-        organizationId,
-        ftsQuery,
+      const results = documentQueries.searchFiltered(
+        organizationId, user.userId, parsed.tags, ftsQuery,
       );
 
       return c.json({
@@ -1152,6 +1154,9 @@ documentsRouter.get(
         })),
       });
     } catch (error) {
+      if (error instanceof SearchQueryError) {
+        return c.json({ error: error.message, code: error.code }, 400);
+      }
       console.error("Error searching documents:", error);
       return c.json({ error: "Search failed" }, 500);
     }

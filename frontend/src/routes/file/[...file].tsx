@@ -17,7 +17,7 @@ import Button from "~/components/Button";
 import { routes } from "~/routes";
 import DocumentTagBar from "~/components/DocumentTagBar";
 import { getVimMode } from "~/lib/editorPreferences";
-import { useAppLayout } from "~/components/AppLayout";
+import { useAppLayout } from "~/lib/appLayoutContext";
 import type { Tag } from "~/types/Tag.types";
 
 const MarkdownEditor = lazy(() => import("~/components/MarkdownEditor"));

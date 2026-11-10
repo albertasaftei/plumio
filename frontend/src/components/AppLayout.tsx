@@ -3,66 +3,25 @@ import {
   onMount,
   Show,
   ParentComponent,
-  createContext,
-  useContext,
   createMemo,
 } from "solid-js";
 import { useNavigate, useLocation } from "@solidjs/router";
 import Sidebar from "~/components/Sidebar";
 import AlertDialog from "~/components/AlertDialog";
 import Toast from "~/components/Toast";
-import { api, type Document } from "~/lib/api";
+import { api } from "~/lib/api";
 import { syncThemeFromServer } from "~/lib/theme";
 import { isMobileOrTablet } from "~/utils/device.utils";
 import { routes } from "~/routes";
 import { createDocumentStore } from "~/lib/documentStore";
 import { prefetchDocuments } from "~/lib/prefetchDocuments";
+import { AppLayoutContext } from "~/lib/appLayoutContext";
+export { useAppLayout } from "~/lib/appLayoutContext";
 
 const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 
-export interface AppLayoutContext {
-  allDocuments: () => Document[];
-  loadAllDocuments: () => Promise<void>;
-  expandedFolders: () => Set<string>;
-  toggleExpandFolder: (path: string) => void;
-  sidebarOpen: () => boolean;
-  setSidebarOpen: (open: boolean) => void;
-  // Document creation
-  createDocument: (name: string, folderPath?: string) => Promise<string>;
-  createFolder: (name: string, parentPath?: string) => Promise<void>;
-  // Mutations
-  deleteItem: (path: string) => void;
-  bulkDelete: (paths: string[]) => Promise<void>;
-  archiveItem: (path: string) => Promise<void>;
-  renameItem: (oldPath: string, newName: string) => Promise<void>;
-  moveItem: (
-    sourcePath: string,
-    destinationFolder: string,
-    targetOrgId?: number,
-    keepSource?: boolean,
-  ) => Promise<void>;
-  reorderItem: (
-    sourcePath: string,
-    targetPath: string,
-    operation: "reorder-before" | "reorder-after" | "make-child",
-  ) => Promise<void>;
-  toggleFavorite: (path: string, favorite: boolean) => Promise<void>;
-  setItemColor: (path: string, color: string | null) => Promise<void>;
-  duplicateItem: (path: string) => Promise<void>;
-}
-
 interface AppLayoutProps {
   showSidebar?: boolean;
-}
-
-const AppLayoutContext = createContext<AppLayoutContext>();
-
-export function useAppLayout() {
-  const context = useContext(AppLayoutContext);
-  if (!context) {
-    throw new Error("useAppLayout must be used within AppLayout");
-  }
-  return context;
 }
 
 export const AppLayout: ParentComponent<AppLayoutProps> = (props) => {

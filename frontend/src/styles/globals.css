@@ -162,6 +162,12 @@
   outline: none;
 }
 
+/* Keep keyboard navigation visible without changing pointer interactions. */
+:is(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 /* ─── Focus Ring ─────────────────────────────────────────────── */
 .focus-ring:focus-visible {
   outline: none;

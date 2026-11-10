@@ -232,6 +232,34 @@ export const documentQueries = {
     WHERE d.organization_id = ? AND d.archived = 0 AND documents_fts MATCH ?
     ORDER BY rank
   `),
+  searchFiltered: (organizationId: number, userId: number, tags: string[], ftsQuery: string) => {
+    const params: (string | number)[] = [organizationId];
+    const predicates = tags.map((name) => {
+      params.push(userId, organizationId, name);
+      return `EXISTS (
+        SELECT 1 FROM document_tags dt JOIN tags t ON t.id = dt.tag_id
+        WHERE dt.document_id = d.id AND t.user_id = ? AND t.organization_id = ? AND t.name = ?
+      )`;
+    });
+    if (ftsQuery) params.push(ftsQuery);
+    return db.prepare<(string | number)[], {
+      path: string;
+      title: string;
+      color: string | null;
+      updated_at: string;
+      size: number;
+      snippet: string;
+    }>(`
+      SELECT d.path, d.title, d.color, d.updated_at, d.size,
+        ${ftsQuery ? "snippet(documents_fts, 2, '<mark>', '</mark>', '...', 20)" : "''"} AS snippet
+      FROM documents d
+      ${ftsQuery ? "JOIN documents_fts ON documents_fts.rowid = d.id" : ""}
+      WHERE d.organization_id = ? AND d.archived = 0 AND (d.deleted = 0 OR d.deleted IS NULL)
+      ${predicates.map((predicate) => `AND ${predicate}`).join("\n")}
+      ${ftsQuery ? "AND documents_fts MATCH ?" : ""}
+      ORDER BY ${ftsQuery ? "rank" : "d.updated_at DESC, d.path ASC"}
+    `).all(...params);
+  },
   searchWithSnippets: db.prepare<
     [number, string],
     {

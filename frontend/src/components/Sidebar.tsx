@@ -6,7 +6,7 @@ import MoveDialog from "./MoveDialog";
 import { ResizableContainer } from "./ResizableContainer";
 import { useLocation, useNavigate } from "@solidjs/router";
 import { api } from "~/lib/api";
-import { useAppLayout } from "~/components/AppLayout";
+import { useAppLayout } from "~/lib/appLayoutContext";
 import type { SidebarProps } from "~/types/Sidebar.types";
 import { getDisplayName } from "~/utils/document.utils";
 import { isMobileOrTablet } from "~/utils/device.utils";

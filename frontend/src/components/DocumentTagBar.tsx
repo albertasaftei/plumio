@@ -1,3 +1,5 @@
+import { A } from "@solidjs/router";
+import { tagSearchHref } from "~/utils/search-query";
 import { createSignal, createEffect, For, Show } from "solid-js";
 import { Popover } from "@kobalte/core/popover";
 import { api } from "~/lib/api";
@@ -107,7 +109,7 @@ export default function DocumentTagBar(props: DocumentTagBarProps) {
                 "background-color": tag.color || "var(--color-text-muted)",
               }}
             />
-            {tag.name}
+            <A href={tagSearchHref(tag.name)} class="rounded-sm hover:underline focus-ring">{tag.name}</A>
             <button
               onClick={() => removeTag(tag.id)}
               class="ml-0.5 hover:opacity-70 cursor-pointer"
