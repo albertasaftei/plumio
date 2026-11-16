@@ -21,6 +21,7 @@ import {
   type MermaidPreviewOpenDetail,
 } from "~/utils/milkdown/mermaidPlugin";
 import { pdfImagePlugin } from "~/utils/milkdown/pdfImagePlugin";
+import { sortTable } from "~/utils/milkdown/sortTable";
 import LinkPopup from "./LinkPopup";
 import { api } from "~/lib/api";
 import AttachmentPanel from "./AttachmentPanel";
@@ -668,6 +669,11 @@ export default function MarkdownEditor(props: EditorProps) {
             const { addRowBeforeCommand } =
               await import("@milkdown/preset-gfm");
             callCommand(addRowBeforeCommand.key)(ctx);
+            break;
+          }
+          case "sortTableAscending":
+          case "sortTableDescending": {
+            sortTable(view, command === "sortTableAscending" ? "asc" : "desc");
             break;
           }
           case "addRowAfter": {

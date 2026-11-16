@@ -107,7 +107,11 @@ const ToolbarButton: Component<ToolbarButtonProps> = (props) => {
             : "text-secondary-body hover:text-body hover:bg-elevated active:bg-elevated"
       } ${props.class || ""}`}
       title={props.title}
+      aria-label={props.title}
       onMouseDown={handleMouseDown}
+      onClick={(event) => {
+        if (event.detail === 0) props.onClick();
+      }}
     >
       {props.label ? (
         <span class="text-xs font-bold leading-none">{props.label}</span>
@@ -581,6 +585,16 @@ export default function EditorToolbar(props: ToolbarProps) {
       <Show when={s().inTable}>
         <ToolbarDivider />
 
+        <ToolbarButton
+          icon="i-carbon-sort-ascending"
+          title="Sort Column Ascending"
+          onClick={() => props.onCommand("sortTableAscending")}
+        />
+        <ToolbarButton
+          icon="i-carbon-sort-descending"
+          title="Sort Column Descending"
+          onClick={() => props.onCommand("sortTableDescending")}
+        />
         <ToolbarButton
           label="+↓"
           title="Add Row Below"
