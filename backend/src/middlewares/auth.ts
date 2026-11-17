@@ -46,7 +46,17 @@ export async function verifyToken(
       return null;
     }
 
-    return payload;
+    const orgId = payload.currentOrgId;
+    const membership =
+      typeof orgId === "number" && Number.isInteger(orgId)
+        ? memberQueries.findActiveMembership.get(orgId, payload.userId)
+        : undefined;
+    if (!membership) {
+      sessionQueries.deleteByToken.run(token);
+      return null;
+    }
+
+    return { ...payload, orgRole: membership.role };
   } catch {
     return null;
   }
