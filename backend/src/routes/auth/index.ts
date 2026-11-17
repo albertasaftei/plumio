@@ -308,6 +308,10 @@ authRouter.put("/profile", authMiddleware, async (c) => {
       return c.json({ error: z.treeifyError(parsed.error) }, 400);
     }
 
+    if (user.currentOrgId == null) {
+      return c.json({ error: "No active organization" }, 400);
+    }
+
     const { username } = parsed.data;
 
     // Check if username is already taken by another user
@@ -343,7 +347,7 @@ authRouter.put("/profile", authMiddleware, async (c) => {
         session.id,
         user.userId,
         newToken,
-        user.currentOrgId ?? null,
+        user.currentOrgId,
         expiresAt,
       );
     }

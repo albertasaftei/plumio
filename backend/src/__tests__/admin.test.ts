@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { request, setupAdmin } from "./helpers.js";
-import { settingsQueries } from "../db/index.js";
+import {
+  memberQueries,
+  sessionQueries,
+  settingsQueries,
+  userQueries,
+} from "../db/index.js";
 
 let adminToken: string;
 
@@ -8,7 +13,6 @@ beforeAll(async () => {
   const admin = await setupAdmin();
   adminToken = admin.token;
   // The setup endpoint doesn't set is_admin=1 — set it directly in DB
-  const { userQueries } = await import("../db/index.js");
   userQueries.setAdmin.run(1, 1); // userId 1 = admin
 
   // Re-login to get a token with isAdmin: true
@@ -457,6 +461,53 @@ describe("Admin API", () => {
         );
         expect(cleanupRes.status).toBe(200);
       });
+    });
+
+    it("requires a fresh session when a global admin loses current-org membership", async () => {
+      sessionQueries.deleteByUserId.run(secondUserId);
+      memberQueries.remove.run(adminOrgId, secondUserId);
+      userQueries.setAdmin.run(1, secondUserId);
+
+      try {
+        memberQueries.add.run(adminOrgId, secondUserId, "member");
+
+        const loginRes = await request("POST", "/api/auth/login", {
+          body: { username: "orgTestUser", password: "password123" },
+        });
+        const { token: personalToken } = await loginRes.json();
+        const switchRes = await request(
+          "POST",
+          `/api/organizations/${adminOrgId}/switch`,
+          { token: personalToken },
+        );
+        expect(switchRes.status).toBe(200);
+        const { token: scopedToken } = await switchRes.json();
+
+        const removeRes = await request(
+          "DELETE",
+          `/api/auth/admin/users/${secondUserId}/organizations/${adminOrgId}`,
+          { token: adminToken },
+        );
+        expect(removeRes.status).toBe(200);
+
+        const staleRes = await request("GET", "/api/auth/admin/users", {
+          token: scopedToken,
+        });
+        expect(staleRes.status).toBe(401);
+
+        const freshLoginRes = await request("POST", "/api/auth/login", {
+          body: { username: "orgTestUser", password: "password123" },
+        });
+        const { token: freshToken } = await freshLoginRes.json();
+        const freshRes = await request("GET", "/api/auth/admin/users", {
+          token: freshToken,
+        });
+        expect(freshRes.status).toBe(200);
+      } finally {
+        sessionQueries.deleteByUserId.run(secondUserId);
+        memberQueries.remove.run(adminOrgId, secondUserId);
+        userQueries.setAdmin.run(0, secondUserId);
+      }
     });
   });
 });

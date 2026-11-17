@@ -46,19 +46,17 @@ export async function verifyToken(
       return null;
     }
 
-    if (
-      typeof payload.currentOrgId !== "number" ||
-      !Number.isInteger(payload.currentOrgId) ||
-      !memberQueries.findActiveMembership.get(
-        payload.currentOrgId,
-        payload.userId,
-      )
-    ) {
+    const orgId = payload.currentOrgId;
+    const membership =
+      typeof orgId === "number" && Number.isInteger(orgId)
+        ? memberQueries.findActiveMembership.get(orgId, payload.userId)
+        : undefined;
+    if (!membership) {
       sessionQueries.deleteByToken.run(token);
       return null;
     }
 
-    return payload;
+    return { ...payload, orgRole: membership.role };
   } catch {
     return null;
   }
