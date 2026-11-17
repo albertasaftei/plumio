@@ -471,9 +471,12 @@ organizationsRouter.delete("/:id/members/:userId", async (c) => {
       return c.json({ error: "Cannot remove the organization owner" }, 403);
     }
 
-    memberQueries.remove.run(orgId, targetUserId);
-    // Also remove any join requests for this user in this org
-    joinRequestQueries.deleteByOrgAndUser.run(orgId, targetUserId);
+    db.transaction(() => {
+      memberQueries.remove.run(orgId, targetUserId);
+      sessionQueries.deleteByUserAndOrg.run(targetUserId, orgId);
+      // Also remove any join requests for this user in this org
+      joinRequestQueries.deleteByOrgAndUser.run(orgId, targetUserId);
+    })();
 
     return c.json({ message: "Member removed successfully" });
   } catch (error) {

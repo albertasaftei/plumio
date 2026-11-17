@@ -4,6 +4,7 @@ import {
   userQueries,
   organizationQueries,
   memberQueries,
+  db,
   settingsQueries,
   sessionQueries,
 } from "../../db/index.js";
@@ -370,7 +371,10 @@ adminRouter.delete("/users/:id/organizations/:orgId", (c) => {
       );
     }
 
-    memberQueries.remove.run(orgId, userId);
+    db.transaction(() => {
+      memberQueries.remove.run(orgId, userId);
+      sessionQueries.deleteByUserAndOrg.run(userId, orgId);
+    })();
     return c.json({ message: "User removed from organization successfully" });
   } catch (error) {
     console.error("Error removing user from organization:", error);

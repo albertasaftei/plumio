@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { request, setupAdmin, registerAndLogin } from "./helpers.js";
+import { memberQueries, sessionQueries } from "../db/index.js";
 
 let adminToken: string;
 let adminOrgId: number;
@@ -118,13 +119,72 @@ describe("Organizations API", () => {
       expect(res.status).toBe(403);
     });
 
+    it("rejects a token after membership disappears while its session exists", async () => {
+      const staleToken = memberToken;
+      memberQueries.remove.run(adminOrgId, memberUserId);
+      expect(sessionQueries.findByToken.get(staleToken)).toBeDefined();
+
+      const res = await request("GET", "/api/documents/list?path=/", {
+        token: staleToken,
+      });
+      expect(res.status).toBe(401);
+
+      const addRes = await request(
+        "POST",
+        `/api/organizations/${adminOrgId}/members`,
+        {
+          token: adminToken,
+          body: { username: "orgmember", role: "member" },
+        },
+      );
+      expect(addRes.status).toBe(200);
+
+      const staleRes = await request("GET", "/api/documents/list?path=/", {
+        token: staleToken,
+      });
+      expect(staleRes.status).toBe(401);
+
+      const loginRes = await request("POST", "/api/auth/login", {
+        body: { username: "orgmember", password: "password123" },
+      });
+      const { token } = await loginRes.json();
+      const switchRes = await request(
+        "POST",
+        `/api/organizations/${adminOrgId}/switch`,
+        { token },
+      );
+      expect(switchRes.status).toBe(200);
+      memberToken = (await switchRes.json()).token;
+    });
+
     it("removes a member from the org", async () => {
+      const staleToken = memberToken;
       const res = await request(
         "DELETE",
         `/api/organizations/${adminOrgId}/members/${memberUserId}`,
         { token: adminToken },
       );
       expect(res.status).toBe(200);
+
+      const staleRes = await request("GET", "/api/documents/list?path=/", {
+        token: staleToken,
+      });
+      expect(staleRes.status).toBe(401);
+
+      const addRes = await request(
+        "POST",
+        `/api/organizations/${adminOrgId}/members`,
+        {
+          token: adminToken,
+          body: { username: "orgmember", role: "member" },
+        },
+      );
+      expect(addRes.status).toBe(200);
+
+      const readdedRes = await request("GET", "/api/documents/list?path=/", {
+        token: staleToken,
+      });
+      expect(readdedRes.status).toBe(401);
     });
   });
 });

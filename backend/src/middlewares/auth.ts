@@ -46,6 +46,18 @@ export async function verifyToken(
       return null;
     }
 
+    if (
+      typeof payload.currentOrgId !== "number" ||
+      !Number.isInteger(payload.currentOrgId) ||
+      !memberQueries.findActiveMembership.get(
+        payload.currentOrgId,
+        payload.userId,
+      )
+    ) {
+      sessionQueries.deleteByToken.run(token);
+      return null;
+    }
+
     return payload;
   } catch {
     return null;

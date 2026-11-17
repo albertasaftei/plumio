@@ -395,6 +395,68 @@ describe("Admin API", () => {
         );
         expect(res.status).toBe(404);
       });
+
+      it("revokes the removed user's org session", async () => {
+        const addRes = await request(
+          "POST",
+          `/api/auth/admin/users/${secondUserId}/organizations`,
+          {
+            token: adminToken,
+            body: { orgId: adminOrgId, role: "member" },
+          },
+        );
+        expect(addRes.status).toBe(200);
+
+        const loginRes = await request("POST", "/api/auth/login", {
+          body: { username: "orgTestUser", password: "password123" },
+        });
+        const { token } = await loginRes.json();
+        const switchRes = await request(
+          "POST",
+          `/api/organizations/${adminOrgId}/switch`,
+          { token },
+        );
+        expect(switchRes.status).toBe(200);
+        const scopedToken = (await switchRes.json()).token;
+
+        const removeRes = await request(
+          "DELETE",
+          `/api/auth/admin/users/${secondUserId}/organizations/${adminOrgId}`,
+          { token: adminToken },
+        );
+        expect(removeRes.status).toBe(200);
+
+        const rejectedRes = await request(
+          "GET",
+          "/api/documents/list?path=/",
+          { token: scopedToken },
+        );
+        expect(rejectedRes.status).toBe(401);
+
+        const readdRes = await request(
+          "POST",
+          `/api/auth/admin/users/${secondUserId}/organizations`,
+          {
+            token: adminToken,
+            body: { orgId: adminOrgId, role: "member" },
+          },
+        );
+        expect(readdRes.status).toBe(200);
+
+        const stillRejectedRes = await request(
+          "GET",
+          "/api/documents/list?path=/",
+          { token: scopedToken },
+        );
+        expect(stillRejectedRes.status).toBe(401);
+
+        const cleanupRes = await request(
+          "DELETE",
+          `/api/auth/admin/users/${secondUserId}/organizations/${adminOrgId}`,
+          { token: adminToken },
+        );
+        expect(cleanupRes.status).toBe(200);
+      });
     });
   });
 });
